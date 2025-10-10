@@ -35,6 +35,12 @@ export default function SubmitPage() {
         const mod = await import("../../lib/posthog.client");
         const ph = await mod.initPosthog();
         ph?.capture?.("feedback_submitted");
+        
+        // Reset form and show success
+        setProjectId("");
+        setText("");
+        setMetadata("{}");
+        setResponse("Success! View your feedback in the inbox.");
       }
     } catch (error) {
       setResponse(`Error: ${error}`);
@@ -112,9 +118,15 @@ export default function SubmitPage() {
       {response && (
         <div className="mt-6">
           <h3 className="text-lg font-medium text-gray-900 mb-2">Response:</h3>
-          <pre className="bg-gray-100 p-3 rounded-md text-sm overflow-x-auto">
-            {response}
-          </pre>
+          {response === "Success! View your feedback in the inbox." ? (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              {response} <a href="/inbox" className="underline font-medium">Go to inbox</a>
+            </div>
+          ) : (
+            <pre className="bg-gray-100 p-3 rounded-md text-sm overflow-x-auto">
+              {response}
+            </pre>
+          )}
         </div>
       )}
     </div>
