@@ -10,6 +10,14 @@ export default function Page() {
           <a className="link" href="/inbox">/inbox</a> to view it.
         </p>
       </Card>
+      
+      <Card>
+        <CardTitle>API Documentation</CardTitle>
+        <p className="muted">
+          View the complete API reference at{" "}
+          <a className="link" href="/api/docs">/api/docs</a> for integration details.
+        </p>
+      </Card>
     </div>
   );
 }
