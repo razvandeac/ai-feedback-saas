@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/app/../lib/supabaseClient";
-import { hmacHex, safeEqualHex } from "@/lib/hmac";
+import { supabase } from "../../../../lib/supabaseClient";
+import { hmacHex, safeEqualHex } from "../../../../lib/hmac";
 
 type Payload = { project_id: string; text: string; metadata?: Record<string, unknown> };
 
