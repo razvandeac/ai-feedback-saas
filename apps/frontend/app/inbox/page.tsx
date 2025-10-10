@@ -1,46 +1,33 @@
 import { supabase } from "../../lib/supabaseClient";
+import { Card, CardTitle } from "../../components/ui/Card";
 
 export const dynamic = "force-dynamic";
 
-export default async function InboxPage() {
+async function load() {
   const { data, error } = await supabase
     .from("feedback")
     .select("id,text,metadata,created_at")
     .order("created_at", { ascending: false })
     .limit(20);
+  return { data: data ?? [], error };
+}
 
-  if (error) {
-    return (
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Inbox</h1>
-        <div className="text-red-600">Error loading feedback: {error.message}</div>
-      </div>
-    );
-  }
-
+export default async function InboxPage() {
+  const { data, error } = await load();
+  if (error) return <div style={{color:"crimson"}}>Error: {error.message}</div>;
+  if (!data.length) return <div>No feedback yet. Submit one via <a href="/submit">/submit</a>.</div>;
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Inbox</h1>
-      <div className="space-y-4">
-        {data?.map((feedback) => (
-          <div key={feedback.id} className="border rounded-lg p-4 bg-white shadow-sm">
-            <div className="text-sm text-gray-500 mb-2">
-              {new Date(feedback.created_at).toLocaleString()}
-            </div>
-            <div className="text-gray-900 mb-2">{feedback.text}</div>
-            <div className="text-xs text-gray-600">
-              <pre className="whitespace-pre-wrap">
-                {JSON.stringify(feedback.metadata, null, 2)}
-              </pre>
-            </div>
-          </div>
-        ))}
-        {data?.length === 0 && (
-          <div className="text-gray-500 text-center py-8">
-            No feedback entries found.
-          </div>
-        )}
-      </div>
+    <div style={{display:"grid",gap:12}}>
+      <h2>Inbox (latest 20)</h2>
+      {data.map(r => (
+        <Card key={r.id}>
+          <CardTitle>{new Date(r.created_at).toLocaleString()}</CardTitle>
+          <div>{r.text}</div>
+          <pre style={{marginTop:8,background:"#fafafa",padding:8}}>
+            {JSON.stringify(r.metadata, null, 2)}
+          </pre>
+        </Card>
+      ))}
     </div>
   );
 }
