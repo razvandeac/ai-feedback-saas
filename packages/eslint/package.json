@@ -5,7 +5,7 @@
   "main": "./index.js",
   "scripts": {
     "build": "echo \"No build needed\"",
-    "dev": "echo \"No dev needed\"",
+    "dev": "echo \"ESLint package - no dev server needed\"",
     "lint": "echo \"No lint needed\"",
     "test": "echo \"No tests yet\""
   },

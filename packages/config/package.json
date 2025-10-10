@@ -6,8 +6,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "eslint src/",
+    "dev": "echo \"Config package - no dev server needed\"",
+    "lint": "echo \"No linting configured yet\"",
     "test": "echo \"No tests yet\""
   },
   "devDependencies": {
