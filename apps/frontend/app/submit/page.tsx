@@ -29,6 +29,13 @@ export default function SubmitPage() {
       
       const data = await res.text();
       setResponse(`${res.status}: ${data}`);
+      
+      // Track successful submission
+      if (res.status === 200) {
+        const mod = await import("../../lib/posthog.client");
+        const ph = await mod.initPosthog();
+        ph?.capture?.("feedback_submitted");
+      }
     } catch (error) {
       setResponse(`Error: ${error}`);
     } finally {
