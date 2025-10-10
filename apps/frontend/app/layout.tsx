@@ -1,32 +1,22 @@
 import "../lib/posthog.client";
-import type { Metadata } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "PulseAI Feedback",
-  description: "AI-powered feedback platform",
-};
+export const metadata = { title: "PulseAI Feedback" };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        <header className="border-b border-gray-200 bg-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <h1 className="text-xl font-semibold text-gray-900">
-                PulseAI Feedback
-              </h1>
-            </div>
-          </div>
+      <body style={{ background:"#fafafa" }}>
+        <header style={{padding:"12px 16px",borderBottom:"1px solid #eee",background:"#fff"}}>
+          <strong>PulseAI Feedback</strong>
+          <nav style={{display:"inline-flex",gap:12,marginLeft:16}}>
+            <a href="/" style={{textDecoration:"none"}}>Home</a>
+            <a href="/submit" style={{textDecoration:"none"}}>/submit</a>
+            <a href="/inbox" style={{textDecoration:"none"}}>/inbox</a>
+            <a href="/health" style={{textDecoration:"none"}}>/health</a>
+          </nav>
         </header>
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </main>
+        <main style={{padding:16,maxWidth:960,margin:"0 auto"}}>{children}</main>
       </body>
     </html>
   );
