@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
 
 export function Card({ children }: { children: ReactNode }) {
-  return <div style={{padding:12,border:"1px solid #eee",borderRadius:8,background:"#fff"}}>{children}</div>;
+  return <div className="card p-4 md:p-5">{children}</div>;
 }
 
 export function CardTitle({ children }: { children: ReactNode }) {
-  return <div style={{fontWeight:600,marginBottom:8}}>{children}</div>;
+  return <div className="card-title mb-2">{children}</div>;
 }

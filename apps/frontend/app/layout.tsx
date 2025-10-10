@@ -1,22 +1,30 @@
 import "../lib/posthog.client";
 import "./globals.css";
+import { ThemeToggle } from "../components/theme/Toggle";
 
 export const metadata = { title: "PulseAI Feedback" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ background:"#fafafa" }}>
-        <header style={{padding:"12px 16px",borderBottom:"1px solid #eee",background:"#fff"}}>
-          <strong>PulseAI Feedback</strong>
-          <nav style={{display:"inline-flex",gap:12,marginLeft:16}}>
-            <a href="/" style={{textDecoration:"none"}}>Home</a>
-            <a href="/submit" style={{textDecoration:"none"}}>/submit</a>
-            <a href="/inbox" style={{textDecoration:"none"}}>/inbox</a>
-            <a href="/health" style={{textDecoration:"none"}}>/health</a>
-          </nav>
+      <body>
+        <header className="sticky top-0 z-40 border-b border-cardBorder bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75">
+          <div className="container-page flex h-14 items-center justify-between">
+            <a href="/" className="font-semibold tracking-tight">PulseAI Feedback</a>
+            <div className="flex items-center gap-4">
+              <nav className="flex items-center gap-4 text-sm">
+                <a className="hover:opacity-80" href="/">Home</a>
+                <a className="hover:opacity-80" href="/submit">/submit</a>
+                <a className="hover:opacity-80" href="/inbox">/inbox</a>
+                <a className="hover:opacity-80" href="/health">/health</a>
+              </nav>
+              <ThemeToggle />
+            </div>
+          </div>
         </header>
-        <main style={{padding:16,maxWidth:960,margin:"0 auto"}}>{children}</main>
+        <main className="container-page py-6 md:py-8">
+          {children}
+        </main>
       </body>
     </html>
   );

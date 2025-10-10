@@ -2,8 +2,14 @@ import { Card, CardTitle } from "../components/ui/Card";
 
 export default function Page() {
   return (
-    <div style={{display:"grid",gap:16}}>
-      <Card><CardTitle>Welcome</CardTitle><p>Use <code>/submit</code> to add feedback and <code>/inbox</code> to view it.</p></Card>
+    <div className="grid gap-4 md:gap-6">
+      <Card>
+        <CardTitle>Welcome</CardTitle>
+        <p className="muted">
+          Use <a className="link" href="/submit">/submit</a> to add feedback and{" "}
+          <a className="link" href="/inbox">/inbox</a> to view it.
+        </p>
+      </Card>
     </div>
   );
 }
