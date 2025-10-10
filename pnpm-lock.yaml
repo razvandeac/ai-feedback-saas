@@ -65,6 +65,10 @@ importers:
         version: 5.9.3
 
   packages/config:
+    dependencies:
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       typescript:
         specifier: ^5.2.2
