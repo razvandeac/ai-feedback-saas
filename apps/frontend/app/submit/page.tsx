@@ -47,6 +47,8 @@ export default function SubmitPage() {
     <div className="p-4 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Submit Feedback</h1>
       
+      <p style={{opacity:0.7,fontSize:12}}>Tip: open with ?token=YOUR_TOKEN</p>
+      
       <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded">
         <p className="text-sm text-yellow-800">
           <strong>Dev-only:</strong> signature may be bypassed in non-prod.
