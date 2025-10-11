@@ -49,8 +49,9 @@ export function useSummarize(): UseSummarizeResult {
 
       setResult(data.data);
       return data.data;
-    } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'An error occurred';
       setError(errorMessage);
       throw err;
     } finally {

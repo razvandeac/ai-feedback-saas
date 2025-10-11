@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import type { ApiResponse, Org, CreateOrgPayload } from '@pulseai/shared';
 
 /**
  * GET /api/orgs
@@ -55,7 +54,7 @@ export async function GET() {
 
     // Transform the data to include the user's role in each org
     const orgsWithRole = orgs?.map((org) => {
-      const member = org.members.find((m: any) => m.user_id === user.id);
+      const member = org.members.find((m: { user_id: string }) => m.user_id === user.id);
       return {
         id: org.id,
         name: org.name,
@@ -73,10 +72,11 @@ export async function GET() {
       data: orgsWithRole,
       count: orgsWithRole.length,
     });
-  } catch (error: any) {
-    console.error('Unexpected error in /api/orgs:', error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Unexpected error in /api/orgs:', err);
     return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
+      { error: 'Internal server error', message: err.message },
       { status: 500 }
     );
   }
@@ -175,10 +175,11 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
-    console.error('Unexpected error in POST /api/orgs:', error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Unexpected error in POST /api/orgs:', err);
     return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
+      { error: 'Internal server error', message: err.message },
       { status: 500 }
     );
   }

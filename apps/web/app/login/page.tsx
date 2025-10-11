@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+
+// Force dynamic rendering (no static pre-rendering)
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -63,8 +67,9 @@ export default function LoginPage() {
           }
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -160,9 +165,9 @@ export default function LoginPage() {
 
           {/* Back to home */}
           <div className="mt-4 text-center">
-            <a href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
-              ← Back to home
-            </a>
+            <Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
+              &larr; Back to home
+            </Link>
           </div>
         </div>
       </div>

@@ -156,13 +156,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
-    console.error('Error processing feedback:', error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Error processing feedback:', err);
     return NextResponse.json(
       {
         success: false,
         error: 'Internal server error',
-        message: error.message || 'Unknown error',
+        message: err.message || 'Unknown error',
       },
       { status: 500 }
     );
@@ -265,13 +266,14 @@ export async function GET(request: NextRequest) {
         hasMore: (count || 0) > page * pageSize,
       },
     });
-  } catch (error: any) {
-    console.error('Error fetching feedback:', error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Error fetching feedback:', err);
     return NextResponse.json(
       {
         success: false,
         error: 'Internal server error',
-        message: error.message || 'Unknown error',
+        message: err.message || 'Unknown error',
       },
       { status: 500 }
     );

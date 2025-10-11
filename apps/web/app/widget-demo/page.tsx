@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+
+// Force dynamic rendering (no static pre-rendering)
+export const dynamic = 'force-dynamic';
 
 export default function WidgetDemoPage() {
   const [status, setStatus] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -42,8 +46,9 @@ export default function WidgetDemoPage() {
         const error = await response.json();
         showStatus(`❌ Error: ${error.error}`, 'error');
       }
-    } catch (error: any) {
-      showStatus(`❌ Error: ${error.message}`, 'error');
+    } catch (error) {
+      const err = error as Error;
+      showStatus(`❌ Error: ${err.message}`, 'error');
     }
   };
 
@@ -55,7 +60,7 @@ export default function WidgetDemoPage() {
         body: JSON.stringify({
           projectId: '00000000-0000-0000-0000-000000000001',
           type: 'bug-report',
-          content: 'I found a bug that prevents me from completing my task. The button doesn\'t respond when clicked.',
+          content: 'I found a bug that prevents me from completing my task. The button does not respond when clicked.',
           rating: 2,
           metadata: {
             source: 'widget-demo',
@@ -72,8 +77,9 @@ export default function WidgetDemoPage() {
         const error = await response.json();
         showStatus(`❌ Error: ${error.error}`, 'error');
       }
-    } catch (error: any) {
-      showStatus(`❌ Error: ${error.message}`, 'error');
+    } catch (error) {
+      const err = error as Error;
+      showStatus(`❌ Error: ${err.message}`, 'error');
     }
   };
 
@@ -107,8 +113,9 @@ export default function WidgetDemoPage() {
         const error = await response.json();
         showStatus(`❌ Error: ${error.error}`, 'error');
       }
-    } catch (error: any) {
-      showStatus(`❌ Error: ${error.message}`, 'error');
+    } catch (error) {
+      const err = error as Error;
+      showStatus(`❌ Error: ${err.message}`, 'error');
     }
   };
 
@@ -190,7 +197,7 @@ export default function WidgetDemoPage() {
 
           {/* What's Happening */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">What's Happening?</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">What&apos;s Happening?</h2>
             <p className="text-gray-600">
               When you click a button above, the widget SDK sends feedback to the PulseAI API endpoint at{' '}
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/feedback</code>. The feedback
@@ -251,18 +258,18 @@ export default function WidgetDemoPage() {
 
           {/* Links */}
           <div className="flex gap-4 pt-6 border-t border-gray-200">
-            <a
+            <Link
               href="/dashboard"
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
             >
               View Dashboard
-            </a>
-            <a
+            </Link>
+            <Link
               href="/"
               className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
             >
-              ← Back to Home
-            </a>
+              &larr; Back to Home
+            </Link>
           </div>
         </div>
       </div>

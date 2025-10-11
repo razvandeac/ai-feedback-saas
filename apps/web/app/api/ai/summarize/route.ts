@@ -81,18 +81,19 @@ export async function POST(request: Request) {
       success: true,
       data: result,
     });
-  } catch (error: any) {
-    console.error('Error in /api/ai/summarize:', error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Error in /api/ai/summarize:', err);
 
     // Handle specific error cases
-    if (error.message?.includes('API key')) {
+    if (err.message?.includes('API key')) {
       return NextResponse.json(
         { error: 'Configuration error', message: 'Invalid API key configuration' },
         { status: 500 }
       );
     }
 
-    if (error.message?.includes('rate limit')) {
+    if (err.message?.includes('rate limit')) {
       return NextResponse.json(
         { error: 'Rate limit', message: 'Too many requests. Please try again later.' },
         { status: 429 }
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error', message: error.message || 'Failed to summarize feedback' },
+      { error: 'Internal server error', message: err.message || 'Failed to summarize feedback' },
       { status: 500 }
     );
   }

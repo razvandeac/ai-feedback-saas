@@ -4,7 +4,7 @@ export interface Org {
   id: string;
   name: string;
   slug: string | null;
-  settings: any;
+  settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   role: 'owner' | 'admin' | 'member';
@@ -40,9 +40,10 @@ export function useOrgs(): UseOrgsResult {
       }
 
       setOrgs(data.data || []);
-    } catch (err: any) {
-      console.error('Error fetching orgs:', err);
-      setError(err.message || 'An error occurred');
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error fetching orgs:', error);
+      setError(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -63,7 +64,7 @@ export function useOrgs(): UseOrgsResult {
 /**
  * Create a new organization
  */
-export async function createOrg(data: { name: string; slug?: string; settings?: any }): Promise<Org> {
+export async function createOrg(data: { name: string; slug?: string; settings?: Record<string, unknown> }): Promise<Org> {
   const response = await fetch('/api/orgs', {
     method: 'POST',
     headers: {

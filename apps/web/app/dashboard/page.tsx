@@ -7,6 +7,9 @@ import type { User } from '@supabase/supabase-js';
 import { useOrgs, createOrg } from '@/lib/hooks/useOrgs';
 import { useSummarize } from '@/lib/hooks/useSummarize';
 
+// Force dynamic rendering (no static pre-rendering)
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -101,7 +104,7 @@ export default function DashboardPage() {
             Welcome to your Dashboard
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            You're successfully authenticated with Supabase Auth!
+            You&apos;re successfully authenticated with Supabase Auth!
           </p>
         </div>
 
@@ -203,8 +206,9 @@ function OrganizationsSection() {
       setNewOrgSlug('');
       setShowCreateForm(false);
       await refetch();
-    } catch (err: any) {
-      setCreateError(err.message || 'Failed to create organization');
+    } catch (err) {
+      const error = err as Error;
+      setCreateError(error.message || 'Failed to create organization');
     } finally {
       setCreating(false);
     }
@@ -290,7 +294,7 @@ function OrganizationsSection() {
         <div className="text-center py-8">
           <div className="text-4xl mb-3">🏢</div>
           <p className="text-gray-600 dark:text-gray-400">
-            You don't belong to any organizations yet.
+            You don&apos;t belong to any organizations yet.
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
             Create your first organization to get started!
