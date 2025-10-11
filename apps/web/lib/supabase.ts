@@ -1,7 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { env } from '../env';
+import { env } from '../env.client';
 
 export function createClient() {
   return createBrowserClient(

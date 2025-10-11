@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { summarizeFeedback } from '@pulseai/worker';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { env } from '@/env';
+import { envServer } from '@/env.server';
 import type { ApiResponse, AIResult } from '@pulseai/shared';
 
 /**
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     }
 
     // Check if OpenAI API key is configured
-    if (!env.OPENAI_API_KEY) {
+    if (!envServer.OPENAI_API_KEY) {
       console.error('OPENAI_API_KEY is not set in environment variables');
       return NextResponse.json(
         { error: 'Configuration error', message: 'AI service is not configured. Please set OPENAI_API_KEY in environment variables.' },
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     }
 
     // Call the summarizeFeedback function from worker package
-    const result = await summarizeFeedback(feedback, env.OPENAI_API_KEY);
+    const result = await summarizeFeedback(feedback, envServer.OPENAI_API_KEY);
 
     return NextResponse.json<ApiResponse<AIResult>>({
       success: true,

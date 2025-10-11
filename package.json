@@ -7,10 +7,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean"
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "start": "pnpm --filter web start",
+    "lint": "pnpm --filter web lint",
+    "clean": "pnpm --filter web clean"
   },
   "devDependencies": {
     "turbo": "^2.1.3",

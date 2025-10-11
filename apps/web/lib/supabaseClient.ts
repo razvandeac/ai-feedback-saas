@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from '../env';
+import { env } from '../env.client';
 
 /**
  * Supabase client with persisted sessions
