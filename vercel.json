@@ -1,5 +1,4 @@
 {
-  "//": "Vercel configuration for ai-feedback-saas monorepo (Next.js app in apps/web)",
   "version": 2,
   "builds": [
     {
