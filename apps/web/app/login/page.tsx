@@ -69,7 +69,14 @@ export default function LoginPage() {
       }
     } catch (err) {
       const error = err as Error;
-      setError(error.message || 'An error occurred');
+      let errorMessage = error.message || 'An error occurred';
+      
+      // Provide helpful message for invalid email errors
+      if (errorMessage.includes('invalid') && errorMessage.toLowerCase().includes('email')) {
+        errorMessage = 'Please use a valid email address from a real email provider (e.g., Gmail, Outlook). Test domains like test@test.com are not accepted.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -113,9 +120,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="you@example.com"
+                placeholder="you@gmail.com"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
+              {!isLogin && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Use a real email address (Gmail, Outlook, etc.)
+                </p>
+              )}
             </div>
 
             <div>
