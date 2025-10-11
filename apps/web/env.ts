@@ -18,10 +18,8 @@ const envSchema = z.object({
   // Supabase - Server-only (optional for now, some features may need it)
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
-  // OpenAI - Server-only
-  OPENAI_API_KEY: z.string().min(1, {
-    message: 'OPENAI_API_KEY is required for AI features',
-  }),
+  // OpenAI - Server-only (optional to allow builds without it)
+  OPENAI_API_KEY: z.string().optional(),
 
   // App Configuration
   NEXT_PUBLIC_APP_URL: z
@@ -48,8 +46,32 @@ const envSchema = z.object({
  * const openaiKey = env.OPENAI_API_KEY;
  */
 export const env = (() => {
+  // During build time, provide safe defaults to allow build to complete
+  const isBuildTime = !process.env.NEXT_PUBLIC_SUPABASE_URL;
+  
+  if (isBuildTime) {
+    console.warn('\n⚠️  Building without environment variables - using placeholders');
+    console.warn('⚠️  Make sure to set environment variables in Vercel dashboard\n');
+    
+    return {
+      NEXT_PUBLIC_SUPABASE_URL: 'https://placeholder.supabase.co',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder',
+      SUPABASE_SERVICE_ROLE_KEY: undefined,
+      OPENAI_API_KEY: undefined,
+      NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+      NODE_ENV: 'production' as const,
+    };
+  }
+
   try {
-    return envSchema.parse(process.env);
+    const parsed = envSchema.parse(process.env);
+    
+    // Warn if OPENAI_API_KEY is missing (it's optional but needed for AI features)
+    if (!parsed.OPENAI_API_KEY) {
+      console.warn('\n⚠️  OPENAI_API_KEY not set - AI summarization features will not work\n');
+    }
+    
+    return parsed;
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       const missingVars = error.errors.map((err: z.ZodIssue) => {
@@ -58,23 +80,8 @@ export const env = (() => {
 
       console.error('\n⚠️  Environment variable validation failed:\n');
       console.error(missingVars.join('\n'));
-      console.error('\n📝 Please check your .env.local file in apps/web/\n');
-      console.error('💡 Tip: Copy .env.example from the repo root and fill in your values\n');
-    }
-
-    // At build time without env vars, use placeholders to allow build to complete
-    if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      console.warn('⚠️  Building without environment variables - using placeholders');
-      console.warn('⚠️  Make sure to set environment variables in Vercel dashboard');
-      
-      return {
-        NEXT_PUBLIC_SUPABASE_URL: 'https://placeholder.supabase.co',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'placeholder-key',
-        SUPABASE_SERVICE_ROLE_KEY: undefined,
-        OPENAI_API_KEY: 'placeholder-key',
-        NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
-        NODE_ENV: 'production' as const,
-      };
+      console.error('\n📝 Please check your .env file in repo root\n');
+      console.error('💡 Tip: Copy ENV_EXAMPLE.txt to .env and fill in your values\n');
     }
 
     throw error;

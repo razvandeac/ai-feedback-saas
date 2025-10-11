@@ -65,8 +65,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if OpenAI API key is configured
+    if (!env.OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not set in environment variables');
+      return NextResponse.json(
+        { error: 'Configuration error', message: 'AI service is not configured. Please set OPENAI_API_KEY in environment variables.' },
+        { status: 500 }
+      );
+    }
+
     // Call the summarizeFeedback function from worker package
-    // env.OPENAI_API_KEY is validated by Zod schema
     const result = await summarizeFeedback(feedback, env.OPENAI_API_KEY);
 
     return NextResponse.json<ApiResponse<AIResult>>({
