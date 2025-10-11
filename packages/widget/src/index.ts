@@ -1,218 +1,166 @@
-import { WidgetConfig, Feedback } from '@pulseai/shared';
+/**
+ * PulseAI Widget SDK
+ * Lightweight embeddable feedback collection widget
+ * 
+ * Usage:
+ *   <script src="https://your-app.com/widget.js"></script>
+ *   <script>
+ *     PulseAI.init({ projectId: "your-project-id" });
+ *     PulseAI.capture({ type: "text", value: "Great feature!" });
+ *   </script>
+ */
 
-export interface PulseAIWidget {
-  init: (config: WidgetConfig & { tenantId: string; apiUrl: string }) => void;
-  show: () => void;
-  hide: () => void;
-  destroy: () => void;
+import type { FeedbackPayload } from '@pulseai/shared';
+
+export interface PulseAIConfig {
+  projectId: string;
+  apiUrl?: string;
+  debug?: boolean;
 }
 
-class FeedbackWidget implements PulseAIWidget {
-  private config: WidgetConfig & { tenantId: string; apiUrl: string } | null = null;
-  private container: HTMLElement | null = null;
-  private isVisible: boolean = false;
+export interface CapturePayload {
+  type: string;
+  value: string;
+  metadata?: Record<string, any>;
+  rating?: number;
+}
 
-  init(config: WidgetConfig & { tenantId: string; apiUrl: string }): void {
-    this.config = config;
-    this.createWidget();
-  }
+interface PulseAISDK {
+  init(config: PulseAIConfig): void;
+  capture(payload: CapturePayload): Promise<void>;
+  isInitialized(): boolean;
+}
 
-  private createWidget(): void {
-    if (!this.config) return;
+class PulseAI implements PulseAISDK {
+  private config: PulseAIConfig | null = null;
+  private defaultApiUrl = 'https://pulseai.app'; // Change this to your production URL
 
-    // Create widget container
-    this.container = document.createElement('div');
-    this.container.id = 'pulseai-widget';
-    this.container.style.cssText = `
-      position: fixed;
-      ${this.getPositionStyles()}
-      z-index: 999999;
-      font-family: system-ui, -apple-system, sans-serif;
-    `;
+  /**
+   * Initialize the PulseAI SDK
+   * @param config Configuration object with projectId and optional apiUrl
+   */
+  init(config: PulseAIConfig): void {
+    if (!config.projectId) {
+      console.error('[PulseAI] Error: projectId is required');
+      return;
+    }
 
-    // Create trigger button
-    const button = document.createElement('button');
-    button.innerHTML = '💬 Feedback';
-    button.style.cssText = `
-      background: ${this.config.primaryColor || '#3b82f6'};
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 24px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s;
-    `;
-    button.addEventListener('mouseenter', () => {
-      button.style.transform = 'scale(1.05)';
-    });
-    button.addEventListener('mouseleave', () => {
-      button.style.transform = 'scale(1)';
-    });
-    button.addEventListener('click', () => this.toggleForm());
-
-    this.container.appendChild(button);
-    document.body.appendChild(this.container);
-  }
-
-  private getPositionStyles(): string {
-    const position = this.config?.position || 'bottom-right';
-    const positions: Record<string, string> = {
-      'bottom-right': 'bottom: 24px; right: 24px;',
-      'bottom-left': 'bottom: 24px; left: 24px;',
-      'top-right': 'top: 24px; right: 24px;',
-      'top-left': 'top: 24px; left: 24px;',
+    this.config = {
+      projectId: config.projectId,
+      apiUrl: config.apiUrl || this.defaultApiUrl,
+      debug: config.debug || false,
     };
-    return positions[position] || positions['bottom-right'];
-  }
 
-  private toggleForm(): void {
-    if (this.isVisible) {
-      this.hide();
-    } else {
-      this.show();
+    if (this.config.debug) {
+      console.log('[PulseAI] Initialized with config:', this.config);
     }
   }
 
-  show(): void {
-    if (!this.container || !this.config) return;
+  /**
+   * Check if SDK is initialized
+   */
+  isInitialized(): boolean {
+    return this.config !== null;
+  }
 
-    // Create feedback form if not exists
-    let form = document.getElementById('pulseai-form');
-    if (!form) {
-      form = this.createForm();
-      this.container.appendChild(form);
+  /**
+   * Capture and send feedback to the API
+   * @param payload Feedback data including type and value
+   */
+  async capture(payload: CapturePayload): Promise<void> {
+    if (!this.config) {
+      console.error('[PulseAI] Error: SDK not initialized. Call PulseAI.init() first');
+      return;
     }
 
-    form.style.display = 'block';
-    this.isVisible = true;
-  }
-
-  hide(): void {
-    const form = document.getElementById('pulseai-form');
-    if (form) {
-      form.style.display = 'none';
+    // Validate payload
+    if (!payload.type) {
+      console.error('[PulseAI] Error: payload.type is required');
+      return;
     }
-    this.isVisible = false;
-  }
 
-  private createForm(): HTMLElement {
-    const form = document.createElement('div');
-    form.id = 'pulseai-form';
-    form.style.cssText = `
-      position: absolute;
-      bottom: 60px;
-      right: 0;
-      width: 320px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      padding: 20px;
-      display: none;
-    `;
+    if (!payload.value || typeof payload.value !== 'string' || payload.value.trim().length === 0) {
+      console.error('[PulseAI] Error: payload.value must be a non-empty string');
+      return;
+    }
 
-    const title = document.createElement('h3');
-    title.textContent = this.config?.title || 'Send us your feedback';
-    title.style.cssText = 'margin: 0 0 16px 0; font-size: 18px; color: #1f2937;';
-
-    const textarea = document.createElement('textarea');
-    textarea.placeholder = this.config?.placeholder || 'Tell us what you think...';
-    textarea.style.cssText = `
-      width: 100%;
-      min-height: 100px;
-      padding: 12px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 14px;
-      resize: vertical;
-      box-sizing: border-box;
-      font-family: inherit;
-    `;
-
-    const submitButton = document.createElement('button');
-    submitButton.textContent = 'Submit';
-    submitButton.style.cssText = `
-      width: 100%;
-      margin-top: 12px;
-      background: ${this.config?.primaryColor || '#3b82f6'};
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-    `;
-    submitButton.addEventListener('click', () => this.submitFeedback(textarea.value));
-
-    form.appendChild(title);
-    form.appendChild(textarea);
-    form.appendChild(submitButton);
-
-    return form;
-  }
-
-  private async submitFeedback(content: string): Promise<void> {
-    if (!content.trim() || !this.config) return;
+    if (this.config.debug) {
+      console.log('[PulseAI] Capturing feedback:', payload);
+    }
 
     try {
+      // Prepare the feedback data
+      const feedbackData: FeedbackPayload = {
+        projectId: this.config.projectId,
+        type: payload.type,
+        content: payload.value,
+        rating: payload.rating,
+        metadata: payload.metadata || {},
+        // Add client-side context
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+      };
+
+      // Send to API
       const response = await fetch(`${this.config.apiUrl}/api/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tenantId: this.config.tenantId,
-          content: content.trim(),
-        }),
+        body: JSON.stringify(feedbackData),
+        // Use keepalive to ensure request completes even if page is closing
+        keepalive: true,
       });
 
-      if (response.ok) {
-        alert('Thank you for your feedback!');
-        this.hide();
-        // Reset form
-        const textarea = document.querySelector('#pulseai-form textarea') as HTMLTextAreaElement;
-        if (textarea) textarea.value = '';
-      } else {
-        alert('Failed to submit feedback. Please try again.');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (this.config.debug) {
+        console.log('[PulseAI] Feedback captured successfully:', result);
+      }
+
+      // Dispatch custom event for tracking
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('pulseai:captured', {
+            detail: { payload, result },
+          })
+        );
       }
     } catch (error) {
-      console.error('Error submitting feedback:', error);
-      alert('Failed to submit feedback. Please try again.');
-    }
-  }
+      console.error('[PulseAI] Error capturing feedback:', error);
+      
+      // Dispatch error event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('pulseai:error', {
+            detail: { error, payload },
+          })
+        );
+      }
 
-  destroy(): void {
-    if (this.container) {
-      this.container.remove();
-      this.container = null;
+      throw error;
     }
-    this.config = null;
-    this.isVisible = false;
   }
 }
 
-// Export a singleton instance
-export const pulseAI: PulseAIWidget = new FeedbackWidget();
+// Create singleton instance
+const pulseAIInstance = new PulseAI();
 
-// Auto-initialize if config is provided via data attributes
+// Export for module systems
+export default pulseAIInstance;
+export { PulseAI };
+export type { PulseAISDK };
+
+// Re-export types from shared for convenience
+export type { FeedbackPayload } from '@pulseai/shared';
+
+// Attach to window for global access
 if (typeof window !== 'undefined') {
-  const script = document.currentScript as HTMLScriptElement;
-  if (script) {
-    const tenantId = script.dataset.tenantId;
-    const apiUrl = script.dataset.apiUrl;
-    if (tenantId && apiUrl) {
-      pulseAI.init({
-        tenantId,
-        apiUrl,
-        theme: (script.dataset.theme as any) || 'light',
-        position: (script.dataset.position as any) || 'bottom-right',
-        primaryColor: script.dataset.primaryColor,
-      });
-    }
-  }
+  (window as any).PulseAI = pulseAIInstance;
 }
-
-

@@ -32,10 +32,15 @@ ai-feedback-saas/
 Main Next.js application with dashboard, API routes, and admin interface.
 
 ### @pulseai/shared
-Shared TypeScript types and utility functions used across all packages.
+Shared TypeScript types and utility functions used across all packages. Includes:
+- Core domain types (`Org`, `Project`, `Flow`, `Feedback`)
+- Payload types (`FeedbackPayload`, `CreateOrgPayload`)
+- AI/Analysis types (`AIResult`, `FeedbackAnalysis`)
+- API response types (`ApiResponse<T>`, `PaginatedResponse<T>`)
+- Utility types (`Sentiment`, `Role`, `UUID`)
 
 ### @pulseai/widget
-Embeddable JavaScript widget for collecting feedback on any website.
+Lightweight embeddable JavaScript SDK for collecting feedback on any website. Exposes a global `window.PulseAI` object with simple API methods for capturing user feedback.
 
 ### @pulseai/worker
 Background worker package for AI-powered feedback analysis using OpenAI.
@@ -126,10 +131,103 @@ packages/worker/
 ## 🔧 Key Features
 
 - **Multi-Tenancy**: Isolated data and configurations per organization
-- **AI Analysis**: Automatic sentiment analysis and categorization
+- **AI Analysis**: Automatic sentiment analysis and categorization using OpenAI GPT-4o-mini
 - **Easy Integration**: Single-line widget embed
 - **Real-time**: Instant feedback collection and processing
 - **Type-Safe**: Full TypeScript support across all packages
+- **Secure**: Row Level Security (RLS) policies for data isolation
+- **Authentication**: Email/password auth with Supabase
+
+## 🎯 API Routes
+
+### `/api/ai/summarize` (POST)
+Summarize feedback text using OpenAI GPT-4o-mini. Returns a concise summary and sentiment analysis.
+
+**Request:**
+```json
+{
+  "feedback": "Customer feedback text to analyze"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "summary": "Concise summary of the feedback",
+    "sentiment": "positive" | "negative" | "neutral"
+  }
+}
+```
+
+### `/api/orgs` (GET/POST)
+Manage organizations where the current user is a member. Uses RLS-safe queries.
+
+### `/api/feedback` (GET/POST)
+**POST** - Submit feedback from the embedded widget. Public endpoint that accepts feedback data.
+
+**Request:**
+```json
+{
+  "projectId": "uuid",
+  "type": "text",
+  "content": "Feedback content",
+  "rating": 5,
+  "metadata": {}
+}
+```
+
+**GET** - Retrieve feedback for a project (requires authentication).
+
+## 🎯 Widget SDK
+
+The PulseAI widget SDK allows you to collect feedback from any website with just a few lines of code.
+
+### Quick Start
+
+```html
+<script src="https://your-app.com/widget.js"></script>
+<script>
+  PulseAI.init({ projectId: "your-project-id" });
+  PulseAI.capture({ type: "text", value: "Great feature!" });
+</script>
+```
+
+### API Methods
+
+- `PulseAI.init(config)` - Initialize with project ID
+- `PulseAI.capture(payload)` - Capture and send feedback
+- `PulseAI.isInitialized()` - Check initialization status
+
+### Example Usage
+
+```javascript
+// Initialize the SDK
+PulseAI.init({
+  projectId: "123e4567-e89b-12d3-a456-426614174000",
+  apiUrl: "https://your-app.com", // optional
+  debug: true // optional
+});
+
+// Capture feedback with rating
+await PulseAI.capture({
+  type: "text",
+  value: "Love the new design!",
+  rating: 5,
+  metadata: {
+    page: window.location.pathname,
+    feature: "dashboard"
+  }
+});
+
+// Listen to events
+window.addEventListener('pulseai:captured', (event) => {
+  console.log('Feedback sent:', event.detail);
+});
+```
+
+See `packages/widget/README.md` for full documentation.
 
 ## 📝 License
 
