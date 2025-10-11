@@ -29,18 +29,28 @@ Scroll down to **"Root Directory"** section:
 
 ![Root Directory Setting](https://i.imgur.com/example.png)
 
-#### 4. Configure Build Settings (Optional but Recommended)
+#### 4. Configure Build Settings
 
 Scroll to **"Build & Development Settings"**:
+
+**IMPORTANT:** When Root Directory is `apps/web`, commands run FROM that directory.
 
 - Click **"Override"** toggle
 - **Build Command:**
   ```bash
-  cd ../.. && pnpm turbo run build --filter=@pulseai/web
+  cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
   ```
-- **Output Directory:** `.next` (leave default)
-- **Install Command:** `pnpm install`
+- **Output Directory:** `.next`
+- **Install Command:** 
+  ```bash
+  cd ../.. && pnpm install
+  ```
 - Click **"Save"**
+
+**Why the `cd ../..`?**
+- Root Directory is `apps/web` (where we are)
+- We need to go back to project root to run turbo
+- Turbo builds workspace packages in correct order
 
 #### 5. Add Environment Variables
 

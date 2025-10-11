@@ -32,6 +32,11 @@ In the project settings, configure the following:
 cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
 ```
 
+**Why this command?**
+- `cd ../..` - Go back to project root (since Root Directory is `apps/web`)
+- `pnpm install` - Install all workspace dependencies
+- `pnpm turbo run build --filter=@pulseai/web` - Build web app and its dependencies
+
 **Output Directory:**
 ```
 .next
