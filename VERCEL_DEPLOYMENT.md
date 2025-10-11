@@ -27,29 +27,28 @@ In the project settings, configure the following:
 
 **Build & Development Settings:**
 
-**Build Command:**
-```bash
-pnpm turbo run build --filter=@pulseai/web
-```
+**Framework Preset:**
+- Should auto-detect as "Next.js" ✅
+- If not, manually select "Next.js"
 
-**Why this command?**
-- When "Include source files outside Root Directory" is enabled, Vercel handles workspace installation from root
-- `pnpm turbo run build --filter=@pulseai/web` - Build web app and its dependencies in correct order
-- No need to cd around - Vercel manages the workspace context
+**Build Command:**
+- **Option 1 (Recommended):** Leave as default - Vercel will use `next build`
+- **Option 2 (Advanced):** Override with Turborepo:
+  ```bash
+  pnpm turbo run build --filter=@pulseai/web
+  ```
 
 **Output Directory:**
-```
-.next
-```
+- Leave as default: `.next`
 
 **Install Command:**
-- Leave as default (don't override)
-- Vercel automatically runs `pnpm install` from the repository root when workspace is detected
+- Leave as default - Vercel auto-detects pnpm and installs from root
 
-**Development Command:**
-```bash
-pnpm dev
-```
+**Why defaults work:**
+- Vercel detects pnpm workspace from `pnpm-workspace.yaml`
+- Automatically installs all workspace dependencies
+- Builds workspace packages before building web app
+- No manual configuration needed!
 
 ### 3. Environment Variables
 
@@ -287,17 +286,12 @@ Environment Variables:
 
 ## Quick Deploy
 
-For the fastest deployment:
+For the fastest deployment (just 2 settings!):
 
-1. **Root Directory:** `apps/web`
-2. **Include source files:** ✅ Enabled
-3. **Build Command:** 
-   ```bash
-   pnpm turbo run build --filter=@pulseai/web
-   ```
-4. **Install Command:** Leave as default (don't override)
-5. **Add environment variables**
-6. **Deploy**
+1. **Root Directory:** Set to `apps/web`
+2. **Include source files:** ✅ Check the box
+3. **Add environment variables** (Supabase + OpenAI)
+4. **Deploy**
 
-That's it! Your app should deploy successfully.
+That's it! Leave all other settings as default. Vercel auto-detects everything else.
 

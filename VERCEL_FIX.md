@@ -33,21 +33,26 @@ Scroll down to **"Root Directory"** section:
 
 Scroll to **"Build & Development Settings"**:
 
-**IMPORTANT:** Let Vercel handle the install automatically. Only override the build command.
+**IMPORTANT:** Let Vercel auto-detect Next.js. DO NOT override any build settings.
 
-- Click **"Override"** toggle for Build Command only
-- **Build Command:**
+- **Framework Preset:** Should auto-detect as "Next.js" ✅
+- **Build Command:** Leave as default (uses `next build`)
+- **Output Directory:** Leave as default (`.next`)
+- **Install Command:** Leave as default (auto-detects pnpm)
+
+**Why leave defaults:**
+- When Root Directory is `apps/web` and "Include source files" is checked, Vercel:
+  1. Auto-detects Next.js framework
+  2. Runs `pnpm install` from repo root (workspace-aware)
+  3. Runs `next build` in `apps/web`
+  4. Builds workspace dependencies automatically
+
+**If you want to use Turborepo (optional):**
+- Override **Build Command** only:
   ```bash
   pnpm turbo run build --filter=@pulseai/web
   ```
-- **Output Directory:** Leave as `.next` (default)
-- **Install Command:** Leave as default (don't override)
-- Click **"Save"**
-
-**Why this works:**
-- When "Include source files outside Root Directory" is checked, Vercel installs from the root automatically
-- Turbo filter ensures packages build in correct order
-- No need to cd around - Vercel handles the workspace context
+- Leave everything else as default
 
 #### 5. Add Environment Variables
 
