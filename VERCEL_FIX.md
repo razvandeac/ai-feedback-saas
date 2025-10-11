@@ -29,30 +29,20 @@ Scroll down to **"Root Directory"** section:
 
 ![Root Directory Setting](https://i.imgur.com/example.png)
 
-#### 4. Configure Build Settings
+#### 4. Build Settings (Use Defaults or vercel.json)
 
-Scroll to **"Build & Development Settings"**:
+**Option 1 - Use vercel.json (Recommended):**
+- The `apps/web/vercel.json` file is already configured
+- Vercel will automatically use it once Root Directory is set
+- No need to override any settings in the dashboard
 
-**IMPORTANT:** Let Vercel auto-detect Next.js. DO NOT override any build settings.
+**Option 2 - Manual Override:**
+- **Framework Preset:** Next.js
+- **Build Command:** `pnpm turbo run build --filter=@pulseai/web`
+- **Output Directory:** `.next`
+- **Install Command:** `pnpm install`
 
-- **Framework Preset:** Should auto-detect as "Next.js" ✅
-- **Build Command:** Leave as default (uses `next build`)
-- **Output Directory:** Leave as default (`.next`)
-- **Install Command:** Leave as default (auto-detects pnpm)
-
-**Why leave defaults:**
-- When Root Directory is `apps/web` and "Include source files" is checked, Vercel:
-  1. Auto-detects Next.js framework
-  2. Runs `pnpm install` from repo root (workspace-aware)
-  3. Runs `next build` in `apps/web`
-  4. Builds workspace dependencies automatically
-
-**If you want to use Turborepo (optional):**
-- Override **Build Command** only:
-  ```bash
-  pnpm turbo run build --filter=@pulseai/web
-  ```
-- Leave everything else as default
+The `apps/web/vercel.json` provides these settings automatically.
 
 #### 5. Add Environment Variables
 
