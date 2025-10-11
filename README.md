@@ -1,1 +1,140 @@
 # PulseAI
+
+AI-powered multi-tenant feedback SaaS platform built with Next.js, Supabase, and OpenAI.
+
+## 🏗️ Architecture
+
+This is a PNPM monorepo powered by Turborepo with the following structure:
+
+```
+ai-feedback-saas/
+├── apps/
+│   └── web/              # Next.js 15+ web application (App Router)
+├── packages/
+│   ├── shared/           # Shared types and utilities
+│   ├── widget/           # Embeddable feedback widget
+│   └── worker/           # OpenAI-powered feedback analyzer
+├── turbo.json            # Turborepo configuration
+└── pnpm-workspace.yaml   # PNPM workspaces configuration
+```
+
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js 15+ (App Router), React 19, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Supabase (Auth + Database)
+- **AI**: OpenAI API (GPT-4 for feedback analysis)
+- **Build System**: PNPM Workspaces + Turborepo
+- **Deployment**: Vercel (Dashboard deployment)
+
+## 📦 Packages
+
+### @pulseai/web
+Main Next.js application with dashboard, API routes, and admin interface.
+
+### @pulseai/shared
+Shared TypeScript types and utility functions used across all packages.
+
+### @pulseai/widget
+Embeddable JavaScript widget for collecting feedback on any website.
+
+### @pulseai/worker
+Background worker package for AI-powered feedback analysis using OpenAI.
+
+## 🛠️ Setup
+
+### Prerequisites
+
+- Node.js 18+
+- PNPM 8+
+- Supabase account
+- OpenAI API key
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repo-url>
+cd ai-feedback-saas
+```
+
+2. Install dependencies:
+```bash
+pnpm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
+
+Fill in your environment variables:
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `NEXT_PUBLIC_APP_URL`: Your app URL (default: http://localhost:3000)
+
+4. Set up Supabase database:
+   - Create a new Supabase project
+   - Run the SQL migrations (coming soon)
+   - Configure authentication settings
+
+### Development
+
+Run all packages in development mode:
+```bash
+pnpm dev
+```
+
+This will start:
+- Next.js dev server on `http://localhost:3000`
+- TypeScript watch mode for all packages
+
+### Build
+
+Build all packages:
+```bash
+pnpm build
+```
+
+### Project Structure
+
+```
+apps/web/
+├── app/                  # Next.js App Router
+│   ├── api/             # API routes
+│   ├── layout.tsx       # Root layout
+│   └── page.tsx         # Home page
+├── lib/                 # Utilities and helpers
+└── public/              # Static assets
+
+packages/shared/
+└── src/
+    ├── types.ts         # Shared TypeScript types
+    └── utils.ts         # Utility functions
+
+packages/widget/
+└── src/
+    └── index.ts         # Widget implementation
+
+packages/worker/
+└── src/
+    ├── analyzer.ts      # AI feedback analyzer
+    └── types.ts         # Worker types
+```
+
+## 🔧 Key Features
+
+- **Multi-Tenancy**: Isolated data and configurations per organization
+- **AI Analysis**: Automatic sentiment analysis and categorization
+- **Easy Integration**: Single-line widget embed
+- **Real-time**: Instant feedback collection and processing
+- **Type-Safe**: Full TypeScript support across all packages
+
+## 📝 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting PRs.
