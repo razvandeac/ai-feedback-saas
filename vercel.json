@@ -1,0 +1,13 @@
+{
+  "//": "Vercel configuration for ai-feedback-saas monorepo (Next.js app in apps/web)",
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "buildCommand": "pnpm turbo run build --filter=@pulseai/web",
+  "installCommand": "pnpm install"
+}
+
