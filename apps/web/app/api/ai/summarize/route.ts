@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { summarizeFeedback } from '@pulseai/worker';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { env } from '@/env';
 import type { ApiResponse, AIResult } from '@pulseai/shared';
 
 /**
@@ -64,18 +65,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get OpenAI API key from environment
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey) {
-      console.error('OPENAI_API_KEY is not set in environment variables');
-      return NextResponse.json(
-        { error: 'Configuration error', message: 'AI service is not configured' },
-        { status: 500 }
-      );
-    }
-
     // Call the summarizeFeedback function from worker package
-    const result = await summarizeFeedback(feedback, openaiApiKey);
+    // env.OPENAI_API_KEY is validated by Zod schema
+    const result = await summarizeFeedback(feedback, env.OPENAI_API_KEY);
 
     return NextResponse.json<ApiResponse<AIResult>>({
       success: true,

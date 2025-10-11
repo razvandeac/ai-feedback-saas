@@ -1,0 +1,53 @@
+# ============================================
+# PulseAI Environment Variables
+# ============================================
+# Copy this file to .env in the repo root and fill in your values
+#
+# Location: ai-feedback-saas/.env (repo root)
+# 
+# Quick setup:
+#   cp ENV_EXAMPLE.txt .env
+#   # Edit .env with your actual credentials
+#   pnpm dev
+
+# ============================================
+# Supabase Configuration
+# ============================================
+# Get from: https://app.supabase.com/project/_/settings/api
+
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# ============================================
+# OpenAI Configuration
+# ============================================
+# Get from: https://platform.openai.com/api-keys
+# Required for AI summarization features
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# ============================================
+# App Configuration
+# ============================================
+
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NODE_ENV=development
+
+# ============================================
+# Notes
+# ============================================
+#
+# NEXT_PUBLIC_* variables:
+#   - Exposed to the browser (client-side)
+#   - Can be used in React components
+#   - Embedded in JavaScript bundle
+#
+# Variables without NEXT_PUBLIC_:
+#   - Server-side only
+#   - More secure for sensitive keys
+#   - Only accessible in API routes
+#
+# The app uses Zod to validate all environment variables.
+# See apps/web/env.ts for validation schema.
+

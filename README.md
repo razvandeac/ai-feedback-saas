@@ -49,40 +49,43 @@ Background worker package for AI-powered feedback analysis using OpenAI.
 
 ### Prerequisites
 
-- Node.js 18+
-- PNPM 8+
-- Supabase account
-- OpenAI API key
+- Node.js 18+ (use `nvm use --lts`)
+- pnpm 8+
+- Supabase account (free tier works)
+- OpenAI API key (optional for AI features)
 
-### Installation
+### Quick Start (5 minutes)
 
-1. Clone the repository:
+1. **Clone and install:**
 ```bash
 git clone <repo-url>
 cd ai-feedback-saas
-```
-
-2. Install dependencies:
-```bash
 pnpm install
 ```
 
-3. Set up environment variables:
+2. **Set up environment variables:**
 ```bash
-cp .env.example .env.local
+cp .env.example .env
+# Edit .env with your Supabase and OpenAI credentials
 ```
 
-Fill in your environment variables:
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `NEXT_PUBLIC_APP_URL`: Your app URL (default: http://localhost:3000)
+Required variables:
+- `NEXT_PUBLIC_SUPABASE_URL` - From Supabase dashboard → Settings → API
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - From Supabase dashboard → Settings → API
+- `OPENAI_API_KEY` - From https://platform.openai.com/api-keys
 
-4. Set up Supabase database:
-   - Create a new Supabase project
-   - Run the SQL migrations (coming soon)
-   - Configure authentication settings
+3. **Set up Supabase database:**
+   - Open Supabase SQL Editor
+   - Run `supabase/schema.sql`
+   - Verify tables are created
+
+4. **Start dev server:**
+```bash
+pnpm dev
+# Visit http://localhost:3000
+```
+
+**Full guide:** See `QUICK_START.md` for detailed instructions.
 
 ### Development
 
@@ -94,6 +97,7 @@ pnpm dev
 This will start:
 - Next.js dev server on `http://localhost:3000`
 - TypeScript watch mode for all packages
+- Type-safe environment validation with Zod
 
 ### Build
 
@@ -101,6 +105,11 @@ Build all packages:
 ```bash
 pnpm build
 ```
+
+The build process:
+- Validates environment variables (uses placeholders if missing)
+- Builds packages in order: shared → worker → web
+- Outputs to `apps/web/.next/`
 
 ### Project Structure
 

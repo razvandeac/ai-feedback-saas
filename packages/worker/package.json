@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@pulseai/shared": "workspace:*",
+    "dotenv": "^16.4.5",
     "openai": "^4.67.3"
   },
   "devDependencies": {

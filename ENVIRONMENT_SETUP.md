@@ -6,28 +6,38 @@ This guide explains how to set up environment variables for local development an
 
 ### 1. Create Environment File
 
-Create a file named `.env.local` in the `apps/web/` directory:
+Create a file named `.env` in the **repository root**:
 
 ```bash
-cd apps/web
-touch .env.local
+# From project root
+cp ENV_EXAMPLE.txt .env
+```
+
+Or create manually:
+
+```bash
+touch .env
 ```
 
 ### 2. Add Environment Variables
 
-Open `apps/web/.env.local` and add the following:
+Open `.env` (in repo root) and add the following:
 
 ```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
 # OpenAI Configuration
 OPENAI_API_KEY=sk-your-openai-api-key-here
 
-# App Configuration (optional)
+# App Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NODE_ENV=development
 ```
+
+**Important:** The `.env` file goes in the **repository root**, not in `apps/web/`!
 
 ### 3. Get Your Supabase Credentials
 
@@ -58,14 +68,35 @@ OPENAI_API_KEY=sk-proj-abcdef123456...
 
 ### 5. Verify Setup
 
-After adding all variables, restart your dev server:
+After adding all variables, start your dev server:
 
 ```bash
-cd apps/web
+# From repo root
 pnpm dev
 ```
 
-Check the terminal - you should NOT see any environment variable warnings.
+**Environment Validation:**
+
+The app uses **Zod** to validate all environment variables on startup.
+
+✅ **Success - You'll see:**
+```
+Next.js dev server running on http://localhost:3000
+```
+
+❌ **Failure - You'll see:**
+```
+⚠️  Environment variable validation failed:
+  ❌ NEXT_PUBLIC_SUPABASE_URL: Required
+  ❌ OPENAI_API_KEY: Required
+
+📝 Please check your .env file
+```
+
+If you see errors:
+1. Check `.env` file is in repo root (not in `apps/web/`)
+2. Verify all required variables have values
+3. Restart dev server
 
 ---
 
@@ -357,16 +388,73 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ```
 ai-feedback-saas/
+├── .env                 ← Create this file here (repo root)
+├── ENV_EXAMPLE.txt      ← Template file (committed to git)
 ├── apps/
 │   └── web/
-│       ├── .env.local          ← Create this file here
-│       ├── .env.local.example  ← Reference template (committed to git)
+│       ├── env.ts       ← Zod validation schema
 │       ├── app/
 │       └── package.json
+├── packages/
 └── ...
 ```
 
-**Important:** The `.env.local` file goes in `apps/web/`, NOT in the project root!
+**Important:** The `.env` file goes in the **repository root**, NOT in `apps/web/`!
+
+## Type-Safe Environment Validation
+
+The app uses **Zod** for runtime environment variable validation.
+
+### How It Works
+
+**File:** `apps/web/env.ts`
+
+```typescript
+import { z } from 'zod';
+
+const envSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  OPENAI_API_KEY: z.string().min(1),
+  // ... more variables
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+### Benefits
+
+✅ **Type Safety:** Full TypeScript autocomplete  
+✅ **Runtime Validation:** Errors on startup if vars missing  
+✅ **Clear Errors:** Tells you exactly what's wrong  
+✅ **Build Safety:** Uses placeholders at build time  
+
+### Using Validated Env
+
+Import the `env` object instead of `process.env`:
+
+```typescript
+// ❌ Old way (not type-safe)
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+// ✅ New way (type-safe, validated)
+import { env } from '@/env';
+const url = env.NEXT_PUBLIC_SUPABASE_URL; // TypeScript knows this is a string
+```
+
+### Validation Errors
+
+If validation fails, you'll see clear error messages:
+
+```
+⚠️  Environment variable validation failed:
+
+  ❌ NEXT_PUBLIC_SUPABASE_URL: NEXT_PUBLIC_SUPABASE_URL must be a valid URL
+  ❌ OPENAI_API_KEY: OPENAI_API_KEY is required for AI features
+
+📝 Please check your .env file in the repo root
+💡 Tip: Copy ENV_EXAMPLE.txt and fill in your values
+```
 
 ---
 
