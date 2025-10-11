@@ -65,8 +65,9 @@ pnpm install
 
 2. **Set up environment variables:**
 ```bash
-cp .env.example .env
-# Edit .env with your Supabase and OpenAI credentials
+cd apps/web
+touch .env
+# Add your Supabase and OpenAI credentials to apps/web/.env
 ```
 
 Required variables:

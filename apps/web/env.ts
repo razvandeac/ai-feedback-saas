@@ -80,8 +80,8 @@ export const env = (() => {
 
       console.error('\n⚠️  Environment variable validation failed:\n');
       console.error(missingVars.join('\n'));
-      console.error('\n📝 Please check your .env file in repo root\n');
-      console.error('💡 Tip: Copy ENV_EXAMPLE.txt to .env and fill in your values\n');
+      console.error('\n📝 Please check your .env file in apps/web/\n');
+      console.error('💡 Tip: Create apps/web/.env with your Supabase and OpenAI credentials\n');
     }
 
     throw error;

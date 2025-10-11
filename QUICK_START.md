@@ -30,13 +30,13 @@ pnpm install
 
 ### Create .env File
 
-**For development, create `.env` in the repo root:**
+**For development, create `.env` in apps/web/:**
 
 ```bash
-# Copy the example file
-cp .env.example .env
+# Navigate to web app
+cd apps/web
 
-# OR create it manually
+# Create .env file
 cat > .env << 'EOF'
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co

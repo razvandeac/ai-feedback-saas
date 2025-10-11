@@ -6,22 +6,19 @@ This guide explains how to set up environment variables for local development an
 
 ### 1. Create Environment File
 
-Create a file named `.env` in the **repository root**:
+Create a file named `.env` in the **apps/web/** directory:
 
 ```bash
-# From project root
-cp ENV_EXAMPLE.txt .env
-```
+# Navigate to web app
+cd apps/web
 
-Or create manually:
-
-```bash
+# Create .env file
 touch .env
 ```
 
 ### 2. Add Environment Variables
 
-Open `.env` (in repo root) and add the following:
+Open `apps/web/.env` and add the following:
 
 ```bash
 # Supabase Configuration
@@ -37,7 +34,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-**Important:** The `.env` file goes in the **repository root**, not in `apps/web/`!
+**Important:** The `.env` file goes in **apps/web/** directory!
 
 ### 3. Get Your Supabase Credentials
 
@@ -94,7 +91,7 @@ Next.js dev server running on http://localhost:3000
 ```
 
 If you see errors:
-1. Check `.env` file is in repo root (not in `apps/web/`)
+1. Check `.env` file is in `apps/web/` directory
 2. Verify all required variables have values
 3. Restart dev server
 
@@ -388,10 +385,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ```
 ai-feedback-saas/
-├── .env                 ← Create this file here (repo root)
-├── ENV_EXAMPLE.txt      ← Template file (committed to git)
 ├── apps/
 │   └── web/
+│       ├── .env         ← Create this file here!
 │       ├── env.ts       ← Zod validation schema
 │       ├── app/
 │       └── package.json
@@ -399,7 +395,7 @@ ai-feedback-saas/
 └── ...
 ```
 
-**Important:** The `.env` file goes in the **repository root**, NOT in `apps/web/`!
+**Important:** The `.env` file goes in **apps/web/** directory!
 
 ## Type-Safe Environment Validation
 
