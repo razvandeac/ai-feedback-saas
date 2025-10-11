@@ -33,24 +33,21 @@ Scroll down to **"Root Directory"** section:
 
 Scroll to **"Build & Development Settings"**:
 
-**IMPORTANT:** When Root Directory is `apps/web`, commands run FROM that directory.
+**IMPORTANT:** Let Vercel handle the install automatically. Only override the build command.
 
-- Click **"Override"** toggle
+- Click **"Override"** toggle for Build Command only
 - **Build Command:**
   ```bash
-  cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
+  pnpm turbo run build --filter=@pulseai/web
   ```
-- **Output Directory:** `.next`
-- **Install Command:** 
-  ```bash
-  cd ../.. && pnpm install
-  ```
+- **Output Directory:** Leave as `.next` (default)
+- **Install Command:** Leave as default (don't override)
 - Click **"Save"**
 
-**Why the `cd ../..`?**
-- Root Directory is `apps/web` (where we are)
-- We need to go back to project root to run turbo
-- Turbo builds workspace packages in correct order
+**Why this works:**
+- When "Include source files outside Root Directory" is checked, Vercel installs from the root automatically
+- Turbo filter ensures packages build in correct order
+- No need to cd around - Vercel handles the workspace context
 
 #### 5. Add Environment Variables
 

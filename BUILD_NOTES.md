@@ -16,28 +16,27 @@ This project uses **Turborepo** to manage the build process across multiple pack
 
 When you run:
 ```bash
-cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
+pnpm turbo run build --filter=@pulseai/web
 ```
 
 Here's what happens:
 
-#### 1. `cd ../..`
-- **Why:** Vercel sets Root Directory to `apps/web`
-- **Effect:** Changes to project root directory
-- **Result:** Now at `/Users/you/project/` instead of `/Users/you/project/apps/web/`
+#### Vercel's Automatic Workspace Handling
 
-#### 2. `pnpm install`
-- **Why:** Install all workspace dependencies
-- **Effect:** Installs packages for all workspaces (shared, worker, web)
-- **Result:** `node_modules` populated in root and each package
+When you set Root Directory to `apps/web` AND check "Include source files outside Root Directory":
+1. Vercel detects pnpm workspace from root `package.json`
+2. Runs `pnpm install` from the repository root automatically
+3. Makes all workspace packages available
 
-#### 3. `pnpm turbo run build --filter=@pulseai/web`
-- **Why:** Build web app and its dependencies
+#### Turbo Build Process
+
+`pnpm turbo run build --filter=@pulseai/web` tells Turborepo:
+- **Filter:** Only build `@pulseai/web` (and its dependencies)
 - **Effect:** Turborepo determines build order:
   1. Build `@pulseai/shared` (no dependencies)
   2. Build `@pulseai/worker` (depends on shared)
   3. Build `@pulseai/web` (depends on shared and worker)
-- **Result:** All packages built in correct order
+- **Result:** All packages built in correct order automatically
 
 ### What Turbo Does
 
@@ -186,12 +185,17 @@ pnpm install
 
 ✅ **Correct Build Command for Vercel:**
 ```bash
-cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
+pnpm turbo run build --filter=@pulseai/web
 ```
 
+✅ **Vercel Settings Required:**
+1. **Root Directory:** `apps/web`
+2. **Include source files outside Root Directory:** ✅ Checked
+3. **Install Command:** Default (don't override)
+
 ✅ **This ensures:**
-1. We're in the right directory (root)
-2. All dependencies are installed
-3. Packages build in correct order
-4. Web app has access to built dependencies
+1. Vercel installs workspace dependencies from root automatically
+2. Turborepo builds packages in correct order
+3. Web app has access to built dependencies
+4. Simple, clean build process
 

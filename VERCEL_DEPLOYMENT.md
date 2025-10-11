@@ -29,13 +29,13 @@ In the project settings, configure the following:
 
 **Build Command:**
 ```bash
-cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
+pnpm turbo run build --filter=@pulseai/web
 ```
 
 **Why this command?**
-- `cd ../..` - Go back to project root (since Root Directory is `apps/web`)
-- `pnpm install` - Install all workspace dependencies
-- `pnpm turbo run build --filter=@pulseai/web` - Build web app and its dependencies
+- When "Include source files outside Root Directory" is enabled, Vercel handles workspace installation from root
+- `pnpm turbo run build --filter=@pulseai/web` - Build web app and its dependencies in correct order
+- No need to cd around - Vercel manages the workspace context
 
 **Output Directory:**
 ```
@@ -43,9 +43,8 @@ cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
 ```
 
 **Install Command:**
-```bash
-pnpm install
-```
+- Leave as default (don't override)
+- Vercel automatically runs `pnpm install` from the repository root when workspace is detected
 
 **Development Command:**
 ```bash
@@ -294,10 +293,11 @@ For the fastest deployment:
 2. **Include source files:** ✅ Enabled
 3. **Build Command:** 
    ```bash
-   cd ../.. && pnpm install && pnpm turbo run build --filter=@pulseai/web
+   pnpm turbo run build --filter=@pulseai/web
    ```
-4. **Add environment variables**
-5. **Deploy**
+4. **Install Command:** Leave as default (don't override)
+5. **Add environment variables**
+6. **Deploy**
 
 That's it! Your app should deploy successfully.
 
