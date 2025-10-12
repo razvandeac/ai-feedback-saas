@@ -26,14 +26,16 @@ export function AuthListener() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔔 Auth state change:', event, session ? 'Session exists' : 'No session');
+      
       if (event === 'SIGNED_IN' && pathname === '/login') {
-        router.replace('/dashboard');
-        router.refresh();
+        console.log('✅ SIGNED_IN detected, redirecting to dashboard');
+        window.location.href = '/dashboard';
       }
       
       if (event === 'SIGNED_OUT') {
-        router.replace('/login');
-        router.refresh();
+        console.log('👋 SIGNED_OUT detected, redirecting to login');
+        window.location.href = '/login';
       }
 
       // Refresh the page to update server components

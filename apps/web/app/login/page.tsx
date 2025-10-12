@@ -22,7 +22,8 @@ export default function LoginPage() {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push('/dashboard');
+        console.log('✅ Already logged in, redirecting to dashboard');
+        window.location.href = '/dashboard';
       }
     };
     checkUser();
@@ -45,10 +46,10 @@ export default function LoginPage() {
         if (signInError) throw signInError;
 
         if (data.session) {
-          // Use replace to prevent back button issues
-          router.replace('/dashboard');
-          // Force a hard refresh to ensure auth state is updated
-          router.refresh();
+          console.log('✅ Login successful, session created:', data.session.user.email);
+          
+          // Use window.location for a hard redirect to ensure auth state is updated
+          window.location.href = '/dashboard';
         }
       } else {
         // Sign up
