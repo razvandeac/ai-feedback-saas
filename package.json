@@ -1,0 +1,16 @@
+{
+  "name": "vamoot",
+  "private": true,
+  "packageManager": "pnpm@9.9.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.3",
+    "typescript": "^5.6.2"
+  }
+}
+
