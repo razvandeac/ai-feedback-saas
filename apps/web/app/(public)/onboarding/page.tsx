@@ -1,7 +1,8 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import CreateOrgForm from "@/components/create-org-form";
 
-export default async function Home() {
+export default async function OnboardingPage() {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
@@ -12,6 +13,12 @@ export default async function Home() {
     .limit(1)
     .maybeSingle();
 
-  if (!org) redirect("/onboarding");
-  redirect(`/org/${org.slug}`);
+  if (org) redirect(`/org/${org.slug}`);
+  return (
+    <div className="max-w-lg mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">Create your organization</h1>
+      <CreateOrgForm />
+    </div>
+  );
 }
+
