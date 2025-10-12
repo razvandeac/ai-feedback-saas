@@ -18,16 +18,23 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Check if user is already logged in (only once on mount)
+    let isMounted = true;
+    
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && isMounted) {
         console.log('✅ Already logged in, redirecting to dashboard');
         window.location.href = '/dashboard';
       }
     };
+    
     checkUser();
-  }, [router]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty deps - only run once
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

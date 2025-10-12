@@ -15,20 +15,15 @@ export function AuthListener() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && pathname === '/login') {
-        router.replace('/dashboard');
-      }
-    });
-
-    // Listen for auth changes
+    // Only listen for auth changes, don't check initial session
+    // (pages handle their own initial checks to avoid loops)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔔 Auth state change:', event, session ? 'Session exists' : 'No session');
       
-      if (event === 'SIGNED_IN' && pathname === '/login') {
+      // Only handle explicit auth events, not initial session
+      if (event === 'SIGNED_IN') {
         console.log('✅ SIGNED_IN detected, redirecting to dashboard');
         window.location.href = '/dashboard';
       }
