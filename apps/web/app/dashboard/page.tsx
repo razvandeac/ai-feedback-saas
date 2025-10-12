@@ -22,14 +22,14 @@ export default function DashboardPage() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
-          router.push('/login');
+          router.replace('/login');
           return;
         }
 
         setUser(session.user);
       } catch (error) {
         console.error('Error checking auth:', error);
-        router.push('/login');
+        router.replace('/login');
       } finally {
         setLoading(false);
       }
@@ -40,9 +40,10 @@ export default function DashboardPage() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        router.push('/login');
+        router.replace('/login');
       } else {
         setUser(session.user);
+        setLoading(false);
       }
     });
 

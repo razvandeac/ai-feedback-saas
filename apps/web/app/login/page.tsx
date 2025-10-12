@@ -45,7 +45,10 @@ export default function LoginPage() {
         if (signInError) throw signInError;
 
         if (data.session) {
-          router.push('/dashboard');
+          // Use replace to prevent back button issues
+          router.replace('/dashboard');
+          // Force a hard refresh to ensure auth state is updated
+          router.refresh();
         }
       } else {
         // Sign up

@@ -16,14 +16,14 @@ export const supabase = createClient(
   env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   {
     auth: {
-    // Persist session to localStorage (default behavior)
-    persistSession: true,
-    // Automatically refresh tokens
-    autoRefreshToken: true,
-    // Detect session changes in other tabs
-    detectSessionInUrl: true,
-    // Storage key for session data
-    storageKey: 'pulseai-auth-token',
+      // Persist session to localStorage (default behavior)
+      persistSession: true,
+      // Automatically refresh tokens
+      autoRefreshToken: true,
+      // Detect session changes in other tabs
+      detectSessionInUrl: true,
+      // Storage key for session data
+      storageKey: 'pulseai-auth-token',
       // Use localStorage for session persistence
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     },
