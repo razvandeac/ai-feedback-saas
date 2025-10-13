@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
-
-function clean(list: string[]): string[] {
-  // trim, drop empties, uniq
-  const out = Array.from(new Set(list.map(s => s.trim()).filter(Boolean)));
-  // normalize hosts if needed; allow scheme forms as-is
-  return out.slice(0, 50); // cap 50 entries
-}
+import { cleanOrigins } from "@/lib/origin-validate";
 
 async function requireAdmin(sb: any, projectId: string) {
   const { data: proj } = await sb.from("projects").select("org_id").eq("id", projectId).single();
@@ -43,7 +37,7 @@ export async function PUT(
   if (allowed_origins !== null && !Array.isArray(allowed_origins)) {
     return NextResponse.json({ error: "allowed_origins must be array or null" }, { status: 400 });
   }
-  const list = allowed_origins ? clean(allowed_origins as string[]) : null;
+  const list = cleanOrigins(allowed_origins as string[] | null);
 
   const { error: updErr } = await sb.from("projects").update({ allowed_origins: list }).eq("id", id);
   if (updErr) return NextResponse.json({ error: updErr.message }, { status: 400 });
