@@ -7,10 +7,12 @@ type Project = { id: string; name: string; key: string; created_at: string };
 
 export default function ProjectsClient({ 
   initial, 
-  orgSlug 
+  orgSlug,
+  canManage = true
 }: { 
   initial: Project[]; 
   orgSlug: string;
+  canManage?: boolean;
 }) {
   const [projects, setProjects] = useState<Project[]>(initial);
 
@@ -22,14 +24,17 @@ export default function ProjectsClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">Projects</h1>
-        <CreateProjectModal 
-          orgSlug={orgSlug} 
-          onProjectCreated={handleProjectCreated} 
-        />
+        {canManage && (
+          <CreateProjectModal 
+            orgSlug={orgSlug} 
+            onProjectCreated={handleProjectCreated} 
+          />
+        )}
       </div>
       <ProjectsTable 
         initial={projects} 
         orgSlug={orgSlug}
+        canManage={canManage}
       />
     </div>
   );

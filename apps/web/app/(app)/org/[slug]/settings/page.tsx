@@ -1,13 +1,6 @@
-import EmptyState from "@/components/empty-state";
+import { redirect } from "next/navigation";
 
-export default function SettingsPage() {
-  return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Settings</h1>
-      <EmptyState
-        title="Nothing to configure (yet)"
-        description="Organization settings will appear here as we add features."
-      />
-    </div>
-  );
+export default async function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  redirect(`/org/${slug}/settings/members`);
 }

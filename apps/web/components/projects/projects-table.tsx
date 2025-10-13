@@ -1,19 +1,22 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Copy } from "lucide-react";
+import { Copy, Settings } from "lucide-react";
 
 type Row = { id: string; name: string; key: string; created_at: string };
 
 export default function ProjectsTable({ 
   initial, 
-  orgSlug
+  orgSlug,
+  canManage = true
 }: { 
   initial: Row[]; 
   orgSlug: string;
+  canManage?: boolean;
 }) {
   const [rows, setRows] = useState<Row[]>(initial);
   
@@ -73,7 +76,7 @@ export default function ProjectsTable({
             <TH>Name</TH>
             <TH>Key</TH>
             <TH>Created</TH>
-            <TH className="w-[240px]">Actions</TH>
+            <TH className="w-[320px]">Actions</TH>
           </TR>
         </THead>
         <TBody>
@@ -94,8 +97,20 @@ export default function ProjectsTable({
               </TD>
               <TD>{format(new Date(r.created_at), "MMM d, yyyy")}</TD>
               <TD className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={()=>rotate(r.id)}>Rotate key</Button>
-                <Button variant="ghost" size="sm" onClick={()=>del(r.id)}>Delete</Button>
+                <Link href={`/org/${orgSlug}/projects/${r.id}/settings`}>
+                  <Button variant="ghost" size="sm">
+                    <Settings size={14} className="mr-1" />
+                    Widget
+                  </Button>
+                </Link>
+                {canManage ? (
+                  <>
+                    <Button variant="outline" size="sm" onClick={()=>rotate(r.id)}>Rotate key</Button>
+                    <Button variant="ghost" size="sm" onClick={()=>del(r.id)}>Delete</Button>
+                  </>
+                ) : (
+                  <span className="text-xs text-neutral-500">No manage actions</span>
+                )}
               </TD>
             </TR>
           ))}

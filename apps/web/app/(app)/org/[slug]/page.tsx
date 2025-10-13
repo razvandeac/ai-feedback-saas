@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import Sparkline from "@/components/sparkline";
 import SeriesChart from "@/components/analytics/series-chart";
+import { displayName } from "@/lib/display-name";
 
 async function getAnalyticsSeries(sb: Awaited<ReturnType<typeof supabaseServer>>, orgId: string) {
   const { data: projects } = await sb.from("projects").select("id").eq("org_id", orgId);
@@ -93,6 +94,13 @@ export default async function OrgHome({ params }: { params: Promise<{ slug: stri
   const { data: org } = await sb.from("organizations").select("*").eq("slug", slug).single();
   if (!org) notFound();
 
+  // Fetch owner via RPC
+  let owner: any = null;
+  if ((org as any).created_by) {
+    const { data: usersLite } = await sb.rpc("get_users_lite", { ids: [(org as any).created_by] });
+    if (usersLite && usersLite.length) owner = usersLite[0];
+  }
+
   const [{ count: feedbackCount }, { count: eventsCount }, { count: widgetCount }, series, overview] = await Promise.all([
     sb.from("feedback").select("*", { count: "exact", head: true }),
     sb.from("events").select("*", { count: "exact", head: true }),
@@ -111,6 +119,11 @@ export default async function OrgHome({ params }: { params: Promise<{ slug: stri
             Manage projects
           </a>
         </p>
+        {owner && (
+          <p className="text-sm text-neutral-500 mt-1">
+            Owner: {displayName(owner)}
+          </p>
+        )}
       </div>
 
       <div className="card-grid">

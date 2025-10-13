@@ -1,0 +1,45 @@
+import { NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase-server";
+
+export async function POST(req: Request) {
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const { token } = await req.json().catch(() => ({}));
+  if (!token) return NextResponse.json({ error: "token required" }, { status: 400 });
+
+  // find invite
+  const { data: invite, error: invErr } = await sb
+    .from("org_invites")
+    .select("id, org_id, email, role, status")
+    .eq("token", token)
+    .single();
+  if (invErr || !invite) return NextResponse.json({ error: "invalid token" }, { status: 404 });
+  if (invite.status !== "pending") return NextResponse.json({ error: "invite not pending" }, { status: 400 });
+
+  // email must match logged-in user
+  const { data: me } = await sb.auth.getUser();
+  // @ts-ignore
+  if (!me?.user?.email || me.user.email.toLowerCase() !== (invite.email as string).toLowerCase()) {
+    return NextResponse.json({ error: "email mismatch" }, { status: 403 });
+  }
+
+  // upsert membership
+  const { error: memErr } = await sb.from("memberships").upsert({
+    org_id: invite.org_id, user_id: me.user.id, role: invite.role as any
+  }, { onConflict: "org_id,user_id" });
+
+  if (memErr) return NextResponse.json({ error: memErr.message }, { status: 400 });
+
+  // mark accepted
+  const { error: updErr } = await sb
+    .from("org_invites")
+    .update({ status: "accepted", accepted_at: new Date().toISOString() })
+    .eq("id", invite.id);
+
+  if (updErr) return NextResponse.json({ error: updErr.message }, { status: 400 });
+
+  return NextResponse.json({ ok: true, org_id: invite.org_id });
+}
+
