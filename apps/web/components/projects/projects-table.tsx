@@ -82,7 +82,11 @@ export default function ProjectsTable({
         <TBody>
           {rows.map(r => (
             <TR key={r.id}>
-              <TD className="font-medium">{r.name}</TD>
+              <TD className="font-medium">
+                <Link href={`/org/${orgSlug}/projects/${r.id}`} className="hover:text-brand hover:underline">
+                  {r.name}
+                </Link>
+              </TD>
               <TD>
                 <div className="flex items-center gap-2">
                   <code className="text-xs">{r.key}</code>

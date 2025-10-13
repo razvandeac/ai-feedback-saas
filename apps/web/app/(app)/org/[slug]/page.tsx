@@ -1,5 +1,6 @@
 export const revalidate = 0;
 import { supabaseServer } from "@/lib/supabase-server";
+import RecentFeedback from "@/components/feedback/recent-feedback";
 
 function fmt(n: number | null | undefined) {
   return (n ?? 0).toLocaleString();
@@ -64,6 +65,14 @@ export default async function OrgOverview({ params }: { params: Promise<{ slug: 
         <div className="rounded-3xl border bg-white p-4">
           <div className="text-xs text-neutral-500">Avg rating</div>
           <div className="mt-1 text-2xl font-semibold">{avg ? avg.toFixed(2) : "—"}</div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RecentFeedback projectIds={ids} />
+        <div className="rounded-3xl border bg-white p-4 text-sm text-neutral-600">
+          {/* Placeholder for next: Trends or Event timeline */}
+          Coming soon: event timeline &amp; trends.
         </div>
       </div>
     </div>
