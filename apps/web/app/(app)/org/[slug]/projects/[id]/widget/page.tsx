@@ -80,12 +80,18 @@ export default async function ProjectWidgetPage({
             <CodeBlock code={scriptSnippet} language="html" />
           </div>
 
-          <div className="rounded-3xl border bg-white p-4">
+          <div className="rounded-3xl border bg-white p-4 space-y-3">
             <AllowedOriginsEditor 
               projectId={project.id} 
               initialOrigins={project.allowed_origins as string[] | null}
               initialRequireOnly={!!(project.require_project_origins)}
             />
+            <div className="flex items-start gap-2 text-xs text-neutral-600 bg-blue-50 border border-blue-200 rounded-2xl p-3">
+              <span className="font-bold text-blue-900">💡</span>
+              <p className="text-blue-800">
+                If &quot;Require per-project list only&quot; is checked, calls from origins not listed here will be blocked even if present in the global env allow-list.
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -1,185 +1,71 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+export const revalidate = 0;
 import { supabaseServer } from "@/lib/supabase-server";
-import { notFound } from "next/navigation";
-import Sparkline from "@/components/sparkline";
-import SeriesChart from "@/components/analytics/series-chart";
-import { displayName } from "@/lib/display-name";
 
-async function getAnalyticsSeries(sb: Awaited<ReturnType<typeof supabaseServer>>, orgId: string) {
-  const { data: projects } = await sb.from("projects").select("id").eq("org_id", orgId);
-  const pids = (projects ?? []).map(p => p.id);
-  if (pids.length === 0) return [];
-
-  const windowDays = 14;
-  const since = new Date(); 
-  since.setHours(0,0,0,0); 
-  since.setDate(since.getDate() - (windowDays - 1));
-
-  const [{ data: evs }, { data: fbs }] = await Promise.all([
-    sb.from("events").select("created_at").in("project_id", pids).gte("created_at", since.toISOString()),
-    sb.from("feedback").select("created_at").in("project_id", pids).gte("created_at", since.toISOString()),
-  ]);
-
-  const bucket = new Map<string, { date: string; events: number; feedback: number }>();
-  for (let i = 0; i < windowDays; i++) {
-    const d = new Date(since); d.setDate(since.getDate() + i);
-    const key = d.toISOString().slice(0,10);
-    bucket.set(key, { date: key, events: 0, feedback: 0 });
-  }
-  (evs ?? []).forEach(r => {
-    const key = new Date(r.created_at).toISOString().slice(0,10);
-    const row = bucket.get(key); if (row) row.events++;
-  });
-  (fbs ?? []).forEach(r => {
-    const key = new Date(r.created_at).toISOString().slice(0,10);
-    const row = bucket.get(key); if (row) row.feedback++;
-  });
-
-  return Array.from(bucket.values());
+function fmt(n: number | null | undefined) {
+  return (n ?? 0).toLocaleString();
 }
 
-async function getOverviewStats(sb: Awaited<ReturnType<typeof supabaseServer>>, orgId: string) {
-  const { data: projects } = await sb.from("projects").select("id,name").eq("org_id", orgId);
-  const pids = (projects ?? []).map(p => p.id);
-  
-  if (!pids.length) {
-    return {
-      totals: { projects: 0, feedback: 0, events7d: 0, events30d: 0 },
-      perProject: []
-    };
-  }
-
-  const [{ count: feedbackCount }, { count: events7d }, { count: events30d }] = await Promise.all([
-    sb.from("feedback").select("*", { count: "exact", head: true }).in("project_id", pids),
-    sb.from("events").select("*", { count: "exact", head: true }).in("project_id", pids).gte("created_at", new Date(Date.now()-7*24*3600*1000).toISOString()),
-    sb.from("events").select("*", { count: "exact", head: true }).in("project_id", pids).gte("created_at", new Date(Date.now()-30*24*3600*1000).toISOString()),
-  ]);
-
-  const [{ data: feedbackAgg }, { data: eventsAgg }] = await Promise.all([
-    sb.from("feedback").select("project_id").in("project_id", pids),
-    sb.from("events").select("project_id").in("project_id", pids),
-  ]);
-
-  const fbMap = new Map<string, number>();
-  (feedbackAgg ?? []).forEach((r: any) => {
-    fbMap.set(r.project_id, (fbMap.get(r.project_id) ?? 0) + 1);
-  });
-
-  const evMap = new Map<string, number>();
-  (eventsAgg ?? []).forEach((r: any) => {
-    evMap.set(r.project_id, (evMap.get(r.project_id) ?? 0) + 1);
-  });
-
-  const perProject = (projects ?? []).map(p => ({
-    id: p.id,
-    name: p.name,
-    feedback: fbMap.get(p.id) ?? 0,
-    events: evMap.get(p.id) ?? 0
-  }));
-
-  return {
-    totals: {
-      projects: pids.length,
-      feedback: feedbackCount ?? 0,
-      events7d: events7d ?? 0,
-      events30d: events30d ?? 0
-    },
-    perProject
-  };
-}
-
-export default async function OrgHome({ params }: { params: Promise<{ slug: string }> }) {
+export default async function OrgOverview({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const sb = await supabaseServer();
-  const { data: org } = await sb.from("organizations").select("*").eq("slug", slug).single();
-  if (!org) notFound();
 
-  // Fetch owner via RPC
-  let owner: any = null;
-  if ((org as any).created_by) {
-    const { data: usersLite } = await sb.rpc("get_users_lite", { ids: [(org as any).created_by] });
-    if (usersLite && usersLite.length) owner = usersLite[0];
+  const { data: org } = await sb.from("organizations").select("id, name, slug").eq("slug", slug).single();
+  if (!org) return <div className="p-6">Org not found</div>;
+
+  // projects in this org
+  const { data: projects } = await sb.from("projects").select("id, name").eq("org_id", org.id);
+  const ids = (projects ?? []).map(p => p.id);
+  if (ids.length === 0) {
+    return (
+      <div className="p-6 space-y-4">
+        <h1 className="text-lg font-semibold">{org.name}</h1>
+        <div className="rounded-3xl border bg-white p-6 text-sm text-neutral-600">
+          No projects yet. Create one to start collecting feedback.
+        </div>
+      </div>
+    );
   }
 
-  const [{ count: feedbackCount }, { count: eventsCount }, { count: widgetCount }, series, overview] = await Promise.all([
-    sb.from("feedback").select("*", { count: "exact", head: true }),
-    sb.from("events").select("*", { count: "exact", head: true }),
-    sb.from("widgets").select("*", { count: "exact", head: true }),
-    getAnalyticsSeries(sb, org.id),
-    getOverviewStats(sb, org.id)
+  const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+
+  // counts
+  const [{ count: fbTotal }, { count: fb7 }] = await Promise.all([
+    sb.from("feedback").select("*", { count: "exact", head: true }).in("project_id", ids),
+    sb.from("feedback").select("*", { count: "exact", head: true }).in("project_id", ids).gte("created_at", since),
   ]);
+
+  // avg rating (avoid aggregate permission issues with a small query)
+  const { data: ratings } = await sb
+    .from("feedback")
+    .select("rating")
+    .in("project_id", ids)
+    .not("rating", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(500); // sample recent 500 to keep it cheap
+
+  const avg = ratings && ratings.length ? (ratings.reduce((a, r:any)=>a + (r.rating ?? 0), 0) / ratings.length) : null;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">{org.name}</h1>
-        <p className="text-sm text-neutral-500">
-          Overview of activity in your organization.{" "}
-          <a href={`/org/${slug}/projects`} className="text-brand hover:text-brand-hover underline">
-            Manage projects
-          </a>
-        </p>
-        {owner && (
-          <p className="text-sm text-neutral-500 mt-1">
-            Owner: {displayName(owner)}
-          </p>
-        )}
+        <h1 className="text-lg font-semibold">{org.name}</h1>
+        <p className="text-sm text-neutral-500">Overview</p>
       </div>
 
-      <div className="card-grid">
-        <Card>
-          <CardHeader>
-            <div className="kpi">{feedbackCount ?? 0}</div>
-            <div className="kpi-label">Feedback items</div>
-          </CardHeader>
-          <CardContent>Recent submissions across projects.</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div className="kpi">{eventsCount ?? 0}</div>
-            <div className="kpi-label">Events captured</div>
-          </CardHeader>
-          <CardContent>All ingest events tracked by the widget.</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div className="kpi">{widgetCount ?? 0}</div>
-            <div className="kpi-label">Active widgets</div>
-          </CardHeader>
-          <CardContent>Embeds currently live.</CardContent>
-        </Card>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-3xl border bg-white p-4">
+          <div className="text-xs text-neutral-500">Total feedback</div>
+          <div className="mt-1 text-2xl font-semibold">{fmt(fbTotal)}</div>
+        </div>
+        <div className="rounded-3xl border bg-white p-4">
+          <div className="text-xs text-neutral-500">Last 7 days</div>
+          <div className="mt-1 text-2xl font-semibold">{fmt(fb7)}</div>
+        </div>
+        <div className="rounded-3xl border bg-white p-4">
+          <div className="text-xs text-neutral-500">Avg rating</div>
+          <div className="mt-1 text-2xl font-semibold">{avg ? avg.toFixed(2) : "—"}</div>
+        </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <div className="text-sm font-medium">Events & Feedback (last 14 days)</div>
-        </CardHeader>
-        <CardContent>
-          <SeriesChart data={series} />
-          <div className="mt-3 text-sm text-neutral-600">
-            Projects: {overview?.totals?.projects ?? 0} • Feedback: {overview?.totals?.feedback ?? 0} • Events (7d): {overview?.totals?.events7d ?? 0}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="text-sm font-medium">Per-project totals</div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(overview?.perProject ?? []).map((p: any) => (
-              <div key={p.id} className="rounded-2xl border p-4">
-                <div className="font-medium">{p.name}</div>
-                <div className="text-sm text-neutral-600 mt-1">Feedback: {p.feedback} • Events: {p.events}</div>
-              </div>
-            ))}
-            {(!overview?.perProject || overview.perProject.length === 0) && (
-              <div className="text-sm text-neutral-500">No projects yet.</div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
