@@ -29,18 +29,19 @@ export async function POST(req: Request) {
   const sb = supabaseAdmin();
   const { data: proj } = await sb
     .from("projects")
-    .select("id, key, allowed_origins")
+    .select("id, key, allowed_origins, require_project_origins")
     .eq("key", key)
     .maybeSingle();
 
   const extra = (proj?.allowed_origins as string[] | null) || null;
+  const projectOnly = !!(proj?.require_project_origins);
 
   // CORS gate with per-project list
-  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["POST", "OPTIONS"], extra);
+  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
   if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS(req);
 
   if (!proj) {
-    return withCORS(NextResponse.json({ error: "invalid key" }, { status: 404 }), req, ["POST", "OPTIONS"], extra);
+    return withCORS(NextResponse.json({ error: "invalid key" }, { status: 404 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
   }
 
   const userAgent = req.headers.get("user-agent") ?? null;
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     ip
   });
   if (evErr) {
-    return withCORS(NextResponse.json({ error: evErr.message }, { status: 400 }), req, ["POST", "OPTIONS"], extra);
+    return withCORS(NextResponse.json({ error: evErr.message }, { status: 400 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
   }
 
   if (body.type === "feedback.submit") {
@@ -67,6 +68,6 @@ export async function POST(req: Request) {
     await sb.from("feedback").insert({ project_id: proj.id, rating, comment });
   }
 
-  return withCORS(NextResponse.json({ ok: true }), req, ["POST", "OPTIONS"], extra);
+  return withCORS(NextResponse.json({ ok: true }), req, ["POST", "OPTIONS"], extra, { projectOnly });
 }
 

@@ -17,7 +17,7 @@ export default async function ProjectWidgetPage({
 
   const { data: project } = await sb
     .from("projects")
-    .select("id, name, key, allowed_origins")
+    .select("id, name, key, allowed_origins, require_project_origins")
     .eq("id", id)
     .single();
   
@@ -83,7 +83,8 @@ export default async function ProjectWidgetPage({
           <div className="rounded-3xl border bg-white p-4">
             <AllowedOriginsEditor 
               projectId={project.id} 
-              initial={project.allowed_origins as string[] | null} 
+              initialOrigins={project.allowed_origins as string[] | null}
+              initialRequireOnly={!!(project.require_project_origins)}
             />
           </div>
         </div>
