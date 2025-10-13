@@ -4,7 +4,7 @@ import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
 export async function OPTIONS(req: Request) {
   // For preflight we don't have the key; fall back to env list only
-  return preflight(req, ["POST", "OPTIONS"], null);
+  return preflight(req, ["POST", "OPTIONS"], null, { projectOnly: false });
 }
 
 type Body = { key: string; type: string; widget_id?: string | null; payload?: Record<string, any>; };
