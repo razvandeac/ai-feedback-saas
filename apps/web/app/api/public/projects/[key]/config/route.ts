@@ -1,36 +1,39 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
-function cors(res: NextResponse) {
-  res.headers.set("Access-Control-Allow-Origin", "*");
-  res.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  return res;
-}
-
-export async function OPTIONS() {
-  return cors(new NextResponse(null, { status: 204 }));
+export async function OPTIONS(req: Request) {
+  return preflight(req, ["GET", "OPTIONS"]);
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ key: string }> }
 ) {
-  const { key } = await params;
-  const sb = supabaseAdmin();
-
-  // 1) Resolve project by key
-  const { data: proj, error: pErr } = await sb
-    .from("projects")
-    .select("id, name, key, org_id")
-    .eq("key", key)
-    .single();
-
-  if (pErr || !proj) {
-    return cors(NextResponse.json({ error: "project not found" }, { status: 404 }));
+  // CORS gate
+  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["GET", "OPTIONS"]);
+  if (!gated.headers.get("Access-Control-Allow-Origin")) {
+    return forbidCORS(req);
   }
 
-  // 2) Load widget settings (or default)
+  const { key } = await params;
+  const sb = supabaseAdmin();
+  
+  const cleanKey = (key || "").trim();
+  if (!/^[a-zA-Z0-9_-]{6,64}$/.test(cleanKey)) {
+    return withCORS(NextResponse.json({ error: "invalid key" }, { status: 400 }), req, ["GET", "OPTIONS"]);
+  }
+
+  const { data: proj } = await sb
+    .from("projects")
+    .select("id, name, key")
+    .eq("key", cleanKey)
+    .maybeSingle();
+
+  if (!proj) {
+    return withCORS(NextResponse.json({ error: "project not found" }, { status: 404 }), req, ["GET", "OPTIONS"]);
+  }
+
   const { data: cfg } = await sb
     .from("widget_config")
     .select("settings")
@@ -49,6 +52,6 @@ export async function GET(
     }
   };
 
-  return cors(NextResponse.json(payload));
+  return withCORS(NextResponse.json(payload), req, ["GET", "OPTIONS"]);
 }
 
