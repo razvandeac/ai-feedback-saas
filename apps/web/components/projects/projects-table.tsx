@@ -5,7 +5,7 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Copy, Settings } from "lucide-react";
+import { Copy } from "lucide-react";
 
 type Row = { id: string; name: string; key: string; created_at: string };
 
@@ -97,11 +97,8 @@ export default function ProjectsTable({
               </TD>
               <TD>{format(new Date(r.created_at), "MMM d, yyyy")}</TD>
               <TD className="flex gap-2">
-                <Link href={`/org/${orgSlug}/projects/${r.id}/settings`}>
-                  <Button variant="ghost" size="sm">
-                    <Settings size={14} className="mr-1" />
-                    Widget
-                  </Button>
+                <Link href={`/org/${orgSlug}/projects/${r.id}/widget`}>
+                  <Button variant="outline" size="sm">Widget</Button>
                 </Link>
                 {canManage ? (
                   <>
@@ -109,7 +106,7 @@ export default function ProjectsTable({
                     <Button variant="ghost" size="sm" onClick={()=>del(r.id)}>Delete</Button>
                   </>
                 ) : (
-                  <span className="text-xs text-neutral-500">No manage actions</span>
+                  <span className="text-xs text-neutral-500">No actions</span>
                 )}
               </TD>
             </TR>

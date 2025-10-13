@@ -1,164 +1,189 @@
 "use client";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import StarRating from "@/components/widget/star-rating";
+import { Label, Textarea, Button } from "@/components/widget/field";
 
-type WidgetSettings = {
-  theme?: string;
-  primaryColor?: string;
-  logoUrl?: string;
-  showRating?: boolean;
-  showComment?: boolean;
-  title?: string;
+type Config = {
+  project: { id: string; name: string };
+  settings: {
+    theme?: "light" | "dark";
+    primaryColor?: string;
+    showRating?: boolean;
+    showComment?: boolean;
+    title?: string;
+    logoUrl?: string | null;
+  };
 };
 
 export default function EmbedPage() {
-  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
-  const project = params.get("project") || "";
-  const projectId = useMemo(() => project, [project]);
-
-  const [comment, setComment] = useState("");
-  const [rating, setRating] = useState<number | null>(null);
-  const [settings, setSettings] = useState<WidgetSettings>({
-    theme: "light",
-    primaryColor: "#2563eb",
-    logoUrl: "",
-    showRating: true,
-    showComment: true,
-    title: "We value your feedback!"
-  });
+  const [key, setKey] = useState<string>("");
+  const [cfg, setCfg] = useState<Config | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch widget config on mount
+  // form state
+  const [rating, setRating] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  
+  // track if user has started interacting
+  const started = useRef(false);
+
+  const primary = cfg?.settings?.primaryColor || "#2563eb";
+  const showRating = cfg?.settings?.showRating ?? true;
+  const showComment = cfg?.settings?.showComment ?? true;
+
+  // Read key from URL after mount (client-side only)
   useEffect(() => {
-    if (!projectId) return;
-    
-    async function loadConfig() {
+    const params = new URLSearchParams(window.location.search);
+    const k = params.get("key") || "";
+    setKey(k);
+  }, []);
+
+  useEffect(() => {
+    if (!key) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
       try {
-        const res = await fetch(`/api/projects/${projectId}/config`);
-        if (res.ok) {
-          const { settings: fetchedSettings } = await res.json();
-          setSettings({
-            theme: fetchedSettings.theme || "light",
-            primaryColor: fetchedSettings.primaryColor || "#2563eb",
-            logoUrl: fetchedSettings.logoUrl || "",
-            showRating: fetchedSettings.showRating ?? true,
-            showComment: fetchedSettings.showComment ?? true,
-            title: fetchedSettings.title || "We value your feedback!"
-          });
-        }
-      } catch (e) {
-        console.error("Failed to load widget config:", e);
+        setLoading(true);
+        const res = await fetch(`/api/public/projects/${key}/config`, { cache: "no-store" });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.error || "Failed to load config");
+        setCfg(json);
+
+        // emit widget.opened
+        await fetch("/api/public/ingest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ key, type: "widget.opened", payload: { ts: Date.now() }})
+        });
+      } catch (e: any) {
+        console.error(e);
+        toast.error(e?.message || "Could not load widget");
       } finally {
         setLoading(false);
       }
-    }
-    
-    loadConfig();
-  }, [projectId]);
+    })();
+    return () => {
+      if (key) {
+        fetch("/api/public/ingest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ key, type: "widget.closed", payload: { ts: Date.now() }})
+        }).catch(()=>{});
+      }
+    };
+  }, [key]);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    toast.loading("Sending feedback…", { id: "send-fb" });
-    const resp = await fetch("/api/ingest", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        project_id: projectId,
-        type: "feedback.submit",
-        payload: { comment, rating }
-      })
-    });
-    if (resp.ok) {
+  async function submit() {
+    if (!cfg) return;
+    setBusy(true);
+    toast.loading("Sending feedback…", { id: "fb" });
+    try {
+      const payload: any = {};
+      if (showRating) payload.rating = rating;
+      if (showComment) payload.comment = comment;
+      const resp = await fetch("/api/public/ingest", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          key,
+          type: "feedback.submit",
+          payload
+        })
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      setSent(true);
+      toast.success("Thanks for your feedback!", { id: "fb" });
       setComment("");
       setRating(null);
-      toast.success("Thanks for your feedback!", { id: "send-fb" });
-    } else {
-      const t = await resp.text();
-      toast.error(t || "Could not send feedback", { id: "send-fb" });
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to send feedback", { id: "fb" });
+    } finally {
+      setBusy(false);
     }
   }
 
-  const bgColor = settings.theme === "dark" ? "#1a1a1a" : "#ffffff";
-  const textColor = settings.theme === "dark" ? "#ffffff" : "#000000";
+  if (loading) return <div className="p-4 text-sm">Loading…</div>;
+  if (!key) return <div className="p-4 text-sm">Missing project key.</div>;
+  if (!cfg) return <div className="p-4 text-sm">Widget unavailable.</div>;
 
-  if (loading) {
-    return (
-      <div className="min-h-[320px] p-4 grid place-items-center" style={{ backgroundColor: bgColor }}>
-        <div className="text-sm" style={{ color: textColor }}>Loading...</div>
-      </div>
-    );
-  }
+  // theming via CSS variable
+  const style = { ["--vamoot-primary" as any]: primary } as React.CSSProperties;
 
   return (
-    <div 
-      className="min-h-[320px] p-4 grid place-items-center"
-      style={{ backgroundColor: bgColor, color: textColor }}
-    >
-      <form onSubmit={submit} className="w-full max-w-md space-y-3">
-        {settings.logoUrl && (
-          <div className="flex justify-center mb-2">
-            <img src={settings.logoUrl} alt="Logo" className="h-10 object-contain" />
-          </div>
-        )}
-        <h2 className="text-lg font-semibold" style={{ color: textColor }}>
-          {settings.title}
-        </h2>
-        
-        {settings.showRating && (
-          <div>
-            <label className="block text-sm mb-2" style={{ color: textColor }}>
-              How would you rate your experience?
-            </label>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRating(n)}
-                  className="w-10 h-10 rounded-full border-2 transition-all"
-                  style={{
-                    borderColor: rating === n ? settings.primaryColor : "#d1d5db",
-                    backgroundColor: rating === n ? settings.primaryColor : "transparent",
-                    color: rating === n ? "#ffffff" : textColor
+    <div className="min-h-[340px] p-4 grid place-items-center" style={style}>
+      <div className="w-full max-w-md space-y-4 border rounded-3xl p-5 bg-white">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          {cfg.settings.logoUrl ? <img src={cfg.settings.logoUrl} alt="" className="h-6 w-6 rounded-md object-cover" /> : null}
+          <div className="text-base font-semibold">{cfg.settings.title || "We value your feedback!"}</div>
+        </div>
+
+        {!sent ? (
+          <>
+            {showRating && (
+              <div>
+                <Label>How would you rate your experience?</Label>
+                <StarRating value={rating} onChange={(n)=>{
+                  setRating(n);
+                  if (!started.current) {
+                    started.current = true;
+                    fetch("/api/public/ingest", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ key, type: "feedback.started", payload: { via: "rating" } })
+                    }).catch(()=>{});
+                  }
+                }} />
+              </div>
+            )}
+            {showComment && (
+              <div>
+                <Label>Anything we can improve?</Label>
+                <Textarea
+                  placeholder="Share your thoughts…"
+                  value={comment}
+                  onChange={(e)=>{
+                    if (!started.current) {
+                      started.current = true;
+                      fetch("/api/public/ingest", {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ key, type: "feedback.started", payload: { via: "comment" } })
+                      }).catch(()=>{});
+                    }
+                    setComment(e.target.value);
                   }}
-                >
-                  {n}
-                </button>
-              ))}
+                  rows={4}
+                  maxLength={2000}
+                />
+                <div className="text-xs text-neutral-500 text-right">{comment.length}/2000</div>
+              </div>
+            )}
+            <div className="flex justify-end">
+              <Button
+                onClick={submit}
+                disabled={busy || (!showRating && !showComment) || (showRating && !rating && !showComment ? true : false)}
+              >
+                {busy ? "Sending…" : "Send feedback"}
+              </Button>
             </div>
+          </>
+        ) : (
+          <div className="rounded-2xl border bg-green-50 text-green-800 p-4 text-sm">
+            Thanks! Your feedback was submitted successfully.
           </div>
         )}
 
-        {settings.showComment && (
-          <textarea
-            className="w-full border rounded-2xl p-2"
-            style={{ 
-              borderColor: "#d1d5db",
-              backgroundColor: settings.theme === "dark" ? "#2a2a2a" : "#ffffff",
-              color: textColor
-            }}
-            rows={4}
-            value={comment}
-            onChange={(e)=>setComment(e.target.value)}
-            placeholder="What's working? What's not?"
-            required={!settings.showRating}
-          />
-        )}
-
-        <button
-          type="submit"
-          className="rounded-2xl px-4 py-2 font-medium w-full transition-all"
-          style={{
-            backgroundColor: settings.primaryColor,
-            color: "#ffffff",
-            opacity: 1
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-        >
-          Send
-        </button>
-      </form>
+        {/* Footer / legal */}
+        <div className="text-[11px] text-neutral-500 text-right">
+          Powered by Vamoot
+        </div>
+      </div>
     </div>
   );
 }

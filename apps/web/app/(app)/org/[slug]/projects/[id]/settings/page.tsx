@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import WidgetConfigForm from "@/components/projects/widget-config-form";
+import EmbedSnippet from "@/components/projects/embed-snippet";
 
 export const revalidate = 0;
 
@@ -13,7 +14,7 @@ export default async function ProjectSettingsPage({
   
   const { data: project } = await sb
     .from("projects")
-    .select("id, name")
+    .select("id, name, key")
     .eq("id", id)
     .single();
   
@@ -27,7 +28,14 @@ export default async function ProjectSettingsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold">{project.name} Widget Settings</h1>
+      <div>
+        <h1 className="text-lg font-semibold">{project.name} Widget Settings</h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          Customize how your feedback widget looks and behaves.
+        </p>
+      </div>
+      
+      <EmbedSnippet projectKey={project.key} />
       <WidgetConfigForm projectId={project.id} initial={config?.settings ?? {}} />
     </div>
   );
