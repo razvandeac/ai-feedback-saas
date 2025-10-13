@@ -7,19 +7,18 @@ export default async function OrgLayout({ children }: { children: React.ReactNod
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
-
   const { data: memberships } = await sb.from("memberships").select("org_id").limit(1);
   if (!memberships || memberships.length === 0) redirect("/onboarding");
 
   return (
-    <div className="h-screen w-full grid grid-cols-[260px_1fr] grid-rows-[56px_1fr]">
-      <div className="col-span-2">
-        <Navbar />
-      </div>
-      <aside className="border-r bg-neutral-50">
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <div className="grid grid-cols-1 sm:grid-cols-[256px_1fr] h-[calc(100vh-4rem)]">
         <Sidebar />
-      </aside>
-      <main className="overflow-auto p-6">{children}</main>
+        <main className="p-8 bg-neutral-50 overflow-y-auto">
+          <div className="container-xl">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
