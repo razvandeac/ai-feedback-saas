@@ -58,7 +58,7 @@ The CORS utility automatically adds security headers to all responses:
 
 The CORS logic is in `lib/cors.ts` and provides:
 
-### `withCORS(res, req, methods)`
+### `withCORS(res, req, methods, extraAllowed?)`
 
 Wraps a Response with CORS headers based on the request's Origin.
 
@@ -67,13 +67,26 @@ const res = NextResponse.json({ data: "..." });
 return withCORS(res, req, ["GET", "POST"]);
 ```
 
-### `preflight(req, methods)`
+**Per-request allow-list:**
+```typescript
+// Merge environment origins with project-specific domains
+const projectDomains = ["https://customer-site.com", "*.customer.io"];
+return withCORS(res, req, ["GET", "POST"], projectDomains);
+```
 
-Handles OPTIONS preflight requests.
+### `preflight(req, methods, extraAllowed?)`
+
+Handles OPTIONS preflight requests with optional per-request origins.
 
 ```typescript
 export async function OPTIONS(req: Request) {
   return preflight(req, ["GET", "POST", "OPTIONS"]);
+}
+
+// With per-request origins
+export async function OPTIONS(req: Request) {
+  const projectDomains = await getProjectDomains();
+  return preflight(req, ["GET", "POST", "OPTIONS"], projectDomains);
 }
 ```
 
@@ -85,6 +98,15 @@ Returns a 403 response without CORS headers (browser will block).
 if (!isAuthorized) {
   return forbidCORS(req);
 }
+```
+
+### `parseEnvAllowed()`
+
+Parses the environment variable `CORS_ALLOWED_ORIGINS` into an array.
+
+```typescript
+const envOrigins = parseEnvAllowed();
+// ["https://example.com", "*.partner.com"]
 ```
 
 ## Production Recommendations
