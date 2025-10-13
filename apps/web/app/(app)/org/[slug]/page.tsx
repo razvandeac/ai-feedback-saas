@@ -2,30 +2,89 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabaseServer } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import Sparkline from "@/components/sparkline";
+import SeriesChart from "@/components/analytics/series-chart";
 
-async function getEventSeries(sb: Awaited<ReturnType<typeof supabaseServer>>, orgId: string) {
-  // Simple server-side bucketing: last 14 days events across org projects
-  // (We do it approximately in SQL; refine later in analytics)
+async function getAnalyticsSeries(sb: Awaited<ReturnType<typeof supabaseServer>>, orgId: string) {
   const { data: projects } = await sb.from("projects").select("id").eq("org_id", orgId);
   const pids = (projects ?? []).map(p => p.id);
   if (pids.length === 0) return [];
 
-  const { data: rows } = await sb
-    .from("events")
-    .select("created_at")
-    .in("project_id", pids)
-    .gte("created_at", new Date(Date.now() - 14*24*3600*1000).toISOString());
+  const windowDays = 14;
+  const since = new Date(); 
+  since.setHours(0,0,0,0); 
+  since.setDate(since.getDate() - (windowDays - 1));
 
-  const buckets = new Map<string, number>();
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
-    buckets.set(d.toISOString().slice(0,10), 0);
+  const [{ data: evs }, { data: fbs }] = await Promise.all([
+    sb.from("events").select("created_at").in("project_id", pids).gte("created_at", since.toISOString()),
+    sb.from("feedback").select("created_at").in("project_id", pids).gte("created_at", since.toISOString()),
+  ]);
+
+  const bucket = new Map<string, { date: string; events: number; feedback: number }>();
+  for (let i = 0; i < windowDays; i++) {
+    const d = new Date(since); d.setDate(since.getDate() + i);
+    const key = d.toISOString().slice(0,10);
+    bucket.set(key, { date: key, events: 0, feedback: 0 });
   }
-  (rows ?? []).forEach(r => {
+  (evs ?? []).forEach(r => {
     const key = new Date(r.created_at).toISOString().slice(0,10);
-    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+    const row = bucket.get(key); if (row) row.events++;
   });
-  return Array.from(buckets.entries()).map(([date,count])=>({ date, count }));
+  (fbs ?? []).forEach(r => {
+    const key = new Date(r.created_at).toISOString().slice(0,10);
+    const row = bucket.get(key); if (row) row.feedback++;
+  });
+
+  return Array.from(bucket.values());
+}
+
+async function getOverviewStats(sb: Awaited<ReturnType<typeof supabaseServer>>, orgId: string) {
+  const { data: projects } = await sb.from("projects").select("id,name").eq("org_id", orgId);
+  const pids = (projects ?? []).map(p => p.id);
+  
+  if (!pids.length) {
+    return {
+      totals: { projects: 0, feedback: 0, events7d: 0, events30d: 0 },
+      perProject: []
+    };
+  }
+
+  const [{ count: feedbackCount }, { count: events7d }, { count: events30d }] = await Promise.all([
+    sb.from("feedback").select("*", { count: "exact", head: true }).in("project_id", pids),
+    sb.from("events").select("*", { count: "exact", head: true }).in("project_id", pids).gte("created_at", new Date(Date.now()-7*24*3600*1000).toISOString()),
+    sb.from("events").select("*", { count: "exact", head: true }).in("project_id", pids).gte("created_at", new Date(Date.now()-30*24*3600*1000).toISOString()),
+  ]);
+
+  const [{ data: feedbackAgg }, { data: eventsAgg }] = await Promise.all([
+    sb.from("feedback").select("project_id").in("project_id", pids),
+    sb.from("events").select("project_id").in("project_id", pids),
+  ]);
+
+  const fbMap = new Map<string, number>();
+  (feedbackAgg ?? []).forEach((r: any) => {
+    fbMap.set(r.project_id, (fbMap.get(r.project_id) ?? 0) + 1);
+  });
+
+  const evMap = new Map<string, number>();
+  (eventsAgg ?? []).forEach((r: any) => {
+    evMap.set(r.project_id, (evMap.get(r.project_id) ?? 0) + 1);
+  });
+
+  const perProject = (projects ?? []).map(p => ({
+    id: p.id,
+    name: p.name,
+    feedback: fbMap.get(p.id) ?? 0,
+    events: evMap.get(p.id) ?? 0
+  }));
+
+  return {
+    totals: {
+      projects: pids.length,
+      feedback: feedbackCount ?? 0,
+      events7d: events7d ?? 0,
+      events30d: events30d ?? 0
+    },
+    perProject
+  };
 }
 
 export default async function OrgHome({ params }: { params: Promise<{ slug: string }> }) {
@@ -34,18 +93,24 @@ export default async function OrgHome({ params }: { params: Promise<{ slug: stri
   const { data: org } = await sb.from("organizations").select("*").eq("slug", slug).single();
   if (!org) notFound();
 
-  const [{ count: feedbackCount }, { count: eventsCount }, { count: widgetCount }, series] = await Promise.all([
+  const [{ count: feedbackCount }, { count: eventsCount }, { count: widgetCount }, series, overview] = await Promise.all([
     sb.from("feedback").select("*", { count: "exact", head: true }),
     sb.from("events").select("*", { count: "exact", head: true }),
     sb.from("widgets").select("*", { count: "exact", head: true }),
-    getEventSeries(sb, org.id)
+    getAnalyticsSeries(sb, org.id),
+    getOverviewStats(sb, org.id)
   ]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">{org.name}</h1>
-        <p className="text-sm text-neutral-500">Overview of activity in your organization.</p>
+        <p className="text-sm text-neutral-500">
+          Overview of activity in your organization.{" "}
+          <a href={`/org/${slug}/projects`} className="text-brand hover:text-brand-hover underline">
+            Manage projects
+          </a>
+        </p>
       </div>
 
       <div className="card-grid">
@@ -74,11 +139,31 @@ export default async function OrgHome({ params }: { params: Promise<{ slug: stri
 
       <Card>
         <CardHeader>
-          <div className="text-sm font-medium">Events (last 14 days)</div>
+          <div className="text-sm font-medium">Events & Feedback (last 14 days)</div>
         </CardHeader>
         <CardContent>
-          <div className="mt-2">
-            <Sparkline data={series} />
+          <SeriesChart data={series} />
+          <div className="mt-3 text-sm text-neutral-600">
+            Projects: {overview?.totals?.projects ?? 0} • Feedback: {overview?.totals?.feedback ?? 0} • Events (7d): {overview?.totals?.events7d ?? 0}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="text-sm font-medium">Per-project totals</div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(overview?.perProject ?? []).map((p: any) => (
+              <div key={p.id} className="rounded-2xl border p-4">
+                <div className="font-medium">{p.name}</div>
+                <div className="text-sm text-neutral-600 mt-1">Feedback: {p.feedback} • Events: {p.events}</div>
+              </div>
+            ))}
+            {(!overview?.perProject || overview.perProject.length === 0) && (
+              <div className="text-sm text-neutral-500">No projects yet.</div>
+            )}
           </div>
         </CardContent>
       </Card>
