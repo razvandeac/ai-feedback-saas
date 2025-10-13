@@ -58,7 +58,7 @@ The CORS utility automatically adds security headers to all responses:
 
 The CORS logic is in `lib/cors.ts` and provides:
 
-### `withCORS(res, req, methods, extraAllowed?)`
+### `withCORS(res, req, methods, extraAllowed?, opts?)`
 
 Wraps a Response with CORS headers based on the request's Origin.
 
@@ -74,9 +74,16 @@ const projectDomains = ["https://customer-site.com", "*.customer.io"];
 return withCORS(res, req, ["GET", "POST"], projectDomains);
 ```
 
-### `preflight(req, methods, extraAllowed?)`
+**Project-only mode (ignore environment origins):**
+```typescript
+// Use ONLY project-specific origins, skip env list
+const projectDomains = ["https://customer.com"];
+return withCORS(res, req, ["GET", "POST"], projectDomains, { projectOnly: true });
+```
 
-Handles OPTIONS preflight requests with optional per-request origins.
+### `preflight(req, methods, extraAllowed?, opts?)`
+
+Handles OPTIONS preflight requests with optional per-request origins and options.
 
 ```typescript
 export async function OPTIONS(req: Request) {
@@ -87,6 +94,12 @@ export async function OPTIONS(req: Request) {
 export async function OPTIONS(req: Request) {
   const projectDomains = await getProjectDomains();
   return preflight(req, ["GET", "POST", "OPTIONS"], projectDomains);
+}
+
+// Project-only mode
+export async function OPTIONS(req: Request) {
+  const projectDomains = await getProjectDomains();
+  return preflight(req, ["GET", "POST", "OPTIONS"], projectDomains, { projectOnly: true });
 }
 ```
 
@@ -109,6 +122,63 @@ const envOrigins = parseEnvAllowed();
 // ["https://example.com", "*.partner.com"]
 ```
 
+## Managing Per-Project Origins via API
+
+### Get Project Origins
+
+```http
+GET /api/projects/{projectId}/origins
+```
+
+**Response:**
+```json
+{
+  "allowed_origins": ["https://customer.com", "*.staging.customer.io"]
+}
+```
+
+### Update Project Origins
+
+```http
+PUT /api/projects/{projectId}/origins
+Content-Type: application/json
+
+{
+  "allowed_origins": ["https://customer.com", "*.staging.customer.io"]
+}
+```
+
+**Notes:**
+- Set to `null` to use only global env config
+- Set to `[]` (empty array) to block all origins
+- Maximum 50 entries per project
+- Requires admin or owner role
+
+**Response:**
+```json
+{
+  "ok": true,
+  "allowed_origins": ["https://customer.com", "*.staging.customer.io"]
+}
+```
+
+## When to Use Project-Only Mode
+
+Use `{ projectOnly: true }` when:
+
+- **Customer wants complete control** - Override global defaults entirely
+- **Isolated projects** - Project has no relationship to your global origins
+- **Security isolation** - Prevent accidental exposure via global env list
+- **White-label deployments** - Customer manages their own CORS policy
+
+**Example:**
+```typescript
+// Customer A's widget can ONLY be embedded on their domains
+// Even if CORS_ALLOWED_ORIGINS="*", this project ignores it
+const customerOrigins = ["https://customer-a.com", "*.customer-a.io"];
+return withCORS(res, req, ["GET"], customerOrigins, { projectOnly: true });
+```
+
 ## Production Recommendations
 
 1. **Never use `*` in production** - explicitly list allowed origins
@@ -116,12 +186,21 @@ const envOrigins = parseEnvAllowed();
 3. **Use wildcards sparingly** - prefer exact origins when possible
 4. **Monitor CORS errors** - check browser console for blocked requests
 5. **Test thoroughly** - verify widget works on all customer domains
+6. **Per-project restrictions** - Use `allowed_origins` for sensitive projects
+7. **Consider projectOnly** - For maximum isolation per customer
 
 ## Example Production Config
 
 ```bash
-# Production .env
-CORS_ALLOWED_ORIGINS="https://docs.acme.com,https://app.acme.com,*.partners.acme.com"
+# Production .env (global defaults)
+CORS_ALLOWED_ORIGINS="https://docs.acme.com,https://app.acme.com"
 CORS_ALLOW_NO_ORIGIN="false"
+```
+
+```sql
+-- Per-project restrictions (database)
+UPDATE projects 
+SET allowed_origins = ARRAY['*.partners.acme.com']
+WHERE name = 'Partner Portal Widget';
 ```
 

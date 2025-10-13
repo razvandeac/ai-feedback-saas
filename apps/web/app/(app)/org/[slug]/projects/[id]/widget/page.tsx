@@ -5,6 +5,7 @@ import Link from "next/link";
 import WidgetPreview from "@/components/projects/widget-preview";
 import { CodeBlock } from "@/components/ui/code";
 import CopyButton from "@/components/ui/copy-button";
+import AllowedOriginsEditor from "@/components/projects/allowed-origins-editor";
 
 export default async function ProjectWidgetPage({
   params
@@ -16,7 +17,7 @@ export default async function ProjectWidgetPage({
 
   const { data: project } = await sb
     .from("projects")
-    .select("id, name, key")
+    .select("id, name, key, allowed_origins")
     .eq("id", id)
     .single();
   
@@ -77,6 +78,13 @@ export default async function ProjectWidgetPage({
           <div>
             <div className="text-sm font-medium mb-1">Script snippet (experimental)</div>
             <CodeBlock code={scriptSnippet} language="html" />
+          </div>
+
+          <div className="rounded-3xl border bg-white p-4">
+            <AllowedOriginsEditor 
+              projectId={project.id} 
+              initial={project.allowed_origins as string[] | null} 
+            />
           </div>
         </div>
       </div>

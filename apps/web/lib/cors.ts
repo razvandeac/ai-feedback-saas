@@ -44,11 +44,12 @@ export function withCORS(
   res: Response,
   req: Request,
   methods: string[],
-  extraAllowed?: string[] | null
+  extraAllowed?: string[] | null,
+  opts?: { projectOnly?: boolean }
 ) {
   const origin = req.headers.get("origin");
   const allowNoOrigin = (process.env.CORS_ALLOW_NO_ORIGIN || "false").toLowerCase() === "true";
-  const envList = parseEnvAllowed();
+  const envList = opts?.projectOnly ? [] : parseEnvAllowed();
   const merged = Array.from(new Set([...(envList || []), ...((extraAllowed || []) as string[])]));
   const ok = originAllowedFromList(origin, merged, allowNoOrigin);
 
@@ -68,9 +69,9 @@ export function withCORS(
   return new Response(res.body, { status: res.status, headers: hdrs });
 }
 
-export function preflight(req: Request, methods: string[], extraAllowed?: string[] | null) {
+export function preflight(req: Request, methods: string[], extraAllowed?: string[] | null, opts?: { projectOnly?: boolean }) {
   const res = new Response(null, { status: 204 });
-  return withCORS(res, req, methods, extraAllowed);
+  return withCORS(res, req, methods, extraAllowed, opts);
 }
 
 export function forbidCORS(req: Request) {
