@@ -37,6 +37,18 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
     setRows(prev => prev.map(r => r.id === id ? { ...r, status: "revoked" } : r));
   }
 
+  async function resend(id: string) {
+    const tid = `resend-${id}`;
+    toast.loading("Resending…", { id: tid });
+    const resp = await fetch(`/api/invites/resend`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id })
+    });
+    if (resp.ok) toast.success("Email sent", { id: tid });
+    else toast.error(await resp.text(), { id: tid });
+  }
+
   return (
     <div className="rounded-3xl border bg-white">
       <div className="p-3 border-b text-sm font-medium">Pending invites</div>
@@ -48,7 +60,7 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
             <TH>Invited by</TH>
             <TH>Status</TH>
             <TH>Link</TH>
-            <TH className="w-[160px]">Actions</TH>
+            <TH className="w-[220px]">Actions</TH>
           </TR>
         </THead>
         <TBody>
@@ -67,6 +79,7 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
                 ) : <span className="text-xs text-neutral-400">—</span>}
               </TD>
               <TD className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={()=>resend(r.id)} disabled={r.status!=="pending"}>Resend</Button>
                 <Button variant="ghost" size="sm" onClick={()=>revoke(r.id)} disabled={r.status!=="pending"}>Revoke</Button>
               </TD>
             </TR>

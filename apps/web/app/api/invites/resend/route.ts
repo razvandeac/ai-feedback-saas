@@ -1,0 +1,37 @@
+import { NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase-server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendInviteEmail } from "@/lib/email";
+
+export async function POST(req: Request) {
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const { id } = await req.json().catch(()=>({}));
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  const sa = supabaseAdmin();
+  const { data: invite } = await sa
+    .from("org_invites")
+    .select("id, email, role, token, org_id, invited_by")
+    .eq("id", id).maybeSingle();
+  if (!invite) return NextResponse.json({ error: "invite not found" }, { status: 404 });
+
+  const { data: org } = await sa.from("organizations").select("name").eq("id", invite.org_id).single();
+  const { data: inviter } = await sa.rpc("get_users_lite", { ids: [invite.invited_by] });
+
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const acceptUrl = `${base}/accept-invite?token=${invite.token}`;
+
+  await sendInviteEmail({
+    to: invite.email,
+    role: invite.role as any,
+    orgName: org?.name || "Vamoot org",
+    acceptUrl,
+    invitedBy: inviter?.[0] || null
+  });
+
+  return NextResponse.json({ ok: true });
+}
+
