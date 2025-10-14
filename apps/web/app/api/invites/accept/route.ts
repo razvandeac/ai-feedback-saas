@@ -1,5 +1,8 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
   const sb = await supabaseServer();
@@ -9,8 +12,9 @@ export async function POST(req: Request) {
   const { token } = await req.json().catch(() => ({}));
   if (!token) return NextResponse.json({ error: "token required" }, { status: 400 });
 
-  // find invite
-  const { data: invite, error: invErr } = await sb
+  // Use admin client to find invite (bypasses RLS)
+  const admin = supabaseAdmin();
+  const { data: invite, error: invErr } = await admin
     .from("org_invites")
     .select("id, org_id, email, role, status")
     .eq("token", token)
@@ -19,21 +23,19 @@ export async function POST(req: Request) {
   if (invite.status !== "pending") return NextResponse.json({ error: "invite not pending" }, { status: 400 });
 
   // email must match logged-in user
-  const { data: me } = await sb.auth.getUser();
-  // @ts-ignore
-  if (!me?.user?.email || me.user.email.toLowerCase() !== (invite.email as string).toLowerCase()) {
+  if (!user?.email || user.email.toLowerCase() !== (invite.email as string).toLowerCase()) {
     return NextResponse.json({ error: "email mismatch" }, { status: 403 });
   }
 
   // upsert membership
   const { error: memErr } = await sb.from("memberships").upsert({
-    org_id: invite.org_id, user_id: me.user.id, role: invite.role as any
+    org_id: invite.org_id, user_id: user.id, role: invite.role as any
   }, { onConflict: "org_id,user_id" });
 
   if (memErr) return NextResponse.json({ error: memErr.message }, { status: 400 });
 
-  // mark accepted
-  const { error: updErr } = await sb
+  // mark accepted using admin client
+  const { error: updErr } = await admin
     .from("org_invites")
     .update({ status: "accepted", accepted_at: new Date().toISOString() })
     .eq("id", invite.id);
