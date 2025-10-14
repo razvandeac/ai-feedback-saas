@@ -4,6 +4,24 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader } from "@/components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { copyText } from "@/lib/clipboard";
+
+// Helper to copy invite link
+async function copyInviteLink(slug: string, inviteId: string, fallbackUrl?: string) {
+  let url = fallbackUrl;
+  if (!url) {
+    const r = await fetch(`/api/orgs/${slug}/invites/${inviteId}/link`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.acceptUrl) {
+      toast.error(j?.error || "Failed to fetch link");
+      return;
+    }
+    url = j.acceptUrl;
+  }
+  const ok = await copyText(url!);
+  if (ok) toast.success("Accept link copied");
+  else toast.success(`Link ready: ${url}`);
+}
 
 export default function InviteModal({ orgSlug }: { orgSlug: string }) {
   const [open, setOpen] = useState(false);
@@ -12,6 +30,7 @@ export default function InviteModal({ orgSlug }: { orgSlug: string }) {
   const [pending, start] = useTransition();
 
   async function submit() {
+    const inviteEmail = email; // capture for toast
     toast.loading("Sending invite…", { id: "invite" });
     const resp = await fetch(`/api/orgs/${orgSlug}/invites`, {
       method: "POST",
@@ -23,7 +42,16 @@ export default function InviteModal({ orgSlug }: { orgSlug: string }) {
       return;
     }
     const data = await resp.json();
-    toast.success("Invite created", { id: "invite" });
+    
+    // Show success toast with copy link action
+    toast.success(`Invite sent to ${inviteEmail}`, {
+      id: "invite",
+      action: {
+        label: "Copy link",
+        onClick: () => copyInviteLink(orgSlug, data.id, data.acceptUrl)
+      }
+    });
+    
     // broadcast so table updates
     window.dispatchEvent(new CustomEvent("vamoot:invite-created", { detail: data }));
     setOpen(false);
@@ -53,7 +81,7 @@ export default function InviteModal({ orgSlug }: { orgSlug: string }) {
             <Button variant="subtle" onClick={()=>setOpen(false)}>Cancel</Button>
             <Button onClick={()=>start(submit)} disabled={!email}>Send invite</Button>
           </div>
-          <p className="text-xs text-neutral-500">For now, copy the generated link from the Invites list.</p>
+          <p className="text-xs text-neutral-500">An email will be sent automatically. You can also copy the invite link from the success notification.</p>
         </div>
       </DialogContent>
     </Dialog>
