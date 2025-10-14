@@ -3,10 +3,36 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { LogOut, Mail, Menu } from "lucide-react";
+import { toast } from "sonner";
 
 const Breadcrumb = dynamic(() => import("@/components/nav/breadcrumb"), { ssr: false });
 
 export default function Navbar() {
+  async function handleFeedback() {
+    const comment = prompt("What feedback do you have about Vamoot?");
+    if (!comment) return;
+    
+    toast.loading("Sending feedback…", { id: "vamoot-fb" });
+    try {
+      const resp = await fetch("/api/public/vamoot/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ 
+          source: "app", 
+          comment,
+          email: ""
+        })
+      });
+      if (resp.ok) {
+        toast.success("Thanks for your feedback!", { id: "vamoot-fb" });
+      } else {
+        toast.error("Failed to send feedback", { id: "vamoot-fb" });
+      }
+    } catch {
+      toast.error("Failed to send feedback", { id: "vamoot-fb" });
+    }
+  }
+
   return (
     <div className="sticky top-0 z-30 bg-white border-b border-neutral-200 shadow-sm">
       <div className="h-16">
@@ -23,7 +49,12 @@ export default function Navbar() {
           
           {/* Right side actions */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="hidden sm:flex">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hidden sm:flex"
+              onClick={handleFeedback}
+            >
               <Mail className="mr-2 h-4 w-4" />Feedback
             </Button>
             <form action="/login" method="get">
