@@ -49,6 +49,23 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
     else toast.error(await resp.text(), { id: tid });
   }
 
+  async function copyLink(id: string) {
+    const tid = `copy-link-${id}`;
+    toast.loading("Fetching link…", { id: tid });
+    const r = await fetch(`/api/orgs/${orgSlug}/invites/${id}/link`);
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok || !j.acceptUrl) {
+      toast.error(j?.error || "Failed to fetch link", { id: tid });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(j.acceptUrl);
+      toast.success("Accept link copied", { id: tid });
+    } catch {
+      toast.success(`Link ready: ${j.acceptUrl}`, { id: tid });
+    }
+  }
+
   return (
     <div className="rounded-3xl border bg-white">
       <div className="p-3 border-b text-sm font-medium">Pending invites</div>
@@ -59,8 +76,7 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
             <TH>Role</TH>
             <TH>Invited by</TH>
             <TH>Status</TH>
-            <TH>Link</TH>
-            <TH className="w-[220px]">Actions</TH>
+            <TH>Actions</TH>
           </TR>
         </THead>
         <TBody>
@@ -70,22 +86,15 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
               <TD className="capitalize">{r.role}</TD>
               <TD>{r.inviter ? displayName(r.inviter) : "—"}</TD>
               <TD className="capitalize">{r.status}</TD>
-              <TD>
-                {r.acceptUrl ? (
-                  <div className="flex items-center gap-2">
-                    <a href={r.acceptUrl} className="text-xs underline">Open</a>
-                    <button className="text-xs underline" onClick={()=>navigator.clipboard.writeText(r.acceptUrl!).then(()=>toast.success("Copied"))}>Copy</button>
-                  </div>
-                ) : <span className="text-xs text-neutral-400">—</span>}
-              </TD>
               <TD className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={()=>copyLink(r.id)} disabled={r.status!=="pending"}>Copy link</Button>
                 <Button variant="outline" size="sm" onClick={()=>resend(r.id)} disabled={r.status!=="pending"}>Resend</Button>
                 <Button variant="ghost" size="sm" onClick={()=>revoke(r.id)} disabled={r.status!=="pending"}>Revoke</Button>
               </TD>
             </TR>
           ))}
           {rows.length === 0 && (
-            <TR><TD colSpan={6} className="p-6 text-center text-sm text-neutral-500">No invites yet.</TD></TR>
+            <TR><TD colSpan={5} className="p-6 text-center text-sm text-neutral-500">No invites yet.</TD></TR>
           )}
         </TBody>
       </Table>
