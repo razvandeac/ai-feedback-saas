@@ -1,7 +1,8 @@
 import { Resend } from "resend";
 
 const resendKey = process.env.RESEND_API_KEY!;
-const from = process.env.EMAIL_FROM || "Vamoot <noreply@example.com>";
+const from = process.env.EMAIL_FROM || "Vamoot <onboarding@resend.dev>";
+const devOverrideTo = process.env.EMAIL_DEV_TO; // e.g., your inbox for dev
 
 export type InviteEmailProps = {
   to: string;
@@ -16,11 +17,23 @@ export async function sendInviteEmail(props: InviteEmailProps) {
     console.warn("[email] RESEND_API_KEY missing; skipping send", props.to);
     return { skipped: true };
   }
+
+  // In non-prod, optionally override recipient so Resend sandbox always succeeds
+  const isProd = process.env.NODE_ENV === "production";
+  const to = !isProd && devOverrideTo ? devOverrideTo : props.to;
+
   const resend = new Resend(resendKey);
   const subject = `You're invited to join ${props.orgName} on Vamoot`;
   const html = renderInviteHTML(props);
   const text = renderInviteText(props);
-  return resend.emails.send({ from, to: props.to, subject, html, text });
+
+  try {
+    const r = await resend.emails.send({ from, to, subject, html, text });
+    return r;
+  } catch (e: any) {
+    console.error("[email] send failed:", e?.message || e);
+    throw e;
+  }
 }
 
 function renderInviteHTML({ orgName, role, acceptUrl, invitedBy }: InviteEmailProps) {
