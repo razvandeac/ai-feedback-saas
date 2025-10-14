@@ -1,6 +1,7 @@
 export const revalidate = 0;
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import Link from "next/link";
 import InviteModal from "@/components/invites/invite-modal";
 import InvitesTable from "@/components/invites/invites-table";
 import { myOrgRole } from "@/lib/my-org-role";
@@ -75,7 +76,12 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Members</h1>
-          <p className="text-sm text-neutral-500">Invite teammates to this organization.</p>
+          <p className="text-sm text-neutral-500">
+            Invite teammates to this organization.{" "}
+            <Link href={`/org/${org.slug}/members/help`} className="text-brand hover:underline">
+              Need help?
+            </Link>
+          </p>
         </div>
         {(role === "owner" || role === "admin") && <InviteModal orgSlug={org.slug} />}
       </div>
