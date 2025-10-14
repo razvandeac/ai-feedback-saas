@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendInviteEmail } from "@/lib/email";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -43,7 +44,29 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const acceptUrl = `${base}/accept-invite?token=${data.token}`;
 
-  // Don't fetch inviter on create - GET endpoint will enrich later
+  // Fetch inviter info for email
+  let inviterInfo = null;
+  try {
+    const { data: usersLite } = await admin.rpc("get_users_lite", { ids: [user.id] });
+    if (usersLite && usersLite.length) {
+      inviterInfo = { name: usersLite[0].full_name, email: usersLite[0].email };
+    }
+  } catch (e) {
+    console.error("Failed to fetch inviter info:", e);
+  }
+
+  // Send email (async, don't wait)
+  sendInviteEmail({
+    to: email,
+    orgName: org.name,
+    role: role as "owner" | "admin" | "member",
+    acceptUrl,
+    invitedBy: inviterInfo
+  }).catch(err => {
+    console.error("[invite] Email send failed:", err);
+    // Don't fail the request if email fails
+  });
+
   return NextResponse.json({ ...data, acceptUrl });
 }
 
