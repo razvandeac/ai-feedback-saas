@@ -1,5 +1,6 @@
 export const revalidate = 0;
 import { supabaseServer } from "@/lib/supabase-server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import InviteModal from "@/components/invites/invite-modal";
 import InvitesTable from "@/components/invites/invites-table";
 import { myOrgRole } from "@/lib/my-org-role";
@@ -20,24 +21,38 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
     .eq("org_id", org.id)
     .order("created_at", { ascending: false });
 
-  const { data: invites } = await sb
+  // Use admin client to fetch invites (RLS policies may reference users table)
+  const admin = supabaseAdmin();
+  const { data: invites, error: invitesError } = await admin
     .from("org_invites")
     .select("id, email, role, status, token, created_at, invited_by")
     .eq("org_id", org.id)
     .order("created_at", { ascending: false });
+  
+  if (invitesError) {
+    console.error("[members] Invites query error:", invitesError);
+  }
+  
+  console.log("[members] Fetched", invites?.length ?? 0, "invites");
 
   // Fetch user data via RPC
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set((invites ?? []).map(i => i.invited_by).filter(Boolean)));
   const allUserIds = Array.from(new Set([...userIds, ...inviterIds]));
   
+  console.log("[members] Fetching user data for:", { userIds: userIds.length, inviterIds: inviterIds.length, total: allUserIds.length });
+  
   let userMap = new Map<string, any>();
   if (allUserIds.length > 0) {
-    const { data: usersLite, error: rpcError } = await sb.rpc("get_users_lite", { ids: allUserIds });
+    // Use admin client for RPC to avoid permission issues
+    const { data: usersLite, error: rpcError } = await admin.rpc("get_users_lite", { ids: allUserIds });
     if (rpcError) {
-      console.error("RPC error:", rpcError);
+      console.error("[members] RPC error:", rpcError);
     } else if (usersLite) {
+      console.log("[members] RPC returned", usersLite.length, "users");
       userMap = new Map((usersLite as any[]).map((u: any) => [u.id, u]));
+    } else {
+      console.warn("[members] RPC returned null data");
     }
   }
 

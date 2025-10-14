@@ -1,3 +1,5 @@
+export const runtime = "nodejs"; // ensure Node runtime for Resend
+
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
