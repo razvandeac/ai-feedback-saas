@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { toast } from "sonner";
 import { displayName } from "@/lib/display-name";
+import { copyText } from "@/lib/clipboard";
 
 type UserLite = { id: string; email?: string | null; full_name?: string | null };
 type Row = {
@@ -58,12 +59,9 @@ export default function InvitesTable({ initial, orgSlug }: { initial: Row[]; org
       toast.error(j?.error || "Failed to fetch link", { id: tid });
       return;
     }
-    try {
-      await navigator.clipboard.writeText(j.acceptUrl);
-      toast.success("Accept link copied", { id: tid });
-    } catch {
-      toast.success(`Link ready: ${j.acceptUrl}`, { id: tid });
-    }
+    const ok = await copyText(j.acceptUrl);
+    if (ok) toast.success("Accept link copied", { id: tid });
+    else toast.success(`Link ready: ${j.acceptUrl}`, { id: tid });
   }
 
   return (
