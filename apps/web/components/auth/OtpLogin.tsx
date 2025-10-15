@@ -18,12 +18,12 @@ export default function OtpLogin() {
     e.preventDefault()
     setLoading(true); setError(null); setInfo(null)
     
-    // Force OTP mode - disable magic links completely
+    // Force OTP mode for both development and production
     const { error } = await supabase.auth.signInWithOtp({ 
       email: email.trim(),
       options: {
         shouldCreateUser: true,
-        // Explicitly disable magic link redirect
+        // Disable magic links completely - use OTP only
         emailRedirectTo: undefined
       }
     })
@@ -73,6 +73,31 @@ export default function OtpLogin() {
     } catch (error) {
       console.error('OTP verification error:', error)
       setError('An unexpected error occurred. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  async function resendOtp() {
+    setLoading(true); setError(null); setInfo(null)
+    
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ 
+        email: email.trim(),
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: undefined
+        }
+      })
+      
+      setLoading(false)
+      if (error) { 
+        setError(error.message)
+        return 
+      }
+      setInfo('We sent you a new 6-digit code.')
+    } catch (error) {
+      console.error('Resend OTP error:', error)
+      setError('Failed to resend code. Please try again.')
       setLoading(false)
     }
   }
@@ -161,9 +186,10 @@ export default function OtpLogin() {
             type="button" 
             variant="ghost" 
             className="w-full text-sm" 
-            onClick={() => setPhase('request')}
+            onClick={resendOtp}
+            disabled={loading}
           >
-            Resend code
+            {loading ? 'Sending…' : 'Resend code'}
           </Button>
         </form>
       )}
