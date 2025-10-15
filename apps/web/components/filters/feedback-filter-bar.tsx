@@ -34,7 +34,7 @@ export default function FeedbackFilterBar({ projects }: { projects: Project[] })
     setOrDel("from", from || undefined);
     setOrDel("to", to || undefined);
     setOrDel("page", nextPage ? String(nextPage) : undefined);
-    start(() => router.replace(`${pathname}?${sp.toString()}`));
+    router.replace(`${pathname}?${sp.toString()}`);
   }
 
   return (

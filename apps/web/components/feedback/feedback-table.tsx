@@ -26,7 +26,7 @@ export default function FeedbackTable({
   function go(toPage: number) {
     const sp = new URLSearchParams(Array.from(params.entries()));
     sp.set("page", String(toPage));
-    start(() => router.replace(`${pathname}?${sp.toString()}`));
+    router.replace(`${pathname}?${sp.toString()}`);
   }
 
   const pages = Math.max(1, Math.ceil(meta.total / meta.pageSize));

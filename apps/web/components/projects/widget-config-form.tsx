@@ -1,11 +1,20 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export default function WidgetConfigForm({ projectId, initial }: { projectId: string; initial: Record<string, unknown> }) {
+type WidgetSettings = {
+  theme?: string;
+  primaryColor?: string;
+  logoUrl?: string;
+  showRating?: boolean;
+  showComment?: boolean;
+  title?: string;
+};
+
+export default function WidgetConfigForm({ projectId, initial }: { projectId: string; initial: WidgetSettings }) {
   const [settings, setSettings] = useState({
     theme: initial.theme || "light",
     primaryColor: initial.primaryColor || "#2563eb",
@@ -14,21 +23,29 @@ export default function WidgetConfigForm({ projectId, initial }: { projectId: st
     showComment: initial.showComment ?? true,
     title: initial.title || "We value your feedback!"
   });
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   function update<K extends keyof typeof settings>(k: K, v: typeof settings[K]) {
     setSettings(s => ({ ...s, [k]: v }));
   }
 
   async function save() {
+    setPending(true);
     toast.loading("Saving…", { id: "cfg" });
-    const res = await fetch(`/api/projects/${projectId}/config`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ settings })
-    });
-    if (!res.ok) return toast.error("Failed", { id: "cfg" });
-    toast.success("Saved", { id: "cfg" });
+    try {
+      const res = await fetch(`/api/projects/${projectId}/config`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ settings })
+      });
+      if (!res.ok) {
+        toast.error("Failed", { id: "cfg" });
+      } else {
+        toast.success("Saved", { id: "cfg" });
+      }
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -54,7 +71,7 @@ export default function WidgetConfigForm({ projectId, initial }: { projectId: st
         <Input value={settings.logoUrl} onChange={e=>update("logoUrl", e.target.value)} />
       </div>
       <div className="flex justify-end">
-        <Button onClick={()=>startTransition(save)} disabled={pending}>Save</Button>
+        <Button onClick={save} disabled={pending}>Save</Button>
       </div>
     </div>
   );
