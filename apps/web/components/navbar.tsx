@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { LogOut, Mail, Menu } from "lucide-react";
 import { toast } from "sonner";
+import { signOut } from "@/app/actions/logout";
 
 const Breadcrumb = dynamic(() => import("@/components/nav/breadcrumb"), { ssr: false });
 
@@ -57,7 +58,7 @@ export default function Navbar() {
             >
               <Mail className="mr-2 h-4 w-4" />Feedback
             </Button>
-            <form action="/login" method="get">
+            <form action={signOut}>
               <Button variant="outline" size="sm"><LogOut className="mr-2 h-4 w-4" />Sign out</Button>
             </form>
           </div>
