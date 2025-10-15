@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 import { cleanOrigins, isValidOriginEntry } from "@/lib/origin-validate";
 
-async function requireAdmin(sb: Awaited<ReturnType<typeof supabaseServer>>, projectId: string) {
+async function requireAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>, projectId: string) {
   const { data: proj } = await sb.from("projects").select("org_id").eq("id", projectId).single();
   if (!proj) return { ok: false, status: 404, error: "project not found" };
   const { data: { user } } = await sb.auth.getUser();
@@ -21,7 +21,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const { ok, status, error } = await requireAdmin(sb, id);
   if (!ok) return NextResponse.json({ error }, { status });
   const { data } = await sb.from("projects")
@@ -39,7 +39,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const { ok, status, error } = await requireAdmin(sb, id);
   if (!ok) return NextResponse.json({ error }, { status });
 

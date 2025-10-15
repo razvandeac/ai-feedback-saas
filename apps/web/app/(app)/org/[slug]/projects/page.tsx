@@ -1,12 +1,12 @@
 export const revalidate = 0; // always fresh
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import ProjectsClient from "@/components/projects/projects-client";
 import { myOrgRole } from "@/lib/my-org-role";
 import { notFound } from "next/navigation";
 
 export default async function ProjectsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data: org } = await sb.from("organizations").select("id,slug,name").eq("slug", slug).single();
   if (!org) notFound();
 

@@ -1,5 +1,5 @@
 export const revalidate = 0;
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ export default async function ProjectDetailPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { slug, id } = await params;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
 
   const { data: project } = await sb
     .from("projects")

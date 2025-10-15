@@ -1,7 +1,7 @@
 export const runtime = "nodejs"; // ensure Node runtime for Resend
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendInviteEmail } from "@/lib/email";
 import { getClientBaseUrl } from "@/lib/baseUrl";
@@ -14,7 +14,7 @@ type UserLite = {
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -81,7 +81,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

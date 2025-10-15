@@ -1,5 +1,5 @@
 export const revalidate = 0;
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import RecentFeedback from "@/components/feedback/recent-feedback";
 
 function fmt(n: number | null | undefined) {
@@ -8,7 +8,7 @@ function fmt(n: number | null | undefined) {
 
 export default async function OrgOverview({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
 
   const { data: org } = await sb.from("organizations").select("id, name, slug").eq("slug", slug).single();
   if (!org) return <div className="p-6">Org not found</div>;

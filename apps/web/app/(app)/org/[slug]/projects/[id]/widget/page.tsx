@@ -1,6 +1,6 @@
 export const revalidate = 0;
-import { supabaseServer } from "@/lib/supabase-server";
-import { baseUrl } from "@/lib/base-url";
+import { getServerSupabase } from "@/lib/supabaseServer";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 import Link from "next/link";
 import WidgetPreview from "@/components/projects/widget-preview";
 import { CodeBlock } from "@/components/ui/code";
@@ -13,7 +13,7 @@ export default async function ProjectWidgetPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { slug, id } = await params;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
 
   const { data: project } = await sb
     .from("projects")
@@ -23,7 +23,7 @@ export default async function ProjectWidgetPage({
   
   if (!project) return <div className="p-6">Project not found</div>;
 
-  const siteBase = baseUrl();
+  const siteBase = getClientBaseUrl();
 
   const iframeSnippet =
 `<iframe

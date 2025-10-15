@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 
 type EventRow = {
   id: string;
@@ -8,7 +8,7 @@ type EventRow = {
 };
 
 export default async function RecentEvents({ projectId }: { projectId: string }) {
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data } = await sb
     .from("events")
     .select("id, type, created_at, payload")

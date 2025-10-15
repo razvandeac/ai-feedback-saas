@@ -1,11 +1,11 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 
-async function requireOrgAdmin(sb: Awaited<ReturnType<typeof supabaseServer>>, slug: string) {
+async function requireOrgAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>, slug: string) {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return { ok: false, status: 401, error: "unauthorized" };
   const { data: org } = await sb.from("organizations").select("id").eq("slug", slug).single();
@@ -25,7 +25,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string; id: string }> }
 ) {
   const { slug, id } = await params;
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const gate = await requireOrgAdmin(sb, slug);
   if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 

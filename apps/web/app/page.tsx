@@ -1,8 +1,8 @@
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
 

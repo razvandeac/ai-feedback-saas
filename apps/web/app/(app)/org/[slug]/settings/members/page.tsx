@@ -1,5 +1,5 @@
 export const revalidate = 0;
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Link from "next/link";
 import InviteModal from "@/components/invites/invite-modal";
@@ -17,7 +17,7 @@ type UserLite = {
 
 export default async function MembersPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const role = await myOrgRole(slug);
 
   const { data: org } = await sb.from("organizations").select("id, slug, name").eq("slug", slug).single();

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 
 export async function GET() {
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   
   try {
     // Test if RPC exists and works

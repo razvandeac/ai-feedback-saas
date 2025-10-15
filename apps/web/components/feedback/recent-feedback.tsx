@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 
 type FeedbackRow = {
   id: string;
@@ -10,7 +10,7 @@ type FeedbackRow = {
 };
 
 export default async function RecentFeedback({ projectIds }: { projectIds: string[] }) {
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data } = await sb
     .from("feedback")
     .select("id, project_id, rating, comment, created_at")

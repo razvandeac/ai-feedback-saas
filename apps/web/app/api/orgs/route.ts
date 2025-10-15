@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 
 export async function POST(req: Request) {
   try {
-    const sb = await supabaseServer();
+    const sb = await getRouteSupabase();
     
     // Get the authenticated user
     const { data: { user }, error: userError } = await sb.auth.getUser();

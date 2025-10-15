@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import WidgetConfigForm from "@/components/projects/widget-config-form";
 import EmbedSnippet from "@/components/projects/embed-snippet";
 
@@ -10,7 +10,7 @@ export default async function ProjectSettingsPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { id } = await params;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   
   const { data: project } = await sb
     .from("projects")

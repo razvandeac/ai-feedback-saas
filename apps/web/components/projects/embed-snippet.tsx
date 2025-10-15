@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { baseUrl } from "@/lib/base-url";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 
 export default function EmbedSnippet({ projectKey }: { projectKey: string }) {
   const [copied, setCopied] = useState(false);
   
-  const siteUrl = baseUrl();
+  const siteUrl = getClientBaseUrl();
   
   const snippet = `<!-- Vamoot Feedback Widget -->
 <iframe

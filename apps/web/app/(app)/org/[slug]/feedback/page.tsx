@@ -1,5 +1,5 @@
 export const revalidate = 0;
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import FeedbackFilterBar from "@/components/filters/feedback-filter-bar";
 import FeedbackTable from "@/components/feedback/feedback-table";
 import EmptyState from "@/components/empty-state";
@@ -16,7 +16,7 @@ export default async function FeedbackPage({
   const { slug } = await params;
   const search = await searchParams;
   
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data: org } = await sb.from("organizations").select("id,slug,name").eq("slug", slug).single();
   if (!org) notFound();
 

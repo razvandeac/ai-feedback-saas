@@ -1,7 +1,7 @@
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 
 export async function myOrgRole(slug: string) {
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data: org } = await sb.from("organizations").select("id").eq("slug", slug).single();
   if (!org) return null;
   const { data: { user } } = await sb.auth.getUser();

@@ -1,9 +1,9 @@
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import { redirect } from "next/navigation";
 import CreateOrgForm from "@/components/create-org-form";
 
 export default async function OnboardingPage() {
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
 

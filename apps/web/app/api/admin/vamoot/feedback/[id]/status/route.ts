@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 import { isPlatformAdmin } from "@/lib/is-platform-admin";
 
 export async function POST(
@@ -18,7 +18,7 @@ export async function POST(
     return NextResponse.json({ error: "invalid status" }, { status: 400 });
   }
 
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const { error } = await sb.from("platform_feedback").update({ status }).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 

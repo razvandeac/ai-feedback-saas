@@ -1,11 +1,11 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getRouteSupabase } from "@/lib/supabaseServer";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
-  const sb = await supabaseServer();
+  const sb = await getRouteSupabase();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
