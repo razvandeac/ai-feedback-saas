@@ -41,21 +41,23 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
 
   // Use admin client to fetch invites (RLS policies may reference users table)
   const admin = getSupabaseAdmin();
-  const { data: invites, error: invitesError } = await admin
+  const { data: invitesData, error: invitesError } = await admin
     .from("org_invites")
     .select("id, email, role, status, token, created_at, invited_by")
     .eq("org_id", org.id)
-    .order("created_at", { ascending: false }) as { data: Invite[] | null; error: any };
+    .order("created_at", { ascending: false });
+  
+  const invites: Invite[] = invitesData || [];
   
   if (invitesError) {
     console.error("[members] Invites query error:", invitesError);
   }
   
-  console.log("[members] Fetched", invites?.length ?? 0, "invites");
+  console.log("[members] Fetched", invites.length, "invites");
 
   // Fetch user data via RPC
   const userIds = (members ?? []).map(m => m.user_id);
-  const inviterIds = Array.from(new Set((invites ?? []).map(i => i.invited_by).filter(Boolean)));
+  const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
   const allUserIds = Array.from(new Set([...userIds, ...inviterIds]));
   
   console.log("[members] Fetching user data for:", { userIds: userIds.length, inviterIds: inviterIds.length, total: allUserIds.length });
