@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 function maskEmail(email?: string | null) {
   if (!email) return "";
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "invalid token" }, { status: 400 });
     }
 
-    const sb = supabaseAdmin;
+    const sb = getSupabaseAdmin();
 
     // Find invite by token (service role bypasses RLS, but we return minimal fields only)
     const { data: invite, error: invErr } = await sb

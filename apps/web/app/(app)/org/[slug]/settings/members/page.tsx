@@ -1,6 +1,6 @@
 export const revalidate = 0;
 import { getServerSupabase } from "@/lib/supabaseServer";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import Link from "next/link";
 import InviteModal from "@/components/invites/invite-modal";
 import InvitesTable from "@/components/invites/invites-table";
@@ -30,7 +30,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
     .order("created_at", { ascending: false });
 
   // Use admin client to fetch invites (RLS policies may reference users table)
-  const admin = supabaseAdmin;
+  const admin = getSupabaseAdmin();
   const { data: invites, error: invitesError } = await admin
     .from("org_invites")
     .select("id, email, role, status, token, created_at, invited_by")

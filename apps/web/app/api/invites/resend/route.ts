@@ -2,7 +2,7 @@ export const runtime = "nodejs"; // ensure Node runtime for Resend
 
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendInviteEmail } from "@/lib/email";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const { id } = await req.json().catch(()=>({}));
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const sa = supabaseAdmin;
+  const sa = getSupabaseAdmin();
   const { data: invite } = await sa
     .from("org_invites")
     .select("id, email, role, token, org_id, invited_by")

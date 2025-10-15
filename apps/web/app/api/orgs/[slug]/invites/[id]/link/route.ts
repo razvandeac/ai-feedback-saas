@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 
 async function requireOrgAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>, slug: string) {
@@ -29,7 +29,7 @@ export async function GET(
   const gate = await requireOrgAdmin(sb, slug);
   if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
-  const sa = supabaseAdmin;
+  const sa = getSupabaseAdmin();
   const { data: invite, error } = await sa
     .from("org_invites")
     .select("id, token")

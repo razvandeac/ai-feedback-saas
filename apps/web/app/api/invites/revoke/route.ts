@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
   const sb = await getRouteSupabase();
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
   // Use admin client to fetch invite (bypasses RLS)
-  const admin = supabaseAdmin;
+  const admin = getSupabaseAdmin();
   const { data: inv } = await admin.from("org_invites").select("id, org_id, status").eq("id", id).single();
   if (!inv) return NextResponse.json({ error: "invite not found" }, { status: 404 });
 

@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
 const MAX_BYTES = 8 * 1024;
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     return withCORS(NextResponse.json({ error: "missing feedback content" }, { status: 400 }), req, ["POST", "OPTIONS"]);
   }
 
-  const sa = supabaseAdmin;
+  const sa = getSupabaseAdmin();
   const { error } = await sa.from("platform_feedback").insert({
     source, rating, comment, email, metadata
   });
