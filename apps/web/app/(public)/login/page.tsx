@@ -6,8 +6,6 @@ import { supabaseBrowser } from "@/lib/supabase-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export const dynamic = "force-dynamic";
-
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (typeof window !== "undefined" ? window.location.origin : "");

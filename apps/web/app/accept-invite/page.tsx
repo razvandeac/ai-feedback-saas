@@ -4,8 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export const dynamic = "force-dynamic";
-
 type Lookup = {
   org: { name: string; slug: string } | null;
   inviter: { full_name?: string | null; email?: string | null } | null;
