@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 type Phase = 'request' | 'verify' | 'done'
 
@@ -38,60 +40,92 @@ export default function OtpLogin() {
 
   if (phase === 'done') {
     return (
-      <div className="max-w-md mx-auto p-6 rounded-2xl border">
-        <h2 className="text-xl font-semibold">You&apos;re in</h2>
-        <p>Redirecting to your dashboard…</p>
+      <div className="max-w-md mx-auto p-8 rounded-3xl border border-neutral-200 bg-white shadow-soft">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-brand/10 flex items-center justify-center">
+            <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-neutral-900 mb-2">You&apos;re in</h2>
+          <p className="text-neutral-600">Redirecting to your dashboard…</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 rounded-2xl border">
-      <h2 className="text-xl font-semibold mb-4">Sign in with a one-time code</h2>
+    <div className="max-w-md mx-auto p-8 rounded-3xl border border-neutral-200 bg-white shadow-soft">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-neutral-900 mb-2">Welcome to Vamoot</h1>
+        <p className="text-neutral-600">Sign in with a one-time code</p>
+      </div>
 
-      {error && <div className="mb-3 text-red-600">{error}</div>}
-      {info && <div className="mb-3 text-green-700">{info}</div>}
+      {error && (
+        <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm">
+          {error}
+        </div>
+      )}
+      {info && (
+        <div className="mb-4 p-3 rounded-2xl bg-brand/5 border border-brand/20 text-brand-700 text-sm">
+          {info}
+        </div>
+      )}
 
       {phase === 'request' && (
         <form onSubmit={requestOtp} className="space-y-4">
-          <label className="block">
-            <span className="text-sm">Email</span>
-            <input
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Email address
+            </label>
+            <Input
               type="email"
-              className="mt-1 w-full rounded-lg border p-2"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              placeholder="you@company.com"
+              className="w-full"
             />
-          </label>
-          <button type="submit" className="w-full rounded-lg border px-4 py-2" disabled={loading}>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Sending…' : 'Send code'}
-          </button>
+          </Button>
         </form>
       )}
 
       {phase === 'verify' && (
         <form onSubmit={verifyOtp} className="space-y-4">
-          <label className="block">
-            <span className="text-sm">6-digit code</span>
-            <input
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              6-digit code
+            </label>
+            <Input
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={8}
-              className="mt-1 w-full rounded-lg border p-2 tracking-widest"
+              className="w-full text-center text-lg tracking-widest"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               required
               autoComplete="one-time-code"
+              placeholder="123456"
             />
-          </label>
-          <button type="submit" className="w-full rounded-lg border px-4 py-2" disabled={loading}>
+            <p className="text-xs text-neutral-500 mt-1 text-center">
+              Check your email for the verification code
+            </p>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Verifying…' : 'Verify & continue'}
-          </button>
-          <button type="button" className="w-full text-sm underline mt-2" onClick={() => setPhase('request')}>
+          </Button>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            className="w-full text-sm" 
+            onClick={() => setPhase('request')}
+          >
             Resend code
-          </button>
+          </Button>
         </form>
       )}
     </div>
