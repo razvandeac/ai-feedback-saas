@@ -7,6 +7,7 @@ import InvitesTable from "@/components/invites/invites-table";
 import { myOrgRole } from "@/lib/my-org-role";
 import { displayName } from "@/lib/display-name";
 import { notFound } from "next/navigation";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 
 type UserLite = {
   id: string;
@@ -70,7 +71,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   }));
 
   // Add acceptUrl and inviter to invites
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const base = getClientBaseUrl();
   const invitesWithUrl = (invites ?? []).map(inv => ({
     ...inv,
     inviter: userMap.get(inv.invited_by) || null,

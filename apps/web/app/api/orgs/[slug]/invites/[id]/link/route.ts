@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 
 async function requireOrgAdmin(sb: Awaited<ReturnType<typeof supabaseServer>>, slug: string) {
   const { data: { user } } = await sb.auth.getUser();
@@ -36,7 +37,7 @@ export async function GET(
     .maybeSingle();
   if (error || !invite) return NextResponse.json({ error: "invite not found" }, { status: 404 });
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const base = getClientBaseUrl();
   const acceptUrl = `${base}/accept-invite?token=${invite.token}`;
   return NextResponse.json({ acceptUrl });
 }

@@ -2,13 +2,10 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { handleSupabaseAuthReturn } from "@/lib/auth-callback";
-import { supabaseBrowser } from "@/lib/supabase-client";
+import { supabase } from "@/lib/supabaseClient";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "");
 
 type Mode = "magic" | "otp";
 
@@ -53,9 +50,8 @@ export default function LoginPage() {
     setErrorMsg("");
     setLoading(true);
     localStorage.setItem("vamoot.lastEmail", email);
-    const sb = supabaseBrowser();
-    const redirectTo = `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`;
-    const { error } = await sb.auth.signInWithOtp({
+    const redirectTo = `${getClientBaseUrl()}/auth/callback?next=${encodeURIComponent(next)}`;
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true, emailRedirectTo: redirectTo }
     });
@@ -69,12 +65,11 @@ export default function LoginPage() {
     setErrorMsg("");
     setLoading(true);
     localStorage.setItem("vamoot.lastEmail", email);
-    const sb = supabaseBrowser();
     
     console.log("Sending 6-digit OTP (no redirect URL)");
     
     // Send WITHOUT emailRedirectTo to get a 6-digit code instead of magic link
-    const { error } = await sb.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { 
         shouldCreateUser: true
@@ -93,8 +88,7 @@ export default function LoginPage() {
     e.preventDefault();
     setErrorMsg("");
     setLoading(true);
-    const sb = supabaseBrowser();
-    const { error } = await sb.auth.verifyOtp({
+    const { error } = await supabase.auth.verifyOtp({
       email,
       type: "email",          // email OTP (6-digit code)
       token: otp.trim()

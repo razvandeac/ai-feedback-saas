@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendInviteEmail } from "@/lib/email";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 
 export async function POST(req: Request) {
   const sb = await supabaseServer();
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
   const { data: org } = await sa.from("organizations").select("name").eq("id", invite.org_id).single();
   const { data: inviter } = await sa.rpc("get_users_lite", { ids: [invite.invited_by] });
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const base = getClientBaseUrl();
   const acceptUrl = `${base}/accept-invite?token=${invite.token}`;
 
   await sendInviteEmail({

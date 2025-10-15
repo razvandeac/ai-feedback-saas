@@ -1,4 +1,4 @@
-import { supabaseBrowser } from "./supabase-client";
+import { supabase } from "./supabaseClient";
 
 /**
  * Handle Supabase auth tokens from URL (hash or query)
@@ -6,7 +6,7 @@ import { supabaseBrowser } from "./supabase-client";
  */
 export async function handleSupabaseAuthReturn(url: string): Promise<string | null> {
   try {
-    const sb = supabaseBrowser();
+    const sb = supabase;
 
     // Parse tokens from hash fragment
     const hashData = new URLSearchParams(url.split("#")[1] || "");

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendInviteEmail } from "@/lib/email";
+import { getClientBaseUrl } from "@/lib/baseUrl";
 
 type UserLite = {
   id: string;
@@ -49,7 +50,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const base = getClientBaseUrl();
   const acceptUrl = `${base}/accept-invite?token=${data.token}`;
 
   // Fetch inviter info for email
@@ -104,7 +105,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     }
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const base = getClientBaseUrl();
   const enriched = (invites ?? []).map(i => ({
     ...i,
     inviter: usersById.get(i.invited_by) || null,
