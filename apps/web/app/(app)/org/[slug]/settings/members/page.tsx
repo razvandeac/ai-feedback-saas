@@ -58,7 +58,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   // Fetch user data via RPC
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
-  const allUserIds = Array.from(new Set([...userIds, ...inviterIds]));
+  const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
   
   console.log("[members] Fetching user data for:", { userIds: userIds.length, inviterIds: inviterIds.length, total: allUserIds.length });
   
