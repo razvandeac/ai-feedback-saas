@@ -61,6 +61,7 @@ export default function OtpLogin() {
         setLoading(false)
       }
     } catch (error) {
+      console.error('OTP verification error:', error)
       setError('An unexpected error occurred. Please try again.')
       setLoading(false)
     }

@@ -15,6 +15,16 @@ type UserLite = {
   full_name?: string | null;
 };
 
+type Invite = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  token: string;
+  created_at: string;
+  invited_by: string;
+};
+
 export default async function MembersPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const sb = await getServerSupabase();
