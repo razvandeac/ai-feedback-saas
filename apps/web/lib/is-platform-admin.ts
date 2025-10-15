@@ -1,11 +1,11 @@
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 
 export async function isPlatformAdmin() {
-  const sb = await supabaseServer();
-  const { data: { user } } = await sb.auth.getUser();
+  const supabase = await getServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user?.email) return { ok: false as const, user: null };
 
-  const { data } = await sb
+  const { data } = await supabase
     .from("platform_admins")
     .select("email")
     .eq("email", user.email)

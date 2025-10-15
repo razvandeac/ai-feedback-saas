@@ -1,6 +1,6 @@
 export const revalidate = 0;
 
-import { supabaseServer } from "@/lib/supabase-server";
+import { getServerSupabase } from "@/lib/supabaseServer";
 import { isPlatformAdmin } from "@/lib/is-platform-admin";
 
 export default async function AdminPage({
@@ -14,7 +14,7 @@ export default async function AdminPage({
   }
 
   const search = await searchParams;
-  const sb = await supabaseServer();
+  const sb = await getServerSupabase();
   const qSource = (typeof search?.source === "string" ? search.source : "") as string;
   const qStatus = (typeof search?.status === "string" ? search.status : "") as string;
   const qRating = Number(typeof search?.rating === "string" ? search.rating : 0);
