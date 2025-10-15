@@ -45,13 +45,18 @@ export default function OtpLogin() {
       
       if (data.user) {
         console.log('OTP verification successful:', data.user.email)
+        
+        // Wait for session to be established
+        const { data: sessionData } = await supabase.auth.getSession()
+        console.log('Session after OTP:', sessionData.session?.user?.email)
+        
         setPhase('done')
         
         // Use window.location.href for a full page reload to ensure session is established
         setTimeout(() => {
           console.log('Redirecting to dashboard...')
           window.location.href = '/dashboard'
-        }, 1500)
+        }, 2000) // Increased timeout
       } else {
         console.log('No user in OTP response')
         setError('Authentication failed. Please try again.')
