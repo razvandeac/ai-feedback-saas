@@ -45,7 +45,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
     .from("org_invites")
     .select("id, email, role, status, token, created_at, invited_by")
     .eq("org_id", org.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false }) as { data: Invite[] | null; error: any };
   
   if (invitesError) {
     console.error("[members] Invites query error:", invitesError);
