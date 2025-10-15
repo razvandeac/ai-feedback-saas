@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +7,6 @@ import { Input } from '@/components/ui/input'
 type Phase = 'request' | 'verify' | 'done'
 
 export default function OtpLogin() {
-  const router = useRouter()
   const [phase, setPhase] = useState<Phase>('request')
   const [email, setEmail] = useState('')
   const [token, setToken] = useState('')
@@ -62,7 +60,7 @@ export default function OtpLogin() {
         setError('Authentication failed. Please try again.')
         setLoading(false)
       }
-    } catch (err) {
+    } catch (error) {
       setError('An unexpected error occurred. Please try again.')
       setLoading(false)
     }
