@@ -4,8 +4,15 @@ import LogoutButton from '@/components/auth/LogoutButton'
 
 export default async function DashboardPage() {
   const supabase = await getServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  // Debug logging
+  console.log('Dashboard auth check:', { user: user?.email, error })
+  
+  if (!user) {
+    console.log('No user found, redirecting to login')
+    redirect('/login')
+  }
   return (
     <main className="min-h-screen bg-neutral-50">
       <div className="container-xl py-8">
