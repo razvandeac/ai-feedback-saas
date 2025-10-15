@@ -1,6 +1,14 @@
 export const dynamic = "force-dynamic";
 import { supabaseServer } from "@/lib/supabase-server";
 
+type FeedbackRow = {
+  id: string;
+  project_id: string;
+  rating: number | null;
+  comment: string | null;
+  created_at: string;
+};
+
 export default async function RecentFeedback({ projectIds }: { projectIds: string[] }) {
   const sb = await supabaseServer();
   const { data } = await sb
@@ -14,7 +22,7 @@ export default async function RecentFeedback({ projectIds }: { projectIds: strin
     <div className="rounded-3xl border bg-white">
       <div className="p-3 border-b text-sm font-medium">Recent feedback</div>
       <ul className="divide-y">
-        {(data ?? []).map((f:any) => (
+        {(data as FeedbackRow[] ?? []).map((f) => (
           <li key={f.id} className="p-3 text-sm">
             <div className="flex items-center justify-between">
               <div className="font-medium">{f.rating ? `★ ${f.rating}` : "—"}</div>

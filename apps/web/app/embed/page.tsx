@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import Image from "next/image";
 import StarRating from "@/components/widget/star-rating";
 import { Label, Textarea, Button } from "@/components/widget/field";
 
@@ -60,9 +61,10 @@ export default function EmbedPage() {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ key, type: "widget.opened", payload: { ts: Date.now() }})
         });
-      } catch (e: any) {
+      } catch (e) {
         console.error(e);
-        toast.error(e?.message || "Could not load widget");
+        const message = e instanceof Error ? e.message : "Could not load widget";
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -83,7 +85,7 @@ export default function EmbedPage() {
     setBusy(true);
     toast.loading("Sending feedback…", { id: "fb" });
     try {
-      const payload: any = {};
+      const payload: Record<string, unknown> = {};
       if (showRating) payload.rating = rating;
       if (showComment) payload.comment = comment;
       const resp = await fetch("/api/public/ingest", {
@@ -100,8 +102,9 @@ export default function EmbedPage() {
       toast.success("Thanks for your feedback!", { id: "fb" });
       setComment("");
       setRating(null);
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to send feedback", { id: "fb" });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to send feedback";
+      toast.error(message, { id: "fb" });
     } finally {
       setBusy(false);
     }
@@ -112,14 +115,14 @@ export default function EmbedPage() {
   if (!cfg) return <div className="p-4 text-sm">Widget unavailable.</div>;
 
   // theming via CSS variable
-  const style = { ["--vamoot-primary" as any]: primary } as React.CSSProperties;
+  const style = { "--vamoot-primary": primary } as React.CSSProperties;
 
   return (
     <div className="min-h-[340px] p-4 grid place-items-center" style={style}>
       <div className="w-full max-w-md space-y-4 border rounded-3xl p-5 bg-white">
         {/* Header */}
         <div className="flex items-center gap-3">
-          {cfg.settings.logoUrl ? <img src={cfg.settings.logoUrl} alt="" className="h-6 w-6 rounded-md object-cover" /> : null}
+          {cfg.settings.logoUrl ? <Image src={cfg.settings.logoUrl} alt="" width={24} height={24} className="rounded-md object-cover" /> : null}
           <div className="text-base font-semibold">{cfg.settings.title || "We value your feedback!"}</div>
         </div>
 

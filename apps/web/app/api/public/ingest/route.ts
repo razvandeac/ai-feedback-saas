@@ -7,7 +7,7 @@ export async function OPTIONS(req: Request) {
   return preflight(req, ["POST", "OPTIONS"], null, { projectOnly: false });
 }
 
-type Body = { key: string; type: string; widget_id?: string | null; payload?: Record<string, any>; };
+type Body = { key: string; type: string; widget_id?: string | null; payload?: Record<string, unknown>; };
 const MAX_PAYLOAD_BYTES = 8 * 1024;
 
 export async function POST(req: Request) {
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
   // CORS gate with per-project list
   const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
-  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS(req);
+  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS();
 
   if (!proj) {
     return withCORS(NextResponse.json({ error: "invalid key" }, { status: 404 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
@@ -61,9 +61,10 @@ export async function POST(req: Request) {
   }
 
   if (body.type === "feedback.submit") {
-    const ratingRaw = (payload as any)?.rating;
+    const payloadData = payload as Record<string, unknown> | undefined;
+    const ratingRaw = payloadData?.rating;
     const rating = typeof ratingRaw === "number" ? Math.max(1, Math.min(5, Math.round(ratingRaw))) : null;
-    const commentRaw = (payload as any)?.comment;
+    const commentRaw = payloadData?.comment;
     const comment = typeof commentRaw === "string" ? String(commentRaw).slice(0, 2000) : null;
     await sb.from("feedback").insert({ project_id: proj.id, rating, comment });
   }

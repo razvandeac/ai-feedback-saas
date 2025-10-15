@@ -6,8 +6,6 @@ import EmptyState from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 
-function num(v: string | null, def = 0) { const n = v ? parseInt(v,10) : def; return isNaN(n) ? def : n; }
-
 export default async function FeedbackPage({ 
   params,
   searchParams

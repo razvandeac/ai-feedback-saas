@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   await sendInviteEmail({
     to: invite.email,
-    role: invite.role as any,
+    role: invite.role as "owner" | "admin" | "member",
     orgName: org?.name || "Vamoot org",
     acceptUrl,
     invitedBy: inviter?.[0] || null

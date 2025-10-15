@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-export function CodeBlock({ code, language = "html" }: { code: string; language?: string }) {
+export function CodeBlock({ code }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
     try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(()=>setCopied(false), 1500); } catch {}

@@ -37,9 +37,10 @@ export async function GET(req: Request) {
       .single();
 
     // Fetch inviter via RPC
-    let inviter: any = null;
+    type UserLite = { id: string; full_name?: string | null; email?: string | null };
+    let inviter: UserLite | null = null;
     const { data: usersLite } = await sb.rpc("get_users_lite", { ids: [invite.invited_by] });
-    if (usersLite && usersLite.length) inviter = usersLite[0];
+    if (usersLite && usersLite.length) inviter = usersLite[0] as UserLite;
 
     return NextResponse.json({
       org: org ? { name: org.name, slug: org.slug } : null,
@@ -51,8 +52,9 @@ export async function GET(req: Request) {
         email_hint: maskEmail(invite.email)
       }
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "lookup failed" }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "lookup failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

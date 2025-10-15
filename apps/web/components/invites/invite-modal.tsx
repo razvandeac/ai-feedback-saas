@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,6 @@ export default function InviteModal({ orgSlug }: { orgSlug: string }) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
-  const [pending, start] = useTransition();
 
   async function submit() {
     const inviteEmail = email; // capture for toast
@@ -79,7 +78,7 @@ export default function InviteModal({ orgSlug }: { orgSlug: string }) {
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="subtle" onClick={()=>setOpen(false)}>Cancel</Button>
-            <Button onClick={()=>start(submit)} disabled={!email}>Send invite</Button>
+            <Button onClick={submit} disabled={!email}>Send invite</Button>
           </div>
           <p className="text-xs text-neutral-500">An email will be sent automatically. You can also copy the invite link from the success notification.</p>
         </div>

@@ -5,6 +5,12 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendInviteEmail } from "@/lib/email";
 
+type UserLite = {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+};
+
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const sb = await supabaseServer();
@@ -90,11 +96,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   const inviterIds = Array.from(new Set((invites ?? []).map(i => i.invited_by).filter(Boolean)));
-  let usersById = new Map<string, any>();
+  let usersById = new Map<string, UserLite>();
   if (inviterIds.length) {
     const { data: usersLite, error: rpcErr } = await sb.rpc("get_users_lite", { ids: inviterIds });
     if (!rpcErr && usersLite) {
-      usersById = new Map((usersLite as any[]).map((u: any) => [u.id, u]));
+      usersById = new Map((usersLite as UserLite[]).map((u) => [u.id, u]));
     }
   }
 

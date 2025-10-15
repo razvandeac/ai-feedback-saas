@@ -14,15 +14,15 @@ export async function OPTIONS(req: Request) {
 export async function POST(req: Request) {
   // CORS gate first
   const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["POST", "OPTIONS"], null);
-  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS(req);
+  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS();
 
   const raw = await req.text();
   if (raw.length > MAX_BYTES) {
     return withCORS(NextResponse.json({ error: "payload too large" }, { status: 413 }), req, ["POST", "OPTIONS"]);
   }
 
-  let body: any = {};
-  try { body = JSON.parse(raw); } catch { 
+  let body: Record<string, unknown> = {};
+  try { body = JSON.parse(raw) as Record<string, unknown>; } catch { 
     return withCORS(NextResponse.json({ error: "invalid json" }, { status: 400 }), req, ["POST", "OPTIONS"]); 
   }
 

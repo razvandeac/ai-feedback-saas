@@ -9,7 +9,7 @@ export default async function ProjectSettingsPage({
 }: {
   params: Promise<{ slug: string; id: string }>
 }) {
-  const { slug, id } = await params;
+  const { id } = await params;
   const sb = await supabaseServer();
   
   const { data: project } = await sb

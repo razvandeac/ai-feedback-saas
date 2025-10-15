@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
   // upsert membership
   const { error: memErr } = await sb.from("memberships").upsert({
-    org_id: invite.org_id, user_id: user.id, role: invite.role as any
+    org_id: invite.org_id, user_id: user.id, role: invite.role as "owner" | "admin" | "member"
   }, { onConflict: "org_id,user_id" });
 
   if (memErr) return NextResponse.json({ error: memErr.message }, { status: 400 });

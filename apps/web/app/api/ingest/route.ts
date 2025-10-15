@@ -5,7 +5,7 @@ type IngestBody = {
   project_id: string; // UUID
   widget_id?: string; // UUID
   type: string;       // e.g. "feedback.submit"
-  payload?: any;      // JSON
+  payload?: Record<string, unknown>;      // JSON
 };
 
 export async function POST(req: Request) {
@@ -29,8 +29,9 @@ export async function POST(req: Request) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "unknown error" }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

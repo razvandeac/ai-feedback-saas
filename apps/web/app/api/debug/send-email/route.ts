@@ -21,8 +21,9 @@ export async function GET(req: Request) {
       text: "If you received this, Resend is working 🎉"
     });
     return NextResponse.json({ ok: true, result: r });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
 

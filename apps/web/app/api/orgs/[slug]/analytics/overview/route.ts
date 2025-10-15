@@ -40,13 +40,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     .in("project_id", pids);
 
   // Manual aggregation since Supabase doesn't support group by in all plans
+  type ProjectRow = { project_id: string };
   const fbMap = new Map<string, number>();
-  (feedbackAgg ?? []).forEach((r: any) => {
+  (feedbackAgg as ProjectRow[] ?? []).forEach((r) => {
     fbMap.set(r.project_id, (fbMap.get(r.project_id) ?? 0) + 1);
   });
 
   const evMap = new Map<string, number>();
-  (eventsAgg ?? []).forEach((r: any) => {
+  (eventsAgg as ProjectRow[] ?? []).forEach((r) => {
     evMap.set(r.project_id, (evMap.get(r.project_id) ?? 0) + 1);
   });
 

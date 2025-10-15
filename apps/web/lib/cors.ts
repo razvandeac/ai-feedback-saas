@@ -74,7 +74,7 @@ export function preflight(req: Request, methods: string[], extraAllowed?: string
   return withCORS(res, req, methods, extraAllowed, opts);
 }
 
-export function forbidCORS(req: Request) {
+export function forbidCORS() {
   return new Response(JSON.stringify({ error: "origin not allowed" }), {
     status: 403,
     headers: { "content-type": "application/json" }

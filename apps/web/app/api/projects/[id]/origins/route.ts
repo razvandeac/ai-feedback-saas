@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { cleanOrigins, isValidOriginEntry } from "@/lib/origin-validate";
 
-async function requireAdmin(sb: any, projectId: string) {
+async function requireAdmin(sb: Awaited<ReturnType<typeof supabaseServer>>, projectId: string) {
   const { data: proj } = await sb.from("projects").select("org_id").eq("id", projectId).single();
   if (!proj) return { ok: false, status: 404, error: "project not found" };
   const { data: { user } } = await sb.auth.getUser();

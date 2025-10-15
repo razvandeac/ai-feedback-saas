@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-async function requireOrgAdmin(sb: any, slug: string) {
+async function requireOrgAdmin(sb: Awaited<ReturnType<typeof supabaseServer>>, slug: string) {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return { ok: false, status: 401, error: "unauthorized" };
   const { data: org } = await sb.from("organizations").select("id").eq("slug", slug).single();

@@ -14,10 +14,11 @@ export async function GET() {
       data: data,
       message: error ? "RPC function failed" : "RPC function works!"
     });
-  } catch (e: any) {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({
       success: false,
-      error: e.message,
+      error: message,
       message: "RPC function doesn't exist or can't be called"
     }, { status: 500 });
   }

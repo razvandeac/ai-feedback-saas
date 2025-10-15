@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   const { data: org } = await sb.from("organizations").select("id").eq("slug", slug).single();
   if (!org) return NextResponse.json({ error: "org not found" }, { status: 404 });
 
-  let projQuery = sb.from("projects").select("id").eq("org_id", org.id);
+  const projQuery = sb.from("projects").select("id").eq("org_id", org.id);
   const { data: pRows } = await projQuery;
   const pids = (pRows ?? []).map(p => p.id);
   if (!pids.length) return NextResponse.json({ series: [] });

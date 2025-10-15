@@ -8,6 +8,12 @@ import { myOrgRole } from "@/lib/my-org-role";
 import { displayName } from "@/lib/display-name";
 import { notFound } from "next/navigation";
 
+type UserLite = {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+};
+
 export default async function MembersPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const sb = await supabaseServer();
@@ -43,7 +49,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetching user data for:", { userIds: userIds.length, inviterIds: inviterIds.length, total: allUserIds.length });
   
-  let userMap = new Map<string, any>();
+  let userMap = new Map<string, UserLite>();
   if (allUserIds.length > 0) {
     // Use admin client for RPC to avoid permission issues
     const { data: usersLite, error: rpcError } = await admin.rpc("get_users_lite", { ids: allUserIds });
@@ -51,7 +57,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
       console.error("[members] RPC error:", rpcError);
     } else if (usersLite) {
       console.log("[members] RPC returned", usersLite.length, "users");
-      userMap = new Map((usersLite as any[]).map((u: any) => [u.id, u]));
+      userMap = new Map((usersLite as UserLite[]).map((u) => [u.id, u]));
     } else {
       console.warn("[members] RPC returned null data");
     }
@@ -89,7 +95,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
       <div className="rounded-3xl border bg-white p-4">
         <div className="text-sm font-medium mb-2">Current members</div>
         <ul className="space-y-2">
-          {membersWithEmail.map((m: any)=>(
+          {membersWithEmail.map((m)=>(
             <li key={m.user_id} className="flex items-center justify-between border rounded-2xl px-3 py-2">
               <div className="flex flex-col">
                 <span className="font-medium text-sm">{displayName(m.user)}</span>

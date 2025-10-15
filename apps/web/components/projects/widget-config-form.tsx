@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export default function WidgetConfigForm({ projectId, initial }: { projectId: string; initial: any }) {
+export default function WidgetConfigForm({ projectId, initial }: { projectId: string; initial: Record<string, unknown> }) {
   const [settings, setSettings] = useState({
     theme: initial.theme || "light",
     primaryColor: initial.primaryColor || "#2563eb",
@@ -16,7 +16,7 @@ export default function WidgetConfigForm({ projectId, initial }: { projectId: st
   });
   const [pending, startTransition] = useTransition();
 
-  function update<K extends keyof typeof settings>(k: K, v: any) {
+  function update<K extends keyof typeof settings>(k: K, v: typeof settings[K]) {
     setSettings(s => ({ ...s, [k]: v }));
   }
 

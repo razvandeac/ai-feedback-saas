@@ -27,7 +27,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (orgErr || !org) return NextResponse.json({ error: "org not found" }, { status: 404 });
 
   // resolve project ids for org (RLS-safe)
-  let projectQuery = sb.from("projects").select("id").eq("org_id", org.id);
+  const projectQuery = sb.from("projects").select("id").eq("org_id", org.id);
   const { data: projRows } = await projectQuery;
   const projectIds = (projRows ?? []).map(p => p.id);
 

@@ -49,7 +49,7 @@ export async function GET(
 
   // CORS gate after we know per-project list
   const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["GET", "OPTIONS"], extra, { projectOnly });
-  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS(req);
+  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS();
 
   if (!proj) {
     return withCORS(NextResponse.json({ error: "project not found" }, { status: 404 }), req, ["GET", "OPTIONS"], extra, { projectOnly });

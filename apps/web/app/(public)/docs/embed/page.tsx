@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function EmbedDocsPage() {
   return (
     <div className="min-h-screen bg-neutral-50 p-8">
@@ -110,9 +112,9 @@ export default function EmbedDocsPage() {
         </section>
 
         <div className="text-center pt-4">
-          <a href="/" className="text-sm text-brand hover:underline">
+          <Link href="/" className="text-sm text-brand hover:underline">
             ← Back to Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     </div>

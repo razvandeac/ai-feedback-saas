@@ -27,7 +27,7 @@ export default function WidgetPreview({ projectKey, siteBase }: { projectKey: st
         <iframe
           title="Vamoot Widget Preview"
           src={src}
-          style={{ width, height: 360, border: 0, borderRadius: 16, overflow: "hidden", background: "transparent" } as any}
+          style={{ width, height: 360, border: 0, borderRadius: 16, overflow: "hidden", background: "transparent" } as React.CSSProperties}
           loading="lazy"
         />
       </div>

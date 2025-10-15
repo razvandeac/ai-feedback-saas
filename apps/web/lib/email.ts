@@ -30,8 +30,9 @@ export async function sendInviteEmail(props: InviteEmailProps) {
   try {
     const r = await resend.emails.send({ from, to, subject, html, text });
     return r;
-  } catch (e: any) {
-    console.error("[email] send failed:", e?.message || e);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error("[email] send failed:", message);
     throw e;
   }
 }

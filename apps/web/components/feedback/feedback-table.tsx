@@ -1,23 +1,21 @@
 "use client";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type Row = { id: string; project_id: string; rating: number | null; comment: string | null; created_at: string };
-type Payload = { items: Row[]; total: number; page: number; pageSize: number };
 type Project = { id: string; name: string };
 
 export default function FeedbackTable({
-  initial, total, page, pageSize, projects, orgSlug
+  initial, total, page, pageSize, projects
 }: { initial: Row[]; total: number; page: number; pageSize: number; projects: Project[]; orgSlug: string }) {
   const [rows, setRows] = useState<Row[]>(initial);
   const [meta, setMeta] = useState({ total, page, pageSize });
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const [pending, start] = useTransition();
 
   // React to URL param changes by letting server re-render page; keep client table for UX
   useEffect(() => {

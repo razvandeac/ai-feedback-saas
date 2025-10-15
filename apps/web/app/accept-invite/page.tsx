@@ -29,8 +29,8 @@ export default function AcceptInvitePage() {
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || "Lookup failed");
         setData(json);
-      } catch (e: any) {
-        setErr(e?.message || "Lookup failed");
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Lookup failed");
       }
     })();
   }, [token]);

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ export default function FeedbackFilterBar({ projects }: { projects: Project[] })
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const [pending, start] = useTransition();
 
   const [project, setProject] = useState(params.get("project") || "");
   const [rating, setRating] = useState(params.get("rating") || "");

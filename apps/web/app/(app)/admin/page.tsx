@@ -30,6 +30,16 @@ export default async function AdminPage({
 
   const { data } = await query;
 
+  type FeedbackRow = {
+    id: string;
+    source: string | null;
+    rating: number | null;
+    comment: string | null;
+    email: string | null;
+    status: string;
+    created_at: string;
+  };
+
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-lg font-semibold">Vamoot Platform Feedback</h1>
@@ -56,7 +66,7 @@ export default async function AdminPage({
             </tr>
           </thead>
           <tbody>
-            {(data ?? []).map((f: any) => (
+            {(data as FeedbackRow[] ?? []).map((f) => (
               <tr key={f.id} className="border-b align-top">
                 <td className="p-2 whitespace-nowrap">{new Date(f.created_at).toLocaleString()}</td>
                 <td className="p-2">{f.source || "—"}</td>

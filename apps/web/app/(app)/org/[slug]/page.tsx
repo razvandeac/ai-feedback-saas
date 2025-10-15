@@ -44,7 +44,7 @@ export default async function OrgOverview({ params }: { params: Promise<{ slug: 
     .order("created_at", { ascending: false })
     .limit(500); // sample recent 500 to keep it cheap
 
-  const avg = ratings && ratings.length ? (ratings.reduce((a, r:any)=>a + (r.rating ?? 0), 0) / ratings.length) : null;
+  const avg = ratings && ratings.length ? (ratings.reduce((a, r: { rating: number | null })=>a + (r.rating ?? 0), 0) / ratings.length) : null;
 
   return (
     <div className="space-y-6">
