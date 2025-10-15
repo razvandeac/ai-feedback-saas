@@ -1,5 +1,6 @@
 // apps/web/lib/supabaseAdmin.ts
-// Admin client (server-only). Uses service_role; NEVER import in client code.
+// Admin client (server-only). Uses service_role and bypasses RLS.
+// Never import in client/browser code.
 import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL

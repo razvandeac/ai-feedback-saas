@@ -2,7 +2,7 @@ export const runtime = "nodejs"; // ensure Node runtime for Resend
 
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendInviteEmail } from "@/lib/email";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 
@@ -38,7 +38,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
 
   // Use admin client to insert (bypasses all RLS/FK checks)
-  const admin = supabaseAdmin();
+  const admin = supabaseAdmin;
   const { data, error } = await admin
     .from("org_invites")
     .insert({ org_id: org.id, email, role, invited_by: user.id })

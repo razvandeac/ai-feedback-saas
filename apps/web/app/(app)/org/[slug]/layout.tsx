@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 
 export default async function OrgLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
   
   // Check if user has any memberships (redirect to onboarding if not)
   const { data: memberships } = await supabase.from("memberships").select("org_id").limit(1);

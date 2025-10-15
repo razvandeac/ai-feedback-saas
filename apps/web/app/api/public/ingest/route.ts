@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
 export async function OPTIONS(req: Request) {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     return withCORS(NextResponse.json({ error: "invalid key" }, { status: 400 }), req, ["POST", "OPTIONS"]);
   }
 
-  const sb = supabaseAdmin();
+  const sb = supabaseAdmin;
   const { data: proj } = await sb
     .from("projects")
     .select("id, key, allowed_origins, require_project_origins")

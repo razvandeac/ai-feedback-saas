@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type IngestBody = {
   project_id: string; // UUID
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "project_id and type are required" }, { status: 400 });
     }
 
-    const sb = supabaseAdmin();
+    const sb = supabaseAdmin;
 
     const { error } = await sb.from("events").insert({
       project_id: body.project_id,

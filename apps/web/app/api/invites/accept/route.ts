@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
   const sb = await getRouteSupabase();
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   if (!token) return NextResponse.json({ error: "token required" }, { status: 400 });
 
   // Use admin client to find invite (bypasses RLS)
-  const admin = supabaseAdmin();
+  const admin = supabaseAdmin;
   const { data: invite, error: invErr } = await admin
     .from("org_invites")
     .select("id, org_id, email, role, status")

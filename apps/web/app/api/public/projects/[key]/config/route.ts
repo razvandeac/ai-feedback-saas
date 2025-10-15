@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
 export async function OPTIONS(
@@ -8,7 +8,7 @@ export async function OPTIONS(
 ) {
   // We can prefetch project allow-list for OPTIONS too
   const { key } = await params;
-  const sb = supabaseAdmin();
+  const sb = supabaseAdmin;
   const cleanKey = (key || "").trim();
   let extra: string[] | null = null;
   let projectOnly = false;
@@ -29,7 +29,7 @@ export async function GET(
   { params }: { params: Promise<{ key: string }> }
 ) {
   const { key } = await params;
-  const sb = supabaseAdmin();
+  const sb = supabaseAdmin;
   const cleanKey = (key || "").trim();
 
   // Validate key early
