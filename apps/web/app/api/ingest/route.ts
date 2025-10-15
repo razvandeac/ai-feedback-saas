@@ -22,7 +22,8 @@ export async function POST(req: Request) {
       project_id: body.project_id,
       widget_id: body.widget_id ?? null,
       type: body.type,
-      payload: body.payload ?? {},
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: (body.payload ?? {}) as any,
       user_agent: req.headers.get("user-agent") ?? undefined,
       ip: (req.headers.get("x-forwarded-for") ?? "").split(",")[0] || null
     });

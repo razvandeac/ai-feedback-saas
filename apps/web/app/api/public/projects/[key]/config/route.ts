@@ -69,7 +69,7 @@ export async function GET(
       showRating: true,
       showComment: true,
       title: "We value your feedback!",
-      ...(cfg?.settings || {})
+      ...(cfg?.settings as Record<string, unknown> || {})
     }
   };
 

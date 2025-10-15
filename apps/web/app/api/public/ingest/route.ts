@@ -52,7 +52,8 @@ export async function POST(req: Request) {
     project_id: proj.id,
     widget_id: body.widget_id ?? null,
     type: body.type,
-    payload,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: payload as any,
     user_agent: userAgent,
     ip
   });

@@ -65,7 +65,9 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   let userMap = new Map<string, UserLite>();
   if (allUserIds.length > 0) {
     // Use admin client for RPC to avoid permission issues
-    const { data: usersLite, error: rpcError } = await admin.rpc("get_users_lite", { ids: allUserIds });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rpcResult = await admin.rpc("get_users_lite", { ids: allUserIds } as any);
+    const { data: usersLite, error: rpcError } = rpcResult as { data: UserLite[] | null; error: Error | null };
     if (rpcError) {
       console.error("[members] RPC error:", rpcError);
     } else if (usersLite) {

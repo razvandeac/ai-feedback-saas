@@ -39,7 +39,9 @@ export async function POST(req: Request) {
 
   const sa = getSupabaseAdmin();
   const { error } = await sa.from("platform_feedback").insert({
-    source, rating, comment, email, metadata
+    source, rating, comment, email, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata: metadata as any
   });
   if (error) {
     return withCORS(NextResponse.json({ error: error.message }, { status: 400 }), req, ["POST", "OPTIONS"]);
