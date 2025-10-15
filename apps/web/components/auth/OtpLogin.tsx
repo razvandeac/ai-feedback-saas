@@ -17,7 +17,17 @@ export default function OtpLogin() {
   async function requestOtp(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError(null); setInfo(null)
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim() })
+    
+    // Force OTP mode - disable magic links completely
+    const { error } = await supabase.auth.signInWithOtp({ 
+      email: email.trim(),
+      options: {
+        shouldCreateUser: true,
+        // Explicitly disable magic link redirect
+        emailRedirectTo: undefined
+      }
+    })
+    
     setLoading(false)
     if (error) { setError(error.message); return }
     setInfo('We sent you a 6-digit code.')
