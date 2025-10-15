@@ -16,19 +16,25 @@ export default async function DashboardPage() {
   }
 
   // Fetch user's organizations
-  const { data: memberships } = await supabase
+  const { data: memberships, error: membershipsError } = await supabase
     .from('memberships')
     .select('org_id, role')
     .eq('user_id', user.id)
 
+  console.log('Memberships query:', { memberships, membershipsError, userId: user.id })
+
   const orgIds = memberships?.map(m => m.org_id) || []
+  console.log('Org IDs:', orgIds)
   
   // Get organization details
-  const { data: organizations } = await supabase
+  const { data: organizations, error: orgsError } = await supabase
     .from('organizations')
     .select('id, name, slug')
     .in('id', orgIds)
+  
+  console.log('Organizations query:', { organizations, orgsError })
   const orgs = organizations || []
+  console.log('Final orgs array:', orgs)
   
   let totalProjects = 0
   let totalFeedback = 0
@@ -91,6 +97,16 @@ export default async function DashboardPage() {
               <p className="text-neutral-600 mt-1">Welcome back, {user.email}</p>
             </div>
             <LogoutButton />
+          </div>
+
+          {/* Debug info - remove this after fixing */}
+          <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h3 className="font-semibold text-yellow-800 mb-2">Debug Info:</h3>
+            <p className="text-sm text-yellow-700">User ID: {user.id}</p>
+            <p className="text-sm text-yellow-700">Memberships: {JSON.stringify(memberships)}</p>
+            <p className="text-sm text-yellow-700">Org IDs: {JSON.stringify(orgIds)}</p>
+            <p className="text-sm text-yellow-700">Organizations: {JSON.stringify(orgs)}</p>
+            <p className="text-sm text-yellow-700">Orgs length: {orgs.length}</p>
           </div>
           
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
