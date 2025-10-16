@@ -25,8 +25,8 @@ SET row_security = off;
 -- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO "public"."organizations" ("id", "name", "slug", "created_by", "created_at") VALUES
-	('a9523bc1-fff1-4773-bdba-dd494d055ba8', 'Demo Org', 'demo', 'ac07520e-3367-471b-8bac-ac24f4f127cf', '2025-10-13 10:39:20.210321+00');
+INSERT INTO "public"."organizations" ("id", "name", "slug", "created_at", "updated_at") VALUES
+	('a9523bc1-fff1-4773-bdba-dd494d055ba8', 'Demo Org', 'demo', '2025-10-13 10:39:20.210321+00', '2025-10-13 10:39:20.210321+00');
 
 
 --
