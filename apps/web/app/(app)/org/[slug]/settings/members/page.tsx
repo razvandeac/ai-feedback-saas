@@ -63,12 +63,12 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   let userMap = new Map<string, UserLite>();
   if (allUserIds.length > 0) {
     try {
-      // Use the working RPC function
+      // Use the existing RPC function
       const { data: usersData, error: usersError } = await admin
-        .rpc('get_user_emails', { user_ids: allUserIds });
+        .rpc('get_users_lite', { ids: allUserIds });
       
       if (usersError) {
-        console.error('get_user_emails RPC error:', usersError);
+        console.error('get_users_lite RPC error:', usersError);
         // Fallback: create basic user objects with fake emails
         userMap = new Map(allUserIds.map(id => [
           id, 
@@ -77,9 +77,9 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
       } else if (usersData) {
         // RPC worked, use the data
         userMap = new Map(usersData.map((u: any) => [
-          u.user_id, 
+          u.id, 
           { 
-            id: u.user_id, 
+            id: u.id, 
             email: u.email, 
             full_name: u.full_name || null 
           }
