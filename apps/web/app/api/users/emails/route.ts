@@ -9,6 +9,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'userIds array is required' }, { status: 400 })
     }
 
+    // Debug environment variables
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0
+    });
+
     const admin = getSupabaseAdmin()
     
     // Try to get user emails using available RPC functions
