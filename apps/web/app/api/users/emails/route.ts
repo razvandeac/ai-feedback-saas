@@ -11,22 +11,22 @@ export async function POST(request: NextRequest) {
 
     const admin = getSupabaseAdmin()
     
-    // Try to get user emails using the existing RPC function first
+    // Try to get user emails using available RPC functions
     let data, error;
     
-    try {
-      // Try the new function first (for production)
-      const result = await admin.rpc('get_user_emails_simple', { user_ids: userIds });
-      data = result.data;
-      error = result.error;
-    } catch (e) {
-      // If that fails, try the old function (for local)
-      const result = await admin.rpc('get_users_lite', { ids: userIds });
-      data = result.data;
-      error = result.error;
+    // First try get_users_lite (exists in both local and production)
+    const result1 = await admin.rpc('get_users_lite', { ids: userIds });
+    if (!result1.error && result1.data) {
+      data = result1.data;
+      error = null;
+    } else {
+      // If that fails, try get_user_emails_simple (production only)
+      const result2 = await admin.rpc('get_user_emails_simple', { user_ids: userIds });
+      data = result2.data;
+      error = result2.error;
     }
 
-    if (error) {
+    if (error || !data) {
       console.error('RPC error:', error)
       // Fallback: return user IDs with fake emails
       const users = userIds.map(id => ({
