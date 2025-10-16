@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Format the response - handle both function formats
-    const users = data?.map((user: { id?: string; user_id?: string; email: string; full_name?: string | null }) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const users = data?.map((user: any) => ({
       id: user.user_id || user.id, // Handle both formats
       email: user.email,
       full_name: user.full_name || null
