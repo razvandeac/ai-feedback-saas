@@ -101,12 +101,13 @@ export default async function DashboardPage() {
 
           {/* Debug info - remove this after fixing */}
           <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h3 className="font-semibold text-yellow-800 mb-2">Debug Info:</h3>
+            <h3 className="font-semibold text-yellow-800 mb-2">Debug Info (Updated at {new Date().toLocaleTimeString()}):</h3>
             <p className="text-sm text-yellow-700">User ID: {user.id}</p>
             <p className="text-sm text-yellow-700">Memberships: {JSON.stringify(memberships)}</p>
             <p className="text-sm text-yellow-700">Org IDs: {JSON.stringify(orgIds)}</p>
             <p className="text-sm text-yellow-700">Organizations: {JSON.stringify(orgs)}</p>
             <p className="text-sm text-yellow-700">Orgs length: {orgs.length}</p>
+            <p className="text-sm text-yellow-700">Build time: {new Date().toISOString()}</p>
           </div>
           
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

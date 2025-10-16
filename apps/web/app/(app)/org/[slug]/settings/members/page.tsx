@@ -55,19 +55,18 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // For now, let's use a simple approach that shows user IDs
-  // We'll fix the email display later once we confirm the RPC function works
+  // Create a simple user map that shows actual user IDs instead of fake emails
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
   const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
   
-  // Create a simple user map with just IDs for now
+  // Create a simple user map with user IDs as display names
   const userMap = new Map<string, UserLite>();
   allUserIds.forEach(id => {
     userMap.set(id, { 
       id, 
-      email: `user-${id.slice(0, 8)}@example.com`, 
-      full_name: null 
+      email: null, // No email available
+      full_name: `User ${id.slice(0, 8)}...` // Show shortened ID as name
     });
   });
 
