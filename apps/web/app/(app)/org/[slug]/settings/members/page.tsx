@@ -55,20 +55,48 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // Create a simple user map that shows actual user IDs instead of fake emails
+  // Fetch user emails using API endpoint
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
   const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
   
-  // Create a simple user map with user IDs as display names
-  const userMap = new Map<string, UserLite>();
-  allUserIds.forEach(id => {
-    userMap.set(id, { 
-      id, 
-      email: null, // No email available
-      full_name: `User ${id.slice(0, 8)}...` // Show shortened ID as name
-    });
-  });
+  let userMap = new Map<string, UserLite>();
+  
+  if (allUserIds.length > 0) {
+    try {
+      // Use API endpoint to get user emails
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_BASE_URL || 'http://localhost:3000'}/api/users/emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: allUserIds })
+      });
+      
+      if (response.ok) {
+        const { users } = await response.json();
+        userMap = new Map(users.map((u: UserLite) => [u.id, u]));
+      } else {
+        console.error('API error:', response.status);
+        // Fallback: create basic user objects
+        allUserIds.forEach(id => {
+          userMap.set(id, { 
+            id, 
+            email: `user-${id.slice(0, 8)}@example.com`, 
+            full_name: null 
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Fallback: create basic user objects
+      allUserIds.forEach(id => {
+        userMap.set(id, { 
+          id, 
+          email: `user-${id.slice(0, 8)}@example.com`, 
+          full_name: null 
+        });
+      });
+    }
+  }
 
   // Format members with user data
   const membersWithEmail = (members ?? []).map(m => ({
