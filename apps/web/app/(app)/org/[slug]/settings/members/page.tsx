@@ -65,7 +65,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   const base = getClientBaseUrl();
   const invitesWithUrl = (invites ?? []).map(inv => ({
     ...inv,
-    inviter: userMap.get(inv.invited_by) || null,
+    inviter: { id: inv.invited_by, email: null, full_name: null },
     acceptUrl: inv.token ? `${base}/accept-invite?token=${inv.token}` : undefined
   }));
 
