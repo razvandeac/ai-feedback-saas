@@ -55,45 +55,21 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // Fetch user emails using the working RPC function
+  // For now, let's use a simple approach that shows user IDs
+  // We'll fix the email display later once we confirm the RPC function works
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
   const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
   
-  let userMap = new Map<string, UserLite>();
-  if (allUserIds.length > 0) {
-    try {
-      // Use the existing RPC function
-      const { data: usersData, error: usersError } = await admin
-        .rpc('get_users_lite', { ids: allUserIds });
-      
-      if (usersError) {
-        console.error('get_users_lite RPC error:', usersError);
-        // Fallback: create basic user objects with fake emails
-        userMap = new Map(allUserIds.map(id => [
-          id, 
-          { id, email: `user-${id.slice(0, 8)}@example.com`, full_name: null }
-        ]));
-      } else if (usersData) {
-        // RPC worked, use the data
-        userMap = new Map(usersData.map((u: any) => [
-          u.id, 
-          { 
-            id: u.id, 
-            email: u.email, 
-            full_name: u.full_name || null 
-          }
-        ]));
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      // Fallback: create basic user objects
-      userMap = new Map(allUserIds.map(id => [
-        id, 
-        { id, email: `user-${id.slice(0, 8)}@example.com`, full_name: null }
-      ]));
-    }
-  }
+  // Create a simple user map with just IDs for now
+  const userMap = new Map<string, UserLite>();
+  allUserIds.forEach(id => {
+    userMap.set(id, { 
+      id, 
+      email: `user-${id.slice(0, 8)}@example.com`, 
+      full_name: null 
+    });
+  });
 
   // Format members with user data
   const membersWithEmail = (members ?? []).map(m => ({
