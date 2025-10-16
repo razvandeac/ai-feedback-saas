@@ -55,7 +55,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // Fetch user data via RPC
+  // Fetch user data via RPC with fallback
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
   const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
@@ -66,22 +66,26 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   let userMap = new Map<string, UserLite>();
   if (allUserIds.length > 0) {
     try {
-      // Use admin client for RPC to avoid permission issues
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rpcResult = await admin.rpc("get_users_lite", { ids: allUserIds } as any);
-      console.log("[members] RPC result:", rpcResult);
+      // Try RPC first
+      const { data: usersLite, error: rpcError } = await admin.rpc("get_users_lite", { ids: allUserIds });
+      console.log("[members] RPC result:", { usersLite, rpcError });
       
-      const { data: usersLite, error: rpcError } = rpcResult as { data: UserLite[] | null; error: Error | null };
       if (rpcError) {
         console.error("[members] RPC error:", rpcError);
+        // Fallback: create user objects with just IDs
+        userMap = new Map(allUserIds.map(id => [id, { id, email: null, full_name: null }]));
       } else if (usersLite) {
         console.log("[members] RPC returned", usersLite.length, "users:", usersLite);
         userMap = new Map((usersLite as UserLite[]).map((u) => [u.id, u]));
       } else {
         console.warn("[members] RPC returned null data");
+        // Fallback: create user objects with just IDs
+        userMap = new Map(allUserIds.map(id => [id, { id, email: null, full_name: null }]));
       }
     } catch (error) {
       console.error("[members] RPC exception:", error);
+      // Fallback: create user objects with just IDs
+      userMap = new Map(allUserIds.map(id => [id, { id, email: null, full_name: null }]));
     }
   }
 
