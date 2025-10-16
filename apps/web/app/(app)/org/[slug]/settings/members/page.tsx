@@ -61,20 +61,27 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
   
   console.log("[members] Fetching user data for:", { userIds: userIds.length, inviterIds: inviterIds.length, total: allUserIds.length });
+  console.log("[members] User IDs:", allUserIds);
   
   let userMap = new Map<string, UserLite>();
   if (allUserIds.length > 0) {
-    // Use admin client for RPC to avoid permission issues
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rpcResult = await admin.rpc("get_users_lite", { ids: allUserIds } as any);
-    const { data: usersLite, error: rpcError } = rpcResult as { data: UserLite[] | null; error: Error | null };
-    if (rpcError) {
-      console.error("[members] RPC error:", rpcError);
-    } else if (usersLite) {
-      console.log("[members] RPC returned", usersLite.length, "users");
-      userMap = new Map((usersLite as UserLite[]).map((u) => [u.id, u]));
-    } else {
-      console.warn("[members] RPC returned null data");
+    try {
+      // Use admin client for RPC to avoid permission issues
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rpcResult = await admin.rpc("get_users_lite", { ids: allUserIds } as any);
+      console.log("[members] RPC result:", rpcResult);
+      
+      const { data: usersLite, error: rpcError } = rpcResult as { data: UserLite[] | null; error: Error | null };
+      if (rpcError) {
+        console.error("[members] RPC error:", rpcError);
+      } else if (usersLite) {
+        console.log("[members] RPC returned", usersLite.length, "users:", usersLite);
+        userMap = new Map((usersLite as UserLite[]).map((u) => [u.id, u]));
+      } else {
+        console.warn("[members] RPC returned null data");
+      }
+    } catch (error) {
+      console.error("[members] RPC exception:", error);
     }
   }
 
@@ -83,6 +90,9 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
     ...m,
     user: userMap.get(m.user_id) || null
   }));
+
+  console.log("[members] User map:", userMap);
+  console.log("[members] Members with email:", membersWithEmail);
 
   // Add acceptUrl and inviter to invites
   const base = getClientBaseUrl();
