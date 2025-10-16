@@ -55,48 +55,11 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // Fetch user data via RPC with fallback
-  const userIds = (members ?? []).map(m => m.user_id);
-  const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
-  const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
-  
-  console.log("[members] Fetching user data for:", { userIds: userIds.length, inviterIds: inviterIds.length, total: allUserIds.length });
-  console.log("[members] User IDs:", allUserIds);
-  
-  let userMap = new Map<string, UserLite>();
-  if (allUserIds.length > 0) {
-    try {
-      // Try RPC first
-      const { data: usersLite, error: rpcError } = await admin.rpc("get_users_lite", { ids: allUserIds });
-      console.log("[members] RPC result:", { usersLite, rpcError });
-      
-      if (rpcError) {
-        console.error("[members] RPC error:", rpcError);
-        // Fallback: create user objects with just IDs
-        userMap = new Map(allUserIds.map(id => [id, { id, email: null, full_name: null }]));
-      } else if (usersLite) {
-        console.log("[members] RPC returned", usersLite.length, "users:", usersLite);
-        userMap = new Map((usersLite as UserLite[]).map((u) => [u.id, u]));
-      } else {
-        console.warn("[members] RPC returned null data");
-        // Fallback: create user objects with just IDs
-        userMap = new Map(allUserIds.map(id => [id, { id, email: null, full_name: null }]));
-      }
-    } catch (error) {
-      console.error("[members] RPC exception:", error);
-      // Fallback: create user objects with just IDs
-      userMap = new Map(allUserIds.map(id => [id, { id, email: null, full_name: null }]));
-    }
-  }
-
-  // Format members with user data
+  // Create simple user objects with just IDs for now
   const membersWithEmail = (members ?? []).map(m => ({
     ...m,
-    user: userMap.get(m.user_id) || null
+    user: { id: m.user_id, email: null, full_name: null }
   }));
-
-  console.log("[members] User map:", userMap);
-  console.log("[members] Members with email:", membersWithEmail);
 
   // Add acceptUrl and inviter to invites
   const base = getClientBaseUrl();
