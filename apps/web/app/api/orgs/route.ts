@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "slug taken" }, { status: 409 });
     }
 
-    console.log("Attempting to create org:", { name, slug: desired, created_by: user.id });
+    console.log("Attempting to create org:", { name, slug: desired });
 
     // Try to get session to verify auth state
     const { data: { session } } = await sb.auth.getSession();
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     // Insert organization
     const { data, error } = await sb
       .from("organizations")
-      .insert({ name, slug: desired, created_by: user.id })
+      .insert({ name, slug: desired })
       .select()
       .single();
 
