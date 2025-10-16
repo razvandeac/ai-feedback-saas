@@ -11,9 +11,20 @@ export async function POST(request: NextRequest) {
 
     const admin = getSupabaseAdmin()
     
-    // Try to get user emails using the new RPC function
-    const { data, error } = await admin
-      .rpc('get_user_emails_simple', { user_ids: userIds })
+    // Try to get user emails using the existing RPC function first
+    let data, error;
+    
+    try {
+      // Try the new function first (for production)
+      const result = await admin.rpc('get_user_emails_simple', { user_ids: userIds });
+      data = result.data;
+      error = result.error;
+    } catch (e) {
+      // If that fails, try the old function (for local)
+      const result = await admin.rpc('get_users_lite', { ids: userIds });
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('RPC error:', error)
@@ -26,9 +37,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ users })
     }
 
-    // Format the response
+    // Format the response - handle both function formats
     const users = data?.map((user: any) => ({
-      id: user.user_id,
+      id: user.user_id || user.id, // Handle both formats
       email: user.email,
       full_name: user.full_name || null
     })) || []
