@@ -34,7 +34,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   if (!org) notFound();
 
   const { data: members } = await sb
-    .from("memberships")
+    .from("org_members")
     .select("user_id, role, created_at")
     .eq("org_id", org.id)
     .order("created_at", { ascending: false });

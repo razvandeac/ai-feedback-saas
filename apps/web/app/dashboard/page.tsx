@@ -17,7 +17,7 @@ export default async function DashboardPage() {
 
   // Fetch user's organizations
   const { data: memberships, error: membershipsError } = await supabase
-    .from('memberships')
+    .from('org_members')
     .select('org_id, role')
     .eq('user_id', user.id)
 

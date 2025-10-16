@@ -7,7 +7,7 @@ async function requireAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>, pr
   if (!proj) return { ok: false, status: 404, error: "project not found" };
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return { ok: false, status: 401, error: "unauthorized" };
-  const { data: mem } = await sb.from("memberships")
+  const { data: mem } = await sb.from("org_members")
     .select("role")
     .eq("org_id", proj.org_id)
     .eq("user_id", user.id)

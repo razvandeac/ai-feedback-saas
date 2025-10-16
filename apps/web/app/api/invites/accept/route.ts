@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   }
 
   // upsert membership
-  const { error: memErr } = await sb.from("memberships").upsert({
+  const { error: memErr } = await sb.from("org_members").upsert({
     org_id: invite.org_id, user_id: user.id, role: invite.role as "owner" | "admin" | "member"
   }, { onConflict: "org_id,user_id" });
 

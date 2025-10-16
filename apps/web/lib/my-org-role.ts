@@ -6,7 +6,7 @@ export async function myOrgRole(slug: string) {
   if (!org) return null;
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return null;
-  const { data: m } = await sb.from("memberships").select("role").eq("org_id", org.id).eq("user_id", user.id).single();
+  const { data: m } = await sb.from("org_members").select("role").eq("org_id", org.id).eq("user_id", user.id).single();
   return m?.role || null;
 }
 

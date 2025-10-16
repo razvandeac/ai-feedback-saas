@@ -27,7 +27,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   // Verify user is admin/owner of this org
   const { data: membership } = await sb
-    .from("memberships")
+    .from("org_members")
     .select("role")
     .eq("org_id", org.id)
     .eq("user_id", user.id)

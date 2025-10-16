@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   // Verify user is admin/owner of this org
   const { data: membership } = await sb
-    .from("memberships")
+    .from("org_members")
     .select("role")
     .eq("org_id", inv.org_id)
     .eq("user_id", user.id)

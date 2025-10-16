@@ -7,7 +7,7 @@ export default async function OrgLayout({ children }: { children: React.ReactNod
   const supabase = await getServerSupabase();
   
   // Check if user has any memberships (redirect to onboarding if not)
-  const { data: memberships } = await supabase.from("memberships").select("org_id").limit(1);
+  const { data: memberships } = await supabase.from("org_members").select("org_id").limit(1);
   if (!memberships || memberships.length === 0) redirect("/onboarding");
 
   return (

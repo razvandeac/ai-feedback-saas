@@ -20,7 +20,7 @@ export async function GET(
   if (!project) return NextResponse.json({ error: "project not found" }, { status: 404 });
 
   const { data: membership } = await sb
-    .from("memberships")
+    .from("org_members")
     .select("role")
     .eq("org_id", project.org_id)
     .eq("user_id", user.id)
@@ -64,7 +64,7 @@ export async function PUT(
   if (!project) return NextResponse.json({ error: "project not found" }, { status: 404 });
 
   const { data: membership } = await sb
-    .from("memberships")
+    .from("org_members")
     .select("role")
     .eq("org_id", project.org_id)
     .eq("user_id", user.id)

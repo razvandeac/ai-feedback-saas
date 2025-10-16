@@ -11,7 +11,7 @@ async function requireOrgAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>,
   const { data: org } = await sb.from("organizations").select("id").eq("slug", slug).single();
   if (!org) return { ok: false, status: 404, error: "org not found" };
   const { data: mem } = await sb
-    .from("memberships")
+    .from("org_members")
     .select("role")
     .eq("org_id", org.id)
     .eq("user_id", user.id)
