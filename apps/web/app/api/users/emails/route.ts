@@ -15,13 +15,19 @@ export async function POST(request: NextRequest) {
     let data, error;
     
     // First try get_users_lite (exists in both local and production)
+    console.log('Trying get_users_lite with userIds:', userIds);
     const result1 = await admin.rpc('get_users_lite', { ids: userIds });
-    if (!result1.error && result1.data) {
+    console.log('get_users_lite result:', { data: result1.data, error: result1.error });
+    
+    if (!result1.error && result1.data && result1.data.length > 0) {
       data = result1.data;
       error = null;
+      console.log('Using get_users_lite data:', data);
     } else {
+      console.log('get_users_lite failed, trying get_user_emails_simple');
       // If that fails, try get_user_emails_simple (production only)
       const result2 = await admin.rpc('get_user_emails_simple', { user_ids: userIds });
+      console.log('get_user_emails_simple result:', { data: result2.data, error: result2.error });
       data = result2.data;
       error = result2.error;
     }
