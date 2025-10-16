@@ -55,7 +55,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // Fetch user emails directly using admin client
+  // Fetch user emails using the working RPC function
   const userIds = (members ?? []).map(m => m.user_id);
   const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
   const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
@@ -63,34 +63,27 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   let userMap = new Map<string, UserLite>();
   if (allUserIds.length > 0) {
     try {
-      // Use a direct SQL query to get user emails
+      // Use the working RPC function
       const { data: usersData, error: usersError } = await admin
-        .rpc('get_users_lite', { ids: allUserIds });
+        .rpc('get_user_emails', { user_ids: allUserIds });
       
       if (usersError) {
-        console.error('RPC error:', usersError);
-        // Fallback: try to get emails from a different approach
-        const { data: profilesData } = await admin
-          .from('profiles')
-          .select('user_id, full_name')
-          .in('user_id', allUserIds);
-        
-        if (profilesData) {
-          // Create user objects with profile data
-          userMap = new Map(profilesData.map(p => [
-            p.user_id, 
-            { id: p.user_id, email: `user-${p.user_id.slice(0, 8)}@example.com`, full_name: p.full_name }
-          ]));
-        } else {
-          // Last resort: create basic user objects
-          userMap = new Map(allUserIds.map(id => [
-            id, 
-            { id, email: `user-${id.slice(0, 8)}@example.com`, full_name: null }
-          ]));
-        }
+        console.error('get_user_emails RPC error:', usersError);
+        // Fallback: create basic user objects with fake emails
+        userMap = new Map(allUserIds.map(id => [
+          id, 
+          { id, email: `user-${id.slice(0, 8)}@example.com`, full_name: null }
+        ]));
       } else if (usersData) {
         // RPC worked, use the data
-        userMap = new Map((usersData as UserLite[]).map(u => [u.id, u]));
+        userMap = new Map(usersData.map((u: any) => [
+          u.user_id, 
+          { 
+            id: u.user_id, 
+            email: u.email, 
+            full_name: u.full_name || null 
+          }
+        ]));
       }
     } catch (error) {
       console.error('Error fetching users:', error);
