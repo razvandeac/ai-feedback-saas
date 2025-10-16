@@ -18,20 +18,29 @@ export default function OtpLogin() {
     e.preventDefault()
     setLoading(true); setError(null); setInfo(null)
     
-    // Force OTP mode for both development and production
-    const { error } = await supabase.auth.signInWithOtp({ 
-      email: email.trim(),
-      options: {
-        shouldCreateUser: true,
-        // Disable magic links completely - use OTP only
-        emailRedirectTo: undefined
+    try {
+      // Force OTP mode - use the most explicit approach
+      const { error } = await supabase.auth.signInWithOtp({ 
+        email: email.trim(),
+        options: {
+          shouldCreateUser: true,
+          // Completely disable magic links
+          emailRedirectTo: null
+        }
+      })
+      
+      if (error) {
+        setError(error.message)
+        return
       }
-    })
-    
-    setLoading(false)
-    if (error) { setError(error.message); return }
-    setInfo('We sent you a 6-digit code.')
-    setPhase('verify')
+      
+      setInfo('We sent you a 6-digit code.')
+      setPhase('verify')
+    } catch (err: any) {
+      setError(err.message || 'Failed to send OTP')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function verifyOtp(e: React.FormEvent) {
