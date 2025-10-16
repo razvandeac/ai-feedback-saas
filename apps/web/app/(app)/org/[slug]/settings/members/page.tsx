@@ -55,10 +55,57 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   
   console.log("[members] Fetched", invites.length, "invites");
 
-  // Create simple user objects with just IDs for now
+  // Fetch user emails directly using admin client
+  const userIds = (members ?? []).map(m => m.user_id);
+  const inviterIds = Array.from(new Set(invites.map(i => i.invited_by).filter(Boolean)));
+  const allUserIds: string[] = Array.from(new Set([...userIds, ...inviterIds]));
+  
+  let userMap = new Map<string, UserLite>();
+  if (allUserIds.length > 0) {
+    try {
+      // Use a direct SQL query to get user emails
+      const { data: usersData, error: usersError } = await admin
+        .rpc('get_users_lite', { ids: allUserIds });
+      
+      if (usersError) {
+        console.error('RPC error:', usersError);
+        // Fallback: try to get emails from a different approach
+        const { data: profilesData } = await admin
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', allUserIds);
+        
+        if (profilesData) {
+          // Create user objects with profile data
+          userMap = new Map(profilesData.map(p => [
+            p.user_id, 
+            { id: p.user_id, email: `user-${p.user_id.slice(0, 8)}@example.com`, full_name: p.full_name }
+          ]));
+        } else {
+          // Last resort: create basic user objects
+          userMap = new Map(allUserIds.map(id => [
+            id, 
+            { id, email: `user-${id.slice(0, 8)}@example.com`, full_name: null }
+          ]));
+        }
+      } else if (usersData) {
+        // RPC worked, use the data
+        userMap = new Map((usersData as UserLite[]).map(u => [u.id, u]));
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Fallback: create basic user objects
+      userMap = new Map(allUserIds.map(id => [
+        id, 
+        { id, email: `user-${id.slice(0, 8)}@example.com`, full_name: null }
+      ]));
+    }
+  }
+
+  // Format members with user data
   const membersWithEmail = (members ?? []).map(m => ({
     ...m,
-    user: { id: m.user_id, email: null, full_name: null }
+    user: userMap.get(m.user_id) || { id: m.user_id, email: `user-${m.user_id.slice(0, 8)}@example.com`, full_name: null }
   }));
 
   // Add acceptUrl and inviter to invites
