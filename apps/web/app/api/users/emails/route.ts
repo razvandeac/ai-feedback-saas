@@ -13,7 +13,9 @@ export async function POST(request: NextRequest) {
     console.log('Environment check:', {
       hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0
+      serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      serviceRoleStart: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20) || 'undefined'
     });
 
     const admin = getSupabaseAdmin()
