@@ -20,20 +20,33 @@ export default function AcceptInvitePage() {
 
   useEffect(() => {
     if (!token) {
-      setErr("Missing token");
+      setErr("Missing invite token");
       return;
     }
     (async () => {
       try {
         const res = await fetch(`/api/invites/lookup?token=${encodeURIComponent(token)}`);
         const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || "Lookup failed");
+        if (!res.ok) {
+          if (res.status === 404) {
+            setErr("This invite is invalid or has expired");
+          } else if (res.status === 401) {
+            setErr("Please sign in to view this invite");
+            // Redirect to login
+            setTimeout(() => {
+              router.push(loginHref);
+            }, 2000);
+          } else {
+            setErr("Failed to load invite details");
+          }
+          return;
+        }
         setData(json);
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Lookup failed");
+        setErr("Failed to load invite details. Please try again.");
       }
     })();
-  }, [token]);
+  }, [token, router]);
 
   async function accept() {
     if (!token) return;
@@ -48,7 +61,25 @@ export default function AcceptInvitePage() {
       toast.success("Joined organization", { id: "acc" });
       router.push("/");
     } else {
-      toast.error(await resp.text(), { id: "acc" });
+      const errorText = await resp.text();
+      let errorMessage = "Failed to accept invite";
+      
+      // Handle specific error cases with user-friendly messages
+      if (resp.status === 401) {
+        errorMessage = "Please sign in to accept this invite";
+        // Redirect to login after showing the message
+        setTimeout(() => {
+          router.push(loginHref);
+        }, 2000);
+      } else if (resp.status === 403) {
+        errorMessage = "This invite is for a different email address";
+      } else if (resp.status === 404) {
+        errorMessage = "This invite is invalid or has expired";
+      } else if (resp.status === 400) {
+        errorMessage = "This invite is no longer pending";
+      }
+      
+      toast.error(errorMessage, { id: "acc" });
       setBusy(false);
     }
   }
