@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   const key = req.headers.get('x-project-key') || ''
   if (!key) return NextResponse.json({ error: 'missing_project_key' }, { status: 401, headers: corsHeaders })
 
-  const supabase = getRouteSupabase()
+  const supabase = await getRouteSupabase()
 
   // 1) validate project key
   const { data: proj, error: perr } = await supabase
