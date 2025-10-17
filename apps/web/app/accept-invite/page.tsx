@@ -17,6 +17,7 @@ export default function AcceptInvitePage() {
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState<Lookup | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const loginHref = `/login?next=${encodeURIComponent(`/accept-invite?token=${token}`)}`;
 
   useEffect(() => {
     if (!token) {
@@ -42,11 +43,11 @@ export default function AcceptInvitePage() {
           return;
         }
         setData(json);
-      } catch (e) {
+      } catch {
         setErr("Failed to load invite details. Please try again.");
       }
     })();
-  }, [token, router]);
+  }, [token, router, loginHref]);
 
   async function accept() {
     if (!token) return;
@@ -61,7 +62,6 @@ export default function AcceptInvitePage() {
       toast.success("Joined organization", { id: "acc" });
       router.push("/");
     } else {
-      const errorText = await resp.text();
       let errorMessage = "Failed to accept invite";
       
       // Handle specific error cases with user-friendly messages
@@ -83,8 +83,6 @@ export default function AcceptInvitePage() {
       setBusy(false);
     }
   }
-
-  const loginHref = `/login?next=${encodeURIComponent(`/accept-invite?token=${token}`)}`;
 
   return (
     <div className="max-w-md mx-auto p-6 space-y-4">

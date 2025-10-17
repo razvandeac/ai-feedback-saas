@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   }
 
   // 2) parse payload
-  let body: any
+  let body: Record<string, unknown>
   try { body = await req.json() } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400, headers: corsHeaders }) }
 
   const { rating = null, comment = null, path = null, user_agent = null } = body ?? {}

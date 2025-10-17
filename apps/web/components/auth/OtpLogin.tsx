@@ -36,8 +36,8 @@ export default function OtpLogin() {
       
       setInfo('We sent you a 6-digit code.')
       setPhase('verify')
-    } catch (err: any) {
-      setError(err.message || 'Failed to send OTP')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send OTP')
     } finally {
       setLoading(false)
     }
