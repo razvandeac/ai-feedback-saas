@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { getServerSupabase } from '@/lib/supabaseServer'
 
 export default async function ProjectFeedback({ params }: { params: { id: string } }) {
-  const supabase = getServerSupabase()
+  const supabase = await getServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
 

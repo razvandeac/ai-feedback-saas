@@ -3,7 +3,7 @@ import { getServerSupabase } from '@/lib/supabaseServer'
 import Link from 'next/link'
 
 export default async function ProjectDetail({ params }: { params: { id: string } }) {
-  const supabase = getServerSupabase()
+  const supabase = await getServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
 
