@@ -23,9 +23,8 @@ export default function OtpLogin() {
       const { error } = await supabase.auth.signInWithOtp({ 
         email: email.trim(),
         options: {
-          shouldCreateUser: true,
-          // Completely disable magic links
-          emailRedirectTo: undefined
+          shouldCreateUser: true
+          // emailRedirectTo omitted to disable magic links
         }
       })
       
