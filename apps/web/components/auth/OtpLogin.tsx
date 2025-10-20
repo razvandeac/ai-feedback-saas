@@ -25,7 +25,7 @@ export default function OtpLogin() {
         options: {
           shouldCreateUser: true,
           // Completely disable magic links
-          emailRedirectTo: null
+          emailRedirectTo: undefined
         }
       })
       
