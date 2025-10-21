@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   // 3) insert feedback row (anonymous insert). RLS must allow this form of insert (see SQL note below).
   const { data, error } = await supabase
     .from('feedback')
-    .insert({
+    .insert([{
       project_id: proj.id,
       rating,
       comment,
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         path: path,
         user_agent: user_agent ?? req.headers.get('user-agent') ?? null
       }
-    } as Record<string, unknown>)
+    }] as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, created_at')
     .single()
 
