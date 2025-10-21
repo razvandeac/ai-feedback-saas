@@ -65,12 +65,13 @@ export async function POST(req: Request) {
   const { data, error } = await supabase
     .from('feedback')
     .insert({
-      org_id: proj.org_id,
       project_id: proj.id,
       rating,
       comment,
-      path,
-      user_agent: user_agent ?? req.headers.get('user-agent') ?? null
+      metadata: {
+        path: path,
+        user_agent: user_agent ?? req.headers.get('user-agent') ?? null
+      }
     })
     .select('id, created_at')
     .single()
