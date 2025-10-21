@@ -1,5 +1,9 @@
 (function(){
-  function postFeedback({ apiKey, rating, comment, path }) {
+  function postFeedback({ apiKey, rating, comment, path, metadata }) {
+    var meta = Object.assign({}, metadata || {}, {
+      path: path || (typeof location !== 'undefined' ? location.pathname : null),
+      user_agent: (typeof navigator !== 'undefined' ? navigator.userAgent : null)
+    });
     return fetch('/api/feedback', {
       method: 'POST',
       headers: {
@@ -9,12 +13,11 @@
       body: JSON.stringify({
         rating: rating ?? null,
         comment: comment ?? null,
-        path: path || (typeof location !== 'undefined' ? location.pathname : null),
+        metadata: meta
       }),
-      credentials: 'omit', // ensure no cookies cross sites
+      credentials: 'omit',
       mode: 'cors'
-    }).then(r => r.json())
+    }).then(r => r.json());
   }
-  // expose global
-  window.Vamoot = { postFeedback }
+  window.Vamoot = { postFeedback };
 })();
