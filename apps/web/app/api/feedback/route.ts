@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getRouteSupabase } from '@/lib/supabaseServer'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 /** Adjust when you know embed origins; for now keep permissive during MVP */
 const ALLOW_ORIGINS = ['*'] // later: ['https://yourapp.com', 'https://client.com']
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   const key = req.headers.get('x-project-key') || ''
   if (!key) return NextResponse.json({ error: 'missing_project_key' }, { status: 401, headers: corsHeaders })
 
-  const supabase = await getRouteSupabase()
+  const supabase = getSupabaseAdmin()
 
   // 1) validate project key
   const { data: proj, error: perr } = await supabase
