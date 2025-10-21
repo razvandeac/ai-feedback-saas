@@ -65,6 +65,7 @@ export async function POST(req: Request) {
   const { data, error } = await supabase
     .from('feedback')
     .insert([{
+      org_id: proj.org_id,
       project_id: proj.id,
       rating,
       comment,
