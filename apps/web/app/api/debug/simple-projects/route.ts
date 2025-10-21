@@ -8,7 +8,7 @@ export async function GET() {
     // Use admin client to bypass RLS
     const { data: projects, error } = await admin
       .from('projects')
-      .select('id, name, key, api_key, org_id, created_at')
+      .select('id, name, key, org_id, created_at')
       .limit(10)
     
     return NextResponse.json({

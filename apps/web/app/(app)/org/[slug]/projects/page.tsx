@@ -11,7 +11,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
   if (!org) notFound();
 
   const [{ data: projects }, role] = await Promise.all([
-    sb.from("projects").select("id, name, key, api_key, created_at").eq("org_id", org.id).order("created_at", { ascending: false }),
+    sb.from("projects").select("id, name, key, created_at").eq("org_id", org.id).order("created_at", { ascending: false }),
     myOrgRole(slug)
   ]);
 
