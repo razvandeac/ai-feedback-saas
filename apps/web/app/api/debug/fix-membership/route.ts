@@ -11,8 +11,11 @@ export async function POST() {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Get the existing organization
-    const { data: orgs } = await supabase
+    // Get the existing organization using admin client to bypass RLS
+    const { getSupabaseAdmin } = await import('@/lib/supabaseAdmin')
+    const adminSupabase = getSupabaseAdmin()
+    
+    const { data: orgs } = await adminSupabase
       .from('organizations')
       .select('id, name, slug')
       .order('created_at', { ascending: false })
@@ -25,8 +28,8 @@ export async function POST() {
     const org = orgs[0]
     console.log('Found organization:', org)
 
-    // Check if user is already a member
-    const { data: existingMember } = await (supabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
+    // Check if user is already a member using admin client
+    const { data: existingMember } = await (adminSupabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('id')
       .eq('org_id', org.id)
       .eq('user_id', user.id)
@@ -41,9 +44,7 @@ export async function POST() {
     }
 
     // Add user as admin of the existing organization
-    // Use admin client for the insert to bypass RLS
-    const { getSupabaseAdmin } = await import('@/lib/supabaseAdmin')
-    const adminSupabase = getSupabaseAdmin()
+    // adminSupabase is already available from above
     
     const { data: member, error: memberError } = await (adminSupabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
       .insert({ 
