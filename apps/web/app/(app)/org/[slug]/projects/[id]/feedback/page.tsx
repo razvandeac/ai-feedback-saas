@@ -9,11 +9,12 @@ export default async function ProjectFeedback({ params }: { params: Promise<{ sl
 
   const [{ data: proj }, { data: rows, error }] = await Promise.all([
     supabase.from('projects').select('id, name, org_id').eq('id', id).single(),
-    supabase.from('feedback')
+    supabase
+      .from('feedback')
       .select('id, created_at, rating, comment, metadata')
       .eq('project_id', id)
       .order('created_at', { ascending: false })
-      .limit(200)
+      .limit(200),
   ])
 
   if (!proj || error) notFound()
@@ -33,15 +34,18 @@ export default async function ProjectFeedback({ params }: { params: Promise<{ sl
             </tr>
           </thead>
           <tbody>
-            {(rows ?? []).map(r => (
-              <tr key={r.id} className="border-t">
-                <td className="px-3 py-2">{new Date(r.created_at).toLocaleString()}</td>
-                <td className="px-3 py-2">{r.rating ?? '-'}</td>
-                <td className="px-3 py-2">{r.comment ?? '-'}</td>
-                <td className="px-3 py-2">{String((r.metadata as Record<string, unknown>)?.path ?? '-')}</td>
-                <td className="px-3 py-2 truncate max-w-[260px]">{String((r.metadata as Record<string, unknown>)?.user_agent ?? '-')}</td>
-              </tr>
-            ))}
+            {(rows ?? []).map((r: Record<string, unknown>) => {
+              const meta = (r.metadata ?? {}) as Record<string, unknown>;
+              return (
+                <tr key={r.id as string} className="border-t">
+                  <td className="px-3 py-2">{new Date(r.created_at as string).toLocaleString()}</td>
+                  <td className="px-3 py-2">{String(r.rating ?? '-')}</td>
+                  <td className="px-3 py-2">{String(r.comment ?? '-')}</td>
+                  <td className="px-3 py-2">{String(meta.path ?? '-')}</td>
+                  <td className="px-3 py-2 truncate max-w-[260px]">{String(meta.user_agent ?? '-')}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
