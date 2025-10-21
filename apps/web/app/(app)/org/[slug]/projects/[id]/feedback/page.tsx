@@ -1,16 +1,17 @@
 import { notFound } from 'next/navigation'
 import { getServerSupabase } from '@/lib/supabaseServer'
 
-export default async function ProjectFeedback({ params }: { params: { id: string } }) {
+export default async function ProjectFeedback({ params }: { params: Promise<{ slug: string; id: string }> }) {
+  const { id } = await params
   const supabase = await getServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
 
   const [{ data: proj }, { data: rows, error }] = await Promise.all([
-    supabase.from('projects').select('id, name, org_id').eq('id', params.id).single(),
+    supabase.from('projects').select('id, name, org_id').eq('id', id).single(),
     supabase.from('feedback')
-      .select('id, created_at, rating, comment, path, user_agent')
-      .eq('project_id', params.id)
+      .select('id, created_at, rating, comment, metadata')
+      .eq('project_id', id)
       .order('created_at', { ascending: false })
       .limit(200)
   ])
@@ -37,8 +38,8 @@ export default async function ProjectFeedback({ params }: { params: { id: string
                 <td className="px-3 py-2">{new Date(r.created_at).toLocaleString()}</td>
                 <td className="px-3 py-2">{r.rating ?? '-'}</td>
                 <td className="px-3 py-2">{r.comment ?? '-'}</td>
-                <td className="px-3 py-2">{r.path ?? '-'}</td>
-                <td className="px-3 py-2 truncate max-w-[260px]">{r.user_agent ?? '-'}</td>
+                <td className="px-3 py-2">{String((r.metadata as Record<string, unknown>)?.path ?? '-')}</td>
+                <td className="px-3 py-2 truncate max-w-[260px]">{String((r.metadata as Record<string, unknown>)?.user_agent ?? '-')}</td>
               </tr>
             ))}
           </tbody>
