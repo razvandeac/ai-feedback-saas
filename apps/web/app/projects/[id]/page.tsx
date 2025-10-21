@@ -9,7 +9,7 @@ export default async function ProjectDetail({ params }: { params: { id: string }
 
   const { data: proj, error } = await supabase
     .from('projects')
-    .select('id, name, api_key, org_id')
+    .select('id, name, key, org_id')
     .eq('id', params.id)
     .single()
 
@@ -22,7 +22,7 @@ export default async function ProjectDetail({ params }: { params: { id: string }
       <div className="space-y-4">
         <div className="bg-gray-50 p-4 rounded-lg">
           <h2 className="font-medium mb-2">API Key</h2>
-          <code className="text-sm bg-white p-2 rounded border block">{proj.api_key}</code>
+          <code className="text-sm bg-white p-2 rounded border block">{proj.key}</code>
         </div>
         
         <div className="flex gap-4">

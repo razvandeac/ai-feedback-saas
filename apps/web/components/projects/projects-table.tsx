@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Copy } from "lucide-react";
 
-type Row = { id: string; name: string; api_key: string; created_at: string };
+type Row = { id: string; name: string; key: string; created_at: string };
 
 export default function ProjectsTable({ 
   initial, 
@@ -32,7 +32,7 @@ export default function ProjectsTable({
     // optimistic: show placeholder key
     const old = rows[idx];
     const optimistic = [...rows];
-    optimistic[idx] = { ...old, api_key: "••••••••••••••" };
+    optimistic[idx] = { ...old, key: "••••••••••••••" };
     setRows(optimistic);
 
     const resp = await fetch(`/api/projects/${id}/rotate-key`, { method: "POST" });
@@ -44,7 +44,7 @@ export default function ProjectsTable({
     const data = await resp.json();
     toast.success("Key rotated", { id: `rot-${id}` });
     const next = [...optimistic];
-    next[idx] = { ...old, api_key: data.key };
+    next[idx] = { ...old, key: data.key };
     setRows(next);
   }
 

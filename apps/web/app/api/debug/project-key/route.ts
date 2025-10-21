@@ -14,14 +14,14 @@ export async function POST(req: Request) {
     // Debug: Check all projects
     const { data: allProjects, error: allError } = await supabase
       .from('projects')
-      .select('id, name, api_key, org_id')
+      .select('id, name, key, org_id')
       .limit(10)
     
     // Debug: Try to find the specific project
     const { data: proj, error: perr } = await supabase
       .from('projects')
-      .select('id, name, api_key, org_id')
-      .eq('api_key', apiKey)
+      .select('id, name, key, org_id')
+      .eq('key', apiKey)
       .single()
 
     return NextResponse.json({
@@ -32,8 +32,8 @@ export async function POST(req: Request) {
       allProjects: allProjects?.map(p => ({
         id: p.id,
         name: p.name,
-        apiKey: p.api_key,
-        keyLength: p.api_key?.length
+        key: p.key,
+        keyLength: p.key?.length
       })),
       foundProject: proj,
       projectError: perr,

@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   const { data: proj, error: perr } = await supabase
     .from('projects')
     .select('id, org_id')
-    .eq('api_key', key)
+    .eq('key', key)
     .single()
 
   if (perr || !proj) {
