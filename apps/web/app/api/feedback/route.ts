@@ -59,7 +59,20 @@ export async function POST(req: Request) {
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400, headers: corsHeaders }) }
 
-  const { rating = null, comment = null, path = null, user_agent = null } = body ?? {}
+  const {
+    rating = null,
+    comment = null,
+    // keep accepting path/ua for backwards compatibility but store in metadata
+    path = null,
+    user_agent = null,
+    metadata = {}
+  } = body ?? {}
+
+  const mergedMeta = {
+    ...(metadata as Record<string, unknown>),
+    path: path ?? (typeof location === 'object' ? location?.pathname : null),
+    user_agent: user_agent ?? req.headers.get('user-agent') ?? null,
+  }
 
   // 3) insert feedback row (anonymous insert). RLS must allow this form of insert (see SQL note below).
   const { data, error } = await supabase
@@ -69,10 +82,7 @@ export async function POST(req: Request) {
       project_id: proj.id,
       rating,
       comment,
-      metadata: {
-        path: path,
-        user_agent: user_agent ?? req.headers.get('user-agent') ?? null
-      }
+      metadata: mergedMeta, // <-- JSONB
     }] as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, created_at')
     .single()
