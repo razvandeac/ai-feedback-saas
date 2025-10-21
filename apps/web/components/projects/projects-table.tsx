@@ -89,9 +89,9 @@ export default function ProjectsTable({
               </TD>
               <TD>
                 <div className="flex items-center gap-2">
-                  <code className="text-xs">{r.api_key}</code>
+                  <code className="text-xs">{r.key}</code>
                   <button 
-                    onClick={()=>copy(r.api_key)} 
+                    onClick={()=>copy(r.key)} 
                     className="p-1 hover:bg-neutral-100 rounded transition-colors"
                     title="Copy key"
                   >
