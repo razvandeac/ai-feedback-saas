@@ -2,8 +2,14 @@
 import { Resend } from 'resend'
 import { getRouteSupabase } from '@/lib/supabaseServer'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
-const FROM = process.env.RESEND_FROM!
+function getResend() {
+  const apiKey = process.env.RESEND_API_KEY
+  const from = process.env.RESEND_FROM
+  if (!apiKey || !from) {
+    throw new Error('RESEND_API_KEY and RESEND_FROM environment variables are required')
+  }
+  return new Resend(apiKey)
+}
 
 export async function createInvite(formData: FormData) {
   const orgId = String(formData.get('org_id') ?? '')
@@ -21,12 +27,19 @@ export async function createInvite(formData: FormData) {
 
   const base = process.env.NEXT_PUBLIC_APP_BASE_URL ?? 'http://localhost:3000'
   const url = `${base}/invite?token=${encodeURIComponent(token)}`
-  await resend.emails.send({
-    from: FROM,
-    to: email,
-    subject: 'You\'re invited to Vamoot',
-    html: `<p>You've been invited to join an organization on Vamoot.</p><p><a href="${url}">Accept invite</a> (valid 7 days)</p>`
-  })
+  
+  try {
+    const resend = getResend()
+    await resend.emails.send({
+      from: process.env.RESEND_FROM!,
+      to: email,
+      subject: 'You\'re invited to Vamoot',
+      html: `<p>You've been invited to join an organization on Vamoot.</p><p><a href="${url}">Accept invite</a> (valid 7 days)</p>`
+    })
+  } catch (error) {
+    console.error('Failed to send email:', error)
+    // Don't fail the invite creation if email fails
+  }
 }
 
 export async function acceptInvite(token: string) {
