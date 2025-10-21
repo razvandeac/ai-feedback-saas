@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getRouteSupabase } from '@/lib/supabaseServer'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 export async function GET() {
   try {
-    const supabase = getSupabaseAdmin()
+    const supabase = await getRouteSupabase()
+    const adminSupabase = getSupabaseAdmin()
     
     // Check current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -11,21 +13,21 @@ export async function GET() {
     // Try to query tables to see if they exist
     const tablesExist = { organizations: false, org_members: false }
     try {
-      await supabase.from('organizations').select('id').limit(1)
+      await adminSupabase.from('organizations').select('id').limit(1)
       tablesExist.organizations = true
     } catch {
       tablesExist.organizations = false
     }
     
     try {
-      await (supabase as any).from('org_members').select('id').limit(1) // eslint-disable-line @typescript-eslint/no-explicit-any
+      await (adminSupabase as any).from('org_members').select('id').limit(1) // eslint-disable-line @typescript-eslint/no-explicit-any
       tablesExist.org_members = true
     } catch {
       tablesExist.org_members = false
     }
 
     // Try to count existing data
-    const { count: orgCount } = await supabase
+    const { count: orgCount } = await adminSupabase
       .from('organizations')
       .select('*', { count: 'exact', head: true })
 
@@ -34,10 +36,10 @@ export async function GET() {
     
     if (tablesExist.org_members && user) {
       try {
-        const { count } = await (supabase as any).from('org_members').select('*', { count: 'exact', head: true }) // eslint-disable-line @typescript-eslint/no-explicit-any
+        const { count } = await (adminSupabase as any).from('org_members').select('*', { count: 'exact', head: true }) // eslint-disable-line @typescript-eslint/no-explicit-any
         memberCount = count || 0
         
-        const { data: memberships } = await (supabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
+        const { data: memberships } = await (adminSupabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
           .select('org_id, role, created_at')
           .eq('user_id', user.id)
         userMemberships = memberships || []

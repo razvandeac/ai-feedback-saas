@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getRouteSupabase } from '@/lib/supabaseServer'
 
 export async function POST() {
   try {
-    const supabase = getSupabaseAdmin()
+    const supabase = await getRouteSupabase()
     
     // Get current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -41,7 +41,11 @@ export async function POST() {
     }
 
     // Add user as admin of the existing organization
-    const { data: member, error: memberError } = await (supabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
+    // Use admin client for the insert to bypass RLS
+    const { getSupabaseAdmin } = await import('@/lib/supabaseAdmin')
+    const adminSupabase = getSupabaseAdmin()
+    
+    const { data: member, error: memberError } = await (adminSupabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
       .insert({ 
         org_id: org.id, 
         user_id: user.id, 
