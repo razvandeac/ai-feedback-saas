@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         path: path,
         user_agent: user_agent ?? req.headers.get('user-agent') ?? null
       }
-    } as any)
+    } as Record<string, unknown>)
     .select('id, created_at')
     .single()
 
