@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const sb = getSupabaseAdmin();
   const { data: proj } = await sb
     .from("projects")
-    .select("id, key, allowed_origins, require_project_origins")
+    .select("id, key, org_id, allowed_origins, require_project_origins")
     .eq("key", key)
     .maybeSingle();
 
@@ -84,7 +84,12 @@ export async function POST(req: Request) {
     const commentRaw = payloadData?.comment;
     const comment = typeof commentRaw === "string" ? String(commentRaw).slice(0, 2000) : null;
     
-    const { error: feedbackError } = await sb.from("feedback").insert({ project_id: proj.id, rating, comment });
+    const { error: feedbackError } = await sb.from("feedback").insert({ 
+      project_id: proj.id, 
+      org_id: proj.org_id, // Add the missing org_id
+      rating, 
+      comment 
+    });
     if (feedbackError) {
       console.error("Feedback insertion error:", feedbackError);
       return createPublicResponse({ error: `Feedback error: ${feedbackError.message}` }, 400);
