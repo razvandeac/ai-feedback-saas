@@ -1,5 +1,4 @@
 export const revalidate = 0;
-import { getServerSupabase } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import Link from "next/link";
 import InviteModal from "@/components/invites/invite-modal";
@@ -27,7 +26,6 @@ type Invite = {
 
 export default async function MembersPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await getServerSupabase();
   const adminSupabase = getSupabaseAdmin();
   const role = await myOrgRole(slug);
 

@@ -1,5 +1,4 @@
 export const revalidate = 0; // always fresh - clean build
-import { getServerSupabase } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import ProjectsClient from "@/components/projects/projects-client";
 import { myOrgRole } from "@/lib/my-org-role";
@@ -7,7 +6,6 @@ import { notFound } from "next/navigation";
 
 export default async function ProjectsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sb = await getServerSupabase();
   const adminSupabase = getSupabaseAdmin();
   
   // Use admin client to bypass RLS issues

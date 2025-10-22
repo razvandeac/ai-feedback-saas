@@ -1,4 +1,3 @@
-import { getServerSupabase } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import WidgetConfigForm from "@/components/projects/widget-config-form";
 import EmbedSnippet from "@/components/projects/embed-snippet";
@@ -11,7 +10,6 @@ export default async function ProjectSettingsPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { id } = await params;
-  const sb = await getServerSupabase();
   const adminSupabase = getSupabaseAdmin();
   
   // Use admin client to bypass RLS issues

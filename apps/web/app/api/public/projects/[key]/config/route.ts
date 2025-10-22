@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
 // Helper function for public API responses with proper CORS headers
-function createPublicResponse(data: any, status: number = 200) {
+function createPublicResponse(data: unknown, status: number = 200) {
   const response = NextResponse.json(data, { status });
   
   // Add CORS headers for public API
@@ -15,10 +14,7 @@ function createPublicResponse(data: any, status: number = 200) {
   return response;
 }
 
-export async function OPTIONS(
-  req: Request,
-  { params }: { params: Promise<{ key: string }> }
-) {
+export async function OPTIONS() {
   // For public API, always allow OPTIONS requests
   return createPublicResponse(null, 204);
 }

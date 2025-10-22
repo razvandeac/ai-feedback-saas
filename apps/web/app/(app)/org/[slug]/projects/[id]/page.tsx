@@ -1,5 +1,4 @@
 export const revalidate = 0;
-import { getServerSupabase } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -12,7 +11,6 @@ export default async function ProjectDetailPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { slug, id } = await params;
-  const sb = await getServerSupabase();
   const adminSupabase = getSupabaseAdmin();
 
   // Use admin client to bypass RLS issues

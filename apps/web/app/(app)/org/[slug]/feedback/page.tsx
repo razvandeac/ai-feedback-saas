@@ -1,5 +1,4 @@
 export const revalidate = 0;
-import { getServerSupabase } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import FeedbackFilterBar from "@/components/filters/feedback-filter-bar";
 import FeedbackTable from "@/components/feedback/feedback-table";
@@ -17,7 +16,6 @@ export default async function FeedbackPage({
   const { slug } = await params;
   const search = await searchParams;
   
-  const sb = await getServerSupabase();
   const adminSupabase = getSupabaseAdmin();
   
   // Use admin client to bypass RLS issues
