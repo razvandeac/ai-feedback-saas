@@ -36,6 +36,9 @@ export default async function ProjectDetailPage({
           <p className="text-sm text-neutral-500">Project overview</p>
         </div>
         <div className="flex gap-2">
+          <Link href={`/org/${slug}/projects/${id}/studio`}>
+            <Button variant="outline" size="sm">Studio</Button>
+          </Link>
           <Link href={`/org/${slug}/projects/${id}/widget`}>
             <Button variant="outline" size="sm">Widget</Button>
           </Link>
@@ -64,6 +67,10 @@ export default async function ProjectDetailPage({
             <Link href={`/org/${slug}/feedback?project=${id}`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
               <div className="font-medium text-sm">View all feedback</div>
               <div className="text-xs text-neutral-500">Filter feedback table by this project</div>
+            </Link>
+            <Link href={`/org/${slug}/projects/${id}/studio`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
+              <div className="font-medium text-sm">Widget Studio</div>
+              <div className="text-xs text-neutral-500">Design and customize your feedback widget</div>
             </Link>
             <Link href={`/org/${slug}/projects/${id}/widget`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
               <div className="font-medium text-sm">Embed widget</div>

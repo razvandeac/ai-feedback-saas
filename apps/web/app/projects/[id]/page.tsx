@@ -37,7 +37,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
           >Copy</button>
         </div>
       </section>
-      <a className="underline" href={`/org/demo/projects/${proj.id}/feedback`}>View Feedback</a>
+      <div className="space-y-2">
+        <a className="underline" href={`/org/demo/projects/${proj.id}/feedback`}>View Feedback</a>
+        <br />
+        <a className="underline" href={`/org/demo/projects/${proj.id}/studio`}>Open Widget Studio</a>
+      </div>
     </main>
   )
 }
