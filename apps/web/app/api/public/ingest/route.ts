@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
-export async function OPTIONS(req: Request) {
-  // For preflight we don't have the key; fall back to env list only
-  return preflight(req, ["POST", "OPTIONS"], null, { projectOnly: false });
+// Helper function for public API responses with proper CORS headers
+function createPublicResponse(data: unknown, status: number = 200) {
+  const response = NextResponse.json(data, { status });
+  
+  // Add CORS headers for public API
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  response.headers.set("Vary", "Origin");
+  
+  return response;
+}
+
+export async function OPTIONS() {
+  // For public API, always allow OPTIONS requests
+  return createPublicResponse(null, 204);
 }
 
 type Body = { key: string; type: string; widget_id?: string | null; payload?: Record<string, unknown>; };
@@ -13,17 +25,17 @@ const MAX_PAYLOAD_BYTES = 8 * 1024;
 export async function POST(req: Request) {
   const raw = await req.text();
   if (raw.length > MAX_PAYLOAD_BYTES) {
-    return withCORS(NextResponse.json({ error: "payload too large" }, { status: 413 }), req, ["POST", "OPTIONS"]);
+    return createPublicResponse({ error: "payload too large" }, 413);
   }
 
   let body: Body;
   try { body = JSON.parse(raw); } catch { 
-    return withCORS(NextResponse.json({ error: "invalid json" }, { status: 400 }), req, ["POST", "OPTIONS"]); 
+    return createPublicResponse({ error: "invalid json" }, 400); 
   }
 
   const key = (body?.key || "").trim();
   if (!/^[a-zA-Z0-9_-]{6,64}$/.test(key)) {
-    return withCORS(NextResponse.json({ error: "invalid key" }, { status: 400 }), req, ["POST", "OPTIONS"]);
+    return createPublicResponse({ error: "invalid key" }, 400);
   }
 
   const sb = getSupabaseAdmin();
@@ -36,12 +48,16 @@ export async function POST(req: Request) {
   const extra = (proj?.allowed_origins as string[] | null) || null;
   const projectOnly = !!(proj?.require_project_origins);
 
-  // CORS gate with per-project list
-  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
-  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS();
+  // Simple CORS check for public API
+  const origin = req.headers.get("origin");
+  const allowRequest = !origin || !projectOnly || (extra && extra.includes(origin));
+
+  if (!allowRequest) {
+    return createPublicResponse({ error: "origin not allowed" }, 403);
+  }
 
   if (!proj) {
-    return withCORS(NextResponse.json({ error: "invalid key" }, { status: 404 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
+    return createPublicResponse({ error: "invalid key" }, 404);
   }
 
   const userAgent = req.headers.get("user-agent") ?? null;
@@ -58,7 +74,7 @@ export async function POST(req: Request) {
     ip
   });
   if (evErr) {
-    return withCORS(NextResponse.json({ error: evErr.message }, { status: 400 }), req, ["POST", "OPTIONS"], extra, { projectOnly });
+    return createPublicResponse({ error: evErr.message }, 400);
   }
 
   if (body.type === "feedback.submit") {
@@ -70,6 +86,6 @@ export async function POST(req: Request) {
     await sb.from("feedback").insert({ project_id: proj.id, rating, comment });
   }
 
-  return withCORS(NextResponse.json({ ok: true }), req, ["POST", "OPTIONS"], extra, { projectOnly });
+  return createPublicResponse({ ok: true });
 }
 
