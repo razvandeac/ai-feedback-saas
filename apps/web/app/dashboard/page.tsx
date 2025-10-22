@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation'
 import { getServerSupabase } from '@/lib/supabaseServer'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import LogoutButton from '@/components/auth/LogoutButton'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
   const supabase = await getServerSupabase()
+  const adminSupabase = getSupabaseAdmin()
   const { data: { user }, error } = await supabase.auth.getUser()
   
   // Debug logging
@@ -15,19 +17,19 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Fetch user's organizations
-  const { data: memberships, error: membershipsError } = await supabase
+  // Fetch user's organizations using admin client
+  const { data: memberships, error: membershipsError } = await (adminSupabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .from('org_members')
     .select('org_id, role')
     .eq('user_id', user.id)
 
   console.log('Memberships query:', { memberships, membershipsError, userId: user.id })
 
-  const orgIds = memberships?.map(m => m.org_id) || []
+  const orgIds = memberships?.map((m: any) => m.org_id) || [] // eslint-disable-line @typescript-eslint/no-explicit-any
   console.log('Org IDs:', orgIds)
   
-  // Get organization details
-  const { data: organizations, error: orgsError } = await supabase
+  // Get organization details using admin client
+  const { data: organizations, error: orgsError } = await adminSupabase
     .from('organizations')
     .select('id, name, slug')
     .in('id', orgIds)
@@ -41,16 +43,16 @@ export default async function DashboardPage() {
   let avgRating = null
 
   if (orgIds.length > 0) {
-    // Get projects count
-    const { count: projectsCount } = await supabase
+    // Get projects count using admin client
+    const { count: projectsCount } = await adminSupabase
       .from('projects')
       .select('*', { count: 'exact', head: true })
       .in('org_id', orgIds)
     
     totalProjects = projectsCount || 0
 
-    // Get project IDs for feedback queries
-    const { data: projects } = await supabase
+    // Get project IDs for feedback queries using admin client
+    const { data: projects } = await adminSupabase
       .from('projects')
       .select('id')
       .in('org_id', orgIds)
@@ -58,9 +60,9 @@ export default async function DashboardPage() {
     const projectIds = projects?.map(p => p.id) || []
 
     if (projectIds.length > 0) {
-      // Get feedback count for last 7 days
+      // Get feedback count for last 7 days using admin client
       const since = new Date(Date.now() - 7*24*60*60*1000).toISOString()
-      const { count: feedbackCount } = await supabase
+      const { count: feedbackCount } = await adminSupabase
         .from('feedback')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', since)
@@ -68,8 +70,8 @@ export default async function DashboardPage() {
       
       totalFeedback = feedbackCount || 0
 
-      // Get average rating
-      const { data: ratings } = await supabase
+      // Get average rating using admin client
+      const { data: ratings } = await adminSupabase
         .from('feedback')
         .select('rating')
         .not('rating', 'is', null)

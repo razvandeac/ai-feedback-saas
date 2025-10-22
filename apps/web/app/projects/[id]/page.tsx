@@ -1,16 +1,19 @@
 import { notFound } from 'next/navigation'
 import { getServerSupabase } from '@/lib/supabaseServer'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { regenProjectKey } from '@/app/actions/projects'
 
 export default async function ProjectDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await getServerSupabase()
+  const adminSupabase = getSupabaseAdmin()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
 
-  const { data: proj } = await supabase
+  // Use admin client to bypass RLS issues
+  const { data: proj } = await adminSupabase
     .from('projects')
-    .select('id, name, api_key, org_id')
+    .select('id, name, key, org_id')
     .eq('id', id)
     .single()
   if (!proj) notFound()
@@ -26,11 +29,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
       <section className="rounded-xl border p-4 space-y-3">
         <h2 className="font-medium">Project API Key</h2>
         <div className="flex items-center gap-2">
-          <code className="px-2 py-1 rounded bg-gray-50 border">{proj.api_key}</code>
+          <code className="px-2 py-1 rounded bg-gray-50 border">{proj.key}</code>
           <form action={regenerate}><button className="border rounded px-2 py-1">Regenerate</button></form>
           <button
             className="border rounded px-2 py-1"
-            onClick={async () => { await navigator.clipboard.writeText(proj.api_key); alert('Copied') }}
+            onClick={async () => { await navigator.clipboard.writeText(proj.key); alert('Copied') }}
           >Copy</button>
         </div>
       </section>

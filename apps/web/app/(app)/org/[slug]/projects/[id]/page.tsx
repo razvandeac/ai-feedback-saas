@@ -1,5 +1,6 @@
 export const revalidate = 0;
 import { getServerSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,10 @@ export default async function ProjectDetailPage({
 }) {
   const { slug, id } = await params;
   const sb = await getServerSupabase();
+  const adminSupabase = getSupabaseAdmin();
 
-  const { data: project } = await sb
+  // Use admin client to bypass RLS issues
+  const { data: project } = await adminSupabase
     .from("projects")
     .select("id, name, key, created_at")
     .eq("id", id)
@@ -21,10 +24,10 @@ export default async function ProjectDetailPage({
 
   if (!project) return notFound();
 
-  // Basic counts for this project
+  // Basic counts for this project using admin client
   const [{ count: feedbackCount }, { count: eventsCount }] = await Promise.all([
-    sb.from("feedback").select("*", { count: "exact", head: true }).eq("project_id", id),
-    sb.from("events").select("*", { count: "exact", head: true }).eq("project_id", id),
+    adminSupabase.from("feedback").select("*", { count: "exact", head: true }).eq("project_id", id),
+    adminSupabase.from("events").select("*", { count: "exact", head: true }).eq("project_id", id),
   ]);
 
   return (

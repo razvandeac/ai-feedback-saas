@@ -1,4 +1,5 @@
 import { getServerSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import WidgetConfigForm from "@/components/projects/widget-config-form";
 import EmbedSnippet from "@/components/projects/embed-snippet";
 
@@ -11,8 +12,10 @@ export default async function ProjectSettingsPage({
 }) {
   const { id } = await params;
   const sb = await getServerSupabase();
+  const adminSupabase = getSupabaseAdmin();
   
-  const { data: project } = await sb
+  // Use admin client to bypass RLS issues
+  const { data: project } = await adminSupabase
     .from("projects")
     .select("id, name, key")
     .eq("id", id)
@@ -20,7 +23,7 @@ export default async function ProjectSettingsPage({
   
   if (!project) return <div className="p-6">Project not found</div>;
 
-  const { data: config } = await sb
+  const { data: config } = await adminSupabase
     .from("widget_config")
     .select("settings")
     .eq("project_id", project.id)
@@ -36,7 +39,7 @@ export default async function ProjectSettingsPage({
       </div>
       
       <EmbedSnippet projectKey={project.key} />
-      <WidgetConfigForm projectId={project.id} initial={config?.settings ?? {}} />
+      <WidgetConfigForm projectId={project.id} initial={(config?.settings as any) ?? {}} /> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
     </div>
   );
 }

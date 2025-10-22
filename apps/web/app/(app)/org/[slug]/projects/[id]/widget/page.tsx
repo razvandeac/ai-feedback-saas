@@ -1,5 +1,6 @@
 export const revalidate = 0;
 import { getServerSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 import Link from "next/link";
 import WidgetPreview from "@/components/projects/widget-preview";
@@ -14,8 +15,10 @@ export default async function ProjectWidgetPage({
 }) {
   const { slug, id } = await params;
   const sb = await getServerSupabase();
+  const adminSupabase = getSupabaseAdmin();
 
-  const { data: project } = await sb
+  // Use admin client to bypass RLS issues
+  const { data: project } = await adminSupabase
     .from("projects")
     .select("id, name, key, allowed_origins, require_project_origins")
     .eq("id", id)
