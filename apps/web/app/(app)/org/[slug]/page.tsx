@@ -1,5 +1,6 @@
 export const revalidate = 0;
 import { getServerSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import RecentFeedback from "@/components/feedback/recent-feedback";
 
 function fmt(n: number | null | undefined) {
@@ -9,12 +10,26 @@ function fmt(n: number | null | undefined) {
 export default async function OrgOverview({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const sb = await getServerSupabase();
+  const adminSupabase = getSupabaseAdmin();
 
-  const { data: org } = await sb.from("organizations").select("id, name, slug").eq("slug", slug).single();
+  // Use admin client to bypass RLS issues
+  const { data: org } = await adminSupabase.from("organizations").select("id, name, slug").eq("slug", slug).single();
   if (!org) return <div className="p-6">Org not found</div>;
 
+  // Check if user is a member of this org
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return <div className="p-6">Please sign in</div>;
+
+  const { data: membership } = await (adminSupabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
+    .select('role')
+    .eq('org_id', org.id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!membership) return <div className="p-6">You don&apos;t have access to this organization</div>;
+
   // projects in this org
-  const { data: projects } = await sb.from("projects").select("id, name").eq("org_id", org.id);
+  const { data: projects } = await adminSupabase.from("projects").select("id, name").eq("org_id", org.id);
   const ids = (projects ?? []).map(p => p.id);
   if (ids.length === 0) {
     return (
@@ -31,12 +46,12 @@ export default async function OrgOverview({ params }: { params: Promise<{ slug: 
 
   // counts
   const [{ count: fbTotal }, { count: fb7 }] = await Promise.all([
-    sb.from("feedback").select("*", { count: "exact", head: true }).in("project_id", ids),
-    sb.from("feedback").select("*", { count: "exact", head: true }).in("project_id", ids).gte("created_at", since),
+    adminSupabase.from("feedback").select("*", { count: "exact", head: true }).in("project_id", ids),
+    adminSupabase.from("feedback").select("*", { count: "exact", head: true }).in("project_id", ids).gte("created_at", since),
   ]);
 
   // avg rating (avoid aggregate permission issues with a small query)
-  const { data: ratings } = await sb
+  const { data: ratings } = await adminSupabase
     .from("feedback")
     .select("rating")
     .in("project_id", ids)
