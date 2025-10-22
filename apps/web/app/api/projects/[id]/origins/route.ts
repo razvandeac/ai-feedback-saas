@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { cleanOrigins, isValidOriginEntry } from "@/lib/origin-validate";
 
 async function requireAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>, projectId: string) {
-  const { data: proj } = await sb.from("projects").select("org_id").eq("id", projectId).single();
+  const adminSupabase = getSupabaseAdmin();
+  const { data: proj } = await adminSupabase.from("projects").select("org_id").eq("id", projectId).single();
   if (!proj) return { ok: false, status: 404, error: "project not found" };
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return { ok: false, status: 401, error: "unauthorized" };
-  const { data: mem } = await sb.from("org_members")
+  const { data: mem } = await (adminSupabase as any).from("org_members") // eslint-disable-line @typescript-eslint/no-explicit-any
     .select("role")
     .eq("org_id", proj.org_id)
     .eq("user_id", user.id)

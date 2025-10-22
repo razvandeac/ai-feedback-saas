@@ -22,11 +22,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!email || !role) return NextResponse.json({ error: "email and role required" }, { status: 400 });
   if (!["owner","admin","member"].includes(role)) return NextResponse.json({ error: "invalid role" }, { status: 400 });
 
-  const { data: org, error: orgErr } = await sb.from("organizations").select("id,slug,name").eq("slug", slug).single();
+  const adminSupabase = getSupabaseAdmin();
+  const { data: org, error: orgErr } = await adminSupabase.from("organizations").select("id,slug,name").eq("slug", slug).single();
   if (orgErr || !org) return NextResponse.json({ error: "org not found" }, { status: 404 });
 
-  // Verify user is admin/owner of this org
-  const { data: membership } = await sb
+  // Verify user is admin/owner of this org using admin client
+  const { data: membership } = await (adminSupabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .from("org_members")
     .select("role")
     .eq("org_id", org.id)
@@ -38,8 +39,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
 
   // Use admin client to insert (bypasses all RLS/FK checks)
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin
+  const { data, error } = await adminSupabase
     .from("org_invites")
     .insert({ org_id: org.id, email, role, invited_by: user.id })
     .select("id, token, email, role, status, created_at")
@@ -56,7 +56,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   // Fetch inviter info for email
   let inviterInfo = null;
   try {
-    const { data: usersLite } = await admin.rpc("get_users_lite", { ids: [user.id] });
+    const { data: usersLite } = await adminSupabase.rpc("get_users_lite", { ids: [user.id] });
     if (usersLite && usersLite.length) {
       inviterInfo = { name: usersLite[0].full_name, email: usersLite[0].email };
     }

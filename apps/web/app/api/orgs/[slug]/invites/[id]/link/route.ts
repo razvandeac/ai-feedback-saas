@@ -6,11 +6,12 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 
 async function requireOrgAdmin(sb: Awaited<ReturnType<typeof getRouteSupabase>>, slug: string) {
+  const adminSupabase = getSupabaseAdmin();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return { ok: false, status: 401, error: "unauthorized" };
-  const { data: org } = await sb.from("organizations").select("id").eq("slug", slug).single();
+  const { data: org } = await adminSupabase.from("organizations").select("id").eq("slug", slug).single();
   if (!org) return { ok: false, status: 404, error: "org not found" };
-  const { data: mem } = await sb
+  const { data: mem } = await (adminSupabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .from("org_members")
     .select("role")
     .eq("org_id", org.id)

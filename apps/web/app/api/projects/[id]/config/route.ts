@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRouteSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(
   _req: Request,
@@ -7,11 +8,12 @@ export async function GET(
 ) {
   const { id } = await params;
   const sb = await getRouteSupabase();
+  const adminSupabase = getSupabaseAdmin();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  // Verify user is member of org that owns this project
-  const { data: project } = await sb
+  // Verify user is member of org that owns this project using admin client
+  const { data: project } = await adminSupabase
     .from("projects")
     .select("id, org_id")
     .eq("id", id)
@@ -19,7 +21,7 @@ export async function GET(
 
   if (!project) return NextResponse.json({ error: "project not found" }, { status: 404 });
 
-  const { data: membership } = await sb
+  const { data: membership } = await (adminSupabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .from("org_members")
     .select("role")
     .eq("org_id", project.org_id)
@@ -46,6 +48,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   const sb = await getRouteSupabase();
+  const adminSupabase = getSupabaseAdmin();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -54,8 +57,8 @@ export async function PUT(
     return NextResponse.json({ error: "settings object required" }, { status: 400 });
   }
 
-  // Verify user is admin/owner of org that owns this project
-  const { data: project } = await sb
+  // Verify user is admin/owner of org that owns this project using admin client
+  const { data: project } = await adminSupabase
     .from("projects")
     .select("id, org_id")
     .eq("id", id)
@@ -63,7 +66,7 @@ export async function PUT(
 
   if (!project) return NextResponse.json({ error: "project not found" }, { status: 404 });
 
-  const { data: membership } = await sb
+  const { data: membership } = await (adminSupabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .from("org_members")
     .select("role")
     .eq("org_id", project.org_id)
