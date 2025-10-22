@@ -1,7 +1,6 @@
 'use server'
 import { redirect } from 'next/navigation'
 import { getRouteSupabase } from '@/lib/supabaseServer'
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)
@@ -9,58 +8,36 @@ function slugify(name: string) {
 
 export async function createOrg(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim()
-  if (!name) return
+  if (!name) return { error: 'Name required' }
 
   const supabase = await getRouteSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+  if (!user) return { error: 'Not signed in' }
 
-  // Use admin client to bypass RLS for organization creation
-  const adminSupabase = getSupabaseAdmin()
-
-  const base = slugify(name); let slug = base; let n = 1
-  // try to reserve a unique slug (with safety limit)
-  let attempts = 0
-  while (attempts < 100) {
-    const { data, error } = await adminSupabase.from('organizations').select('id').eq('slug', slug).maybeSingle()
-    if (error) {
-      console.error('Error checking slug uniqueness:', error)
-      break // Exit loop on error
-    }
+  // Reserve a unique slug in app layer (retry on collision)
+  let base = slugify(name); let slug = base; let n = 1
+  while (true) {
+    const { data } = await supabase.from('organizations').select('id').eq('slug', slug).maybeSingle()
     if (!data) break
     slug = `${base}-${++n}`
-    attempts++
   }
 
-  const { data: org, error } = await adminSupabase.from('organizations')
+  // Let RLS decide if user can insert (must be platform admin)
+  const { data: org, error } = await supabase
+    .from('organizations')
     .insert({ name, slug })
     .select('id, slug')
     .single()
-  if (error) {
-    console.error('Error creating organization:', error)
-    return
-  }
-  if (!org) {
-    console.error('No organization returned from insert')
-    return
+
+  if (error || !org) {
+    const msg = /permission denied|rls|not authorized/i.test(error?.message ?? '')
+      ? 'Only platform admins can create organizations.'
+      : (error?.message ?? 'Create failed')
+    return { error: msg }
   }
 
-  // Try to add user as admin (table might not exist yet)
-  try {
-    const { error: memberError } = await (adminSupabase as any).from('org_members').insert({ // eslint-disable-line @typescript-eslint/no-explicit-any 
-      org_id: org.id, 
-      user_id: user.id, 
-      role: 'admin' 
-    })
-    if (memberError) {
-      console.error('Error adding user as admin:', memberError)
-      // Don't fail the org creation if member table doesn't exist
-      console.log('Continuing without org_members table...')
-    }
-  } catch (error) {
-    console.error('Exception adding user as admin:', error)
-    // Don't fail the org creation
-  }
-  
+  // Make creator admin of the new org
+  await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'admin' })
+
   redirect(`/org/${org.slug}`)
 }
