@@ -15,8 +15,8 @@ export async function POST(req: Request) {
   const { data: inv } = await admin.from("org_invites").select("id, org_id, status").eq("id", id).single();
   if (!inv) return NextResponse.json({ error: "invite not found" }, { status: 404 });
 
-  // Verify user is admin/owner of this org
-  const { data: membership } = await sb
+  // Verify user is admin/owner of this org using admin client
+  const { data: membership } = await (admin as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .from("org_members")
     .select("role")
     .eq("org_id", inv.org_id)
