@@ -5,13 +5,13 @@ import { type WidgetConfig } from '@/src/lib/studio/WidgetConfigSchema'
 import { listBlockTypes, getBlockDef } from '@/src/lib/studio/blocks/registry'
 import '@/src/lib/studio/blocks/registry.builtin' // Initialize built-in blocks
 import BlockRenderer from '@/src/components/studio/BlockRenderer'
-import { updateWidget } from '@/src/server/studio/repo'
+import { saveWidgetConfig } from '@/app/actions/widget'
 
 /** Simple undo/redo stack */
 type Snapshot = WidgetConfig
 const MAX_STACK = 30
 
-export default function Studio({ projectId, orgId, initialConfig }: { projectId: string; orgId: string; initialConfig: WidgetConfig }) {
+export default function Studio({ projectId, initialConfig }: { projectId: string; initialConfig: WidgetConfig }) {
   const [config, setConfig] = useState<WidgetConfig>(initialConfig)
   const [saving, startSaving] = useTransition()
   const [saveMsg, setSaveMsg] = useState<string>('')
@@ -77,19 +77,19 @@ export default function Studio({ projectId, orgId, initialConfig }: { projectId:
         lastSaveRef.current = Date.now()
         
         try {
-          await updateWidget(projectId, {
-            orgId,
-            name: 'Widget', // Placeholder
-            widget_config: config,
-          })
-          setSaveMsg('All changes saved')
+          const result = await saveWidgetConfig(projectId, config)
+          if ('error' in result) {
+            setSaveMsg('Save error: ' + result.error)
+          } else {
+            setSaveMsg('All changes saved')
+          }
         } catch (error) {
           setSaveMsg('Save error: ' + (error as Error).message)
         }
       })
     }, 800)
     return () => clearTimeout(t)
-  }, [config, projectId, orgId])
+  }, [config, projectId])
 
   // Block management
   const addBlock = useCallback((type: string) => {

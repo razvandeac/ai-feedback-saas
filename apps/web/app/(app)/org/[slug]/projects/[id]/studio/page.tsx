@@ -47,7 +47,7 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
-      <Studio projectId={proj.id} orgId={proj.org_id} initialConfig={initialConfig} />
+      <Studio projectId={proj.id} initialConfig={initialConfig} />
     </main>
   )
 }
