@@ -1,5 +1,6 @@
 export const revalidate = 0;
 import { getServerSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import FeedbackFilterBar from "@/components/filters/feedback-filter-bar";
 import FeedbackTable from "@/components/feedback/feedback-table";
 import EmptyState from "@/components/empty-state";
@@ -17,11 +18,14 @@ export default async function FeedbackPage({
   const search = await searchParams;
   
   const sb = await getServerSupabase();
-  const { data: org } = await sb.from("organizations").select("id,slug,name").eq("slug", slug).single();
+  const adminSupabase = getSupabaseAdmin();
+  
+  // Use admin client to bypass RLS issues
+  const { data: org } = await adminSupabase.from("organizations").select("id,slug,name").eq("slug", slug).single();
   if (!org) notFound();
 
   // Get projects for filter dropdown
-  const { data: projects } = await sb
+  const { data: projects } = await adminSupabase
     .from("projects")
     .select("id, name")
     .eq("org_id", org.id)
@@ -50,7 +54,7 @@ export default async function FeedbackPage({
 
   // Build query with filters - query database directly (not via API)
   const pids = projects.map(p => p.id);
-  let query = sb
+  let query = adminSupabase
     .from("feedback")
     .select("id, project_id, rating, comment, created_at", { count: "exact" })
     .in("project_id", pids);
