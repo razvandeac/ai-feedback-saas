@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { WidgetConfigSchema, type WidgetConfig, DEFAULT_WIDGET_CONFIG } from '@/lib/widget/schema'
-import { saveWidgetConfig } from '@/app/actions/widget'
+import { publishWidget, rollbackWidget, listWidgetVersions, saveWidgetConfig } from '@/app/actions/widget'
 import { BlockRegistry, type BlockId } from '@/lib/widget/blocks'
 import {
   DndContext, DragEndEvent, PointerSensor, useSensor, useSensors
@@ -65,8 +65,17 @@ export default function Studio({ projectId, initial }: { projectId: string; init
   })
   const [saving, startSaving] = useTransition()
   const [saveMsg, setSaveMsg] = useState<string>('')
+  const [versions, setVersions] = useState<Array<{version:number; published_at:string; published_by:string}>>([])
 
   const [selected, setSelected] = useState<BlockId | null>(config.order[0] ?? null)
+
+  // Fetch versions on mount
+  useEffect(() => {
+    (async () => {
+      const res = await listWidgetVersions(projectId)
+      if ('versions' in res) setVersions(res.versions as unknown as Array<{version:number; published_at:string; published_by:string}>)
+    })()
+  }, [projectId])
 
   // DnD setup
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
@@ -238,6 +247,20 @@ export default function Studio({ projectId, initial }: { projectId: string; init
             </button>
           )
         })}
+        <button
+          className="w-full border rounded px-3 py-2 mt-2"
+          onClick={() => {
+            startSaving(async () => {
+              const res = await publishWidget(projectId)
+              if ('error' in res) { setSaveMsg('Publish error: ' + (res as { error: string }).error); return }
+              setSaveMsg(`Published v${(res as { version: number }).version}`)
+              const v = await listWidgetVersions(projectId)
+              if ('versions' in v) setVersions(v.versions as unknown as Array<{version:number; published_at:string; published_by:string}>)
+            })
+          }}
+        >
+          Publish
+        </button>
         <div className="text-sm text-gray-600 pt-2">{saving ? 'Saving…' : (saveMsg || 'Saved')}</div>
       </aside>
 
@@ -272,6 +295,33 @@ export default function Studio({ projectId, initial }: { projectId: string; init
       <aside className="border rounded-xl p-4 space-y-3">
         <h2 className="font-semibold">Inspector</h2>
         <Inspector />
+      </aside>
+
+      {/* Versions */}
+      <aside className="border rounded-xl p-4 space-y-3">
+        <h2 className="font-semibold">Versions</h2>
+        <ul className="space-y-2 text-sm">
+          {versions.length === 0 && <li className="text-gray-500">No published versions yet.</li>}
+          {versions.map(v => (
+            <li key={v.version} className="flex items-center justify-between border rounded px-2 py-1">
+              <span>v{v.version} · {new Date(v.published_at).toLocaleString()}</span>
+              <button
+                className="underline"
+                onClick={() => {
+                  startSaving(async () => {
+                    const res = await rollbackWidget(projectId, v.version)
+                    if ('error' in res) { setSaveMsg('Rollback error: ' + (res as { error: string }).error); return }
+                    setSaveMsg(`Rolled back to v${v.version}`)
+                    // Reload config in memory after rollback
+                    location.reload()
+                  })
+                }}
+              >
+                Restore
+              </button>
+            </li>
+          ))}
+        </ul>
       </aside>
 
       {/* Live preview */}

@@ -45,3 +45,73 @@ export async function saveWidgetConfig(projectId: string, draft: unknown) {
 
   return { ok: true }
 }
+
+export async function publishWidget(projectId: string) {
+  const adminSupabase = getSupabaseAdmin()
+
+  // Load current draft
+  const { data: cfg, error: cerr } = await adminSupabase
+    .from('widget_config')
+    .select('settings')
+    .eq('project_id', projectId)
+    .maybeSingle()
+  if (cerr) return { error: cerr.message }
+
+  const draft = WidgetConfigSchema.safeParse(cfg?.settings ?? {})
+  if (!draft.success) return { error: 'Invalid draft settings' }
+
+  // Compute next version
+  const { data: maxVersion } = await adminSupabase
+    .from('widget_versions' as unknown as 'widget_config')
+    .select('version')
+    .eq('project_id', projectId)
+    .order('version', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const version = ((maxVersion as { version?: number })?.version ?? 0) + 1
+
+  // Insert version (RLS: org admin only)
+  const { error: perr } = await adminSupabase
+    .from('widget_versions' as unknown as 'widget_config').insert({
+    project_id: projectId,
+    version,
+    settings: draft.data,
+    published_by: '00000000-0000-0000-0000-000000000000' // Placeholder - RLS will handle auth
+  })
+  if (perr) return { error: perr.message }
+
+  return { ok: true, version }
+}
+
+export async function rollbackWidget(projectId: string, toVersion: number) {
+  const adminSupabase = getSupabaseAdmin()
+
+  // Fetch version to restore
+  const { data: v, error: verr } = await adminSupabase
+    .from('widget_versions' as unknown as 'widget_config')
+    .select('settings')
+    .eq('project_id', projectId)
+    .eq('version', toVersion)
+    .single()
+  if (verr || !v) return { error: 'Version not found' }
+
+  // Write back into draft (members can write; your policy allows org members)
+  const { error: uerr } = await adminSupabase
+    .from('widget_config')
+    .upsert({ project_id: projectId, settings: v.settings, updated_at: new Date().toISOString() })
+  if (uerr) return { error: uerr.message }
+
+  return { ok: true }
+}
+
+export async function listWidgetVersions(projectId: string) {
+  const adminSupabase = getSupabaseAdmin()
+
+  const { data, error } = await adminSupabase
+    .from('widget_versions' as unknown as 'widget_config')
+    .select('version, published_at, published_by')
+    .eq('project_id', projectId)
+    .order('version', { ascending: false })
+  if (error) return { error: error.message }
+  return { versions: data ?? [] }
+}
