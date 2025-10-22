@@ -19,5 +19,5 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
 
   const canManage = role === "owner" || role === "admin";
 
-  return <ProjectsClient initial={projects ?? []} orgSlug={org.slug} canManage={canManage} />;
+  return <ProjectsClient initial={projects ?? []} orgSlug={org.slug ?? ''} canManage={canManage} />;
 }

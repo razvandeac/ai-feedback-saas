@@ -8,7 +8,7 @@ export async function POST() {
     // Get the demo project
     const { data: project } = await adminSupabase
       .from('projects')
-      .select('id, name, key')
+      .select('id, name, key, org_id')
       .eq('key', 'y577qucpaczh6fty')
       .single()
     
@@ -21,6 +21,7 @@ export async function POST() {
       .from('feedback')
       .insert({ 
         project_id: project.id, 
+        org_id: project.org_id,
         rating: 5, 
         comment: 'Direct test insertion' 
       })

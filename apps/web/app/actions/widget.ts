@@ -8,11 +8,11 @@ export async function loadWidgetConfig(projectId: string) {
 
   const { data, error } = await adminSupabase
     .from('widget_config')
-    .select('settings')
+    .select('widget_config')
     .eq('project_id', projectId)
     .maybeSingle()
   if (error) return { error: error.message }
-  return { settings: (data?.settings ?? {}) }
+  return { settings: (data?.widget_config ?? {}) }
 }
 
 export async function saveWidgetConfig(projectId: string, draft: unknown) {
@@ -35,7 +35,7 @@ export async function saveWidgetConfig(projectId: string, draft: unknown) {
     .from('widget_config')
     .upsert({ 
       project_id: projectId, 
-      settings: parsed.data, 
+      widget_config: parsed.data, 
       updated_at: new Date().toISOString() 
     })
   if (error) {
@@ -52,17 +52,17 @@ export async function publishWidget(projectId: string) {
   // Load current draft
   const { data: cfg, error: cerr } = await adminSupabase
     .from('widget_config')
-    .select('settings')
+    .select('widget_config')
     .eq('project_id', projectId)
     .maybeSingle()
   if (cerr) return { error: cerr.message }
 
-  const draft = WidgetConfigSchema.safeParse(cfg?.settings ?? {})
+  const draft = WidgetConfigSchema.safeParse(cfg?.widget_config ?? {})
   if (!draft.success) return { error: 'Invalid draft settings' }
 
   // Compute next version
   const { data: maxVersion } = await adminSupabase
-    .from('widget_versions' as unknown as 'widget_config')
+    .from('widget_versions')
     .select('version')
     .eq('project_id', projectId)
     .order('version', { ascending: false })
@@ -72,7 +72,7 @@ export async function publishWidget(projectId: string) {
 
   // Insert version (RLS: org admin only)
   const { error: perr } = await adminSupabase
-    .from('widget_versions' as unknown as 'widget_config').insert({
+    .from('widget_versions').insert({
     project_id: projectId,
     version,
     settings: draft.data,
@@ -88,7 +88,7 @@ export async function rollbackWidget(projectId: string, toVersion: number) {
 
   // Fetch version to restore
   const { data: v, error: verr } = await adminSupabase
-    .from('widget_versions' as unknown as 'widget_config')
+    .from('widget_versions')
     .select('settings')
     .eq('project_id', projectId)
     .eq('version', toVersion)
@@ -98,7 +98,7 @@ export async function rollbackWidget(projectId: string, toVersion: number) {
   // Write back into draft (members can write; your policy allows org members)
   const { error: uerr } = await adminSupabase
     .from('widget_config')
-    .upsert({ project_id: projectId, settings: v.settings, updated_at: new Date().toISOString() })
+    .upsert({ project_id: projectId, widget_config: v.settings, updated_at: new Date().toISOString() })
   if (uerr) return { error: uerr.message }
 
   return { ok: true }

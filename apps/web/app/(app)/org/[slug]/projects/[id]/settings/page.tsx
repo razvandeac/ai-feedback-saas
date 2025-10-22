@@ -23,7 +23,7 @@ export default async function ProjectSettingsPage({
 
   const { data: config } = await adminSupabase
     .from("widget_config")
-    .select("settings")
+    .select("widget_config")
     .eq("project_id", project.id)
     .single();
 
@@ -37,7 +37,7 @@ export default async function ProjectSettingsPage({
       </div>
       
       <EmbedSnippet projectKey={project.key} />
-      <WidgetConfigForm projectId={project.id} initial={(config?.settings as any) ?? {}} /> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
+      <WidgetConfigForm projectId={project.id} initial={(config?.widget_config as any) ?? {}} /> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
     </div>
   );
 }

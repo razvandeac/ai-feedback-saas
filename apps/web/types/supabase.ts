@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -38,7 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          ip: unknown | null
+          ip: unknown
           payload: Json
           project_id: string
           type: string
@@ -48,7 +28,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: number
-          ip?: unknown | null
+          ip?: unknown
           payload: Json
           project_id: string
           type: string
@@ -58,7 +38,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: number
-          ip?: unknown | null
+          ip?: unknown
           payload?: Json
           project_id?: string
           type?: string
@@ -88,6 +68,7 @@ export type Database = {
           created_at: string
           id: string
           metadata: Json
+          org_id: string
           project_id: string
           rating: number | null
           widget_id: string | null
@@ -97,6 +78,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json
+          org_id: string
           project_id: string
           rating?: number | null
           widget_id?: string | null
@@ -106,11 +88,19 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json
+          org_id?: string
           project_id?: string
           rating?: number | null
           widget_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "feedback_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feedback_project_id_fkey"
             columns: ["project_id"]
@@ -244,39 +234,71 @@ export type Database = {
           },
         ]
       }
-      organizations: {
+      org_members: {
         Row: {
           created_at: string
-          id: string
-          name: string
-          slug: string
-          updated_at: string
+          org_id: string
+          role: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          id?: string
-          name: string
-          slug: string
-          updated_at?: string
+          org_id: string
+          role?: string
+          user_id: string
         }
         Update: {
           created_at?: string
+          org_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
           id?: string
           name?: string
-          slug?: string
-          updated_at?: string
+          slug?: string | null
         }
         Relationships: []
       }
       platform_admins: {
         Row: {
-          email: string
+          granted_at: string
+          user_id: string
         }
         Insert: {
-          email: string
+          granted_at?: string
+          user_id: string
         }
         Update: {
-          email?: string
+          granted_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -343,6 +365,7 @@ export type Database = {
           name: string
           org_id: string
           require_project_origins: boolean
+          updated_at: string | null
         }
         Insert: {
           allowed_origins?: string[] | null
@@ -352,6 +375,7 @@ export type Database = {
           name: string
           org_id: string
           require_project_origins?: boolean
+          updated_at?: string | null
         }
         Update: {
           allowed_origins?: string[] | null
@@ -361,6 +385,7 @@ export type Database = {
           name?: string
           org_id?: string
           require_project_origins?: boolean
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -372,27 +397,117 @@ export type Database = {
           },
         ]
       }
+      responses: {
+        Row: {
+          created_at: string
+          feedback_id: string
+          id: string
+          org_id: string
+          project_id: string
+          summary: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_id: string
+          id?: string
+          org_id: string
+          project_id: string
+          summary?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          feedback_id?: string
+          id?: string
+          org_id?: string
+          project_id?: string
+          summary?: string | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "responses_feedback_id_fkey"
+            columns: ["feedback_id"]
+            isOneToOne: false
+            referencedRelation: "feedback"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "responses_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "responses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       widget_config: {
         Row: {
           project_id: string
-          settings: Json
           updated_at: string
+          widget_config: Json
         }
         Insert: {
           project_id: string
-          settings?: Json
           updated_at?: string
+          widget_config: Json
         }
         Update: {
           project_id?: string
-          settings?: Json
           updated_at?: string
+          widget_config?: Json
         }
         Relationships: [
           {
             foreignKeyName: "widget_config_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      widget_versions: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          published_at: string
+          published_by: string
+          settings: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          published_at?: string
+          published_by: string
+          settings: Json
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          published_at?: string
+          published_by?: string
+          settings?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widget_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -438,30 +553,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      citext: {
-        Args: { "": boolean } | { "": string } | { "": unknown }
-        Returns: string
-      }
-      citext_hash: {
-        Args: { "": string }
-        Returns: number
-      }
-      citextin: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      citextout: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      citextrecv: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      citextsend: {
-        Args: { "": string }
-        Returns: string
-      }
       get_users_lite: {
         Args: { ids: string[] }
         Returns: {
@@ -470,18 +561,15 @@ export type Database = {
           id: string
         }[]
       }
-      is_org_admin: {
-        Args: { _org: string; _user: string }
-        Returns: boolean
-      }
-      is_org_member: {
-        Args: { _org: string; _user: string } | { check_org: string }
-        Returns: boolean
-      }
-      normalize_origins: {
-        Args: { arr: string[] }
-        Returns: string[]
-      }
+      is_org_admin:
+        | { Args: { org_id: string }; Returns: boolean }
+        | { Args: { org: string; uid: string }; Returns: boolean }
+      is_org_member:
+        | { Args: { org_id: string }; Returns: boolean }
+        | { Args: { org: string; uid: string }; Returns: boolean }
+      is_platform_admin: { Args: { uid: string }; Returns: boolean }
+      next_widget_version: { Args: { pid: string }; Returns: number }
+      normalize_origins: { Args: { arr: string[] }; Returns: string[] }
     }
     Enums: {
       org_role: "owner" | "admin" | "member" | "viewer"
@@ -610,13 +698,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       org_role: ["owner", "admin", "member", "viewer"],
     },
   },
 } as const
-

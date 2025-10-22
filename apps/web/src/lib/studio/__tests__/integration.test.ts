@@ -1,0 +1,79 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { WidgetConfigSchema } from '@/src/lib/studio/WidgetConfigSchema'
+
+describe('Studio Integration', () => {
+  const adminSupabase = getSupabaseAdmin()
+
+  beforeEach(async () => {
+    // Clean up test data
+    await adminSupabase.from('widget_config').delete().like('project_id', 'test-%')
+    await adminSupabase.from('projects').delete().like('name', 'Test Project%')
+    await adminSupabase.from('organizations').delete().like('name', 'Test Org%')
+  })
+
+  it('should insert and read widget config', async () => {
+    // Create test org
+    const { data: org } = await adminSupabase
+      .from('organizations')
+      .insert({ name: 'Test Org', slug: 'test-org' })
+      .select()
+      .single()
+
+    expect(org).toBeDefined()
+
+    // Create test project
+    const { data: project } = await adminSupabase
+      .from('projects')
+      .insert({
+        org_id: org.id,
+        name: 'Test Project',
+        api_key: 'test-key',
+      })
+      .select()
+      .single()
+
+    expect(project).toBeDefined()
+
+    // Create widget config
+    const widgetConfig = {
+      theme: {
+        variant: 'light',
+        primaryColor: '#000000',
+        backgroundColor: '#ffffff',
+        fontFamily: 'Inter',
+        borderRadius: 8,
+      },
+      blocks: [
+        {
+          id: crypto.randomUUID(),
+          type: 'text',
+          version: 1,
+          data: { text: 'Test', align: 'left' },
+        },
+      ],
+    }
+
+    const { data: widget } = await adminSupabase
+      .from('widget_config')
+      .insert({
+        project_id: project.id,
+        widget_config,
+      })
+      .select()
+      .single()
+
+    expect(widget).toBeDefined()
+    expect(widget.widget_config).toEqual(widgetConfig)
+
+    // Read it back
+    const { data: readWidget } = await adminSupabase
+      .from('widget_config')
+      .select('widget_config')
+      .eq('project_id', project.id)
+      .single()
+
+    expect(readWidget).toBeDefined()
+    expect(() => WidgetConfigSchema.parse(readWidget.widget_config)).not.toThrow()
+  })
+})

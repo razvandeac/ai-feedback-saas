@@ -101,7 +101,7 @@ export default async function FeedbackPage({
         page={page}
         pageSize={pageSize}
         projects={projects}
-        orgSlug={org.slug}
+        orgSlug={org.slug ?? ''}
       />
     </div>
   );

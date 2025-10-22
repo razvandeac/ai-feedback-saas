@@ -33,13 +33,13 @@ export async function GET(
   // Fetch widget config using admin client to bypass RLS
   const { data: config, error } = await adminSupabase
     .from("widget_config")
-    .select("settings")
+    .select("widget_config")
     .eq("project_id", id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   
-  return NextResponse.json({ settings: config?.settings || {} });
+  return NextResponse.json({ settings: config?.widget_config || {} });
 }
 
 export async function PUT(
@@ -81,10 +81,10 @@ export async function PUT(
   const { data, error } = await adminSupabase
     .from("widget_config")
     .upsert(
-      { project_id: id, settings, updated_at: new Date().toISOString() },
+      { project_id: id, widget_config: settings, updated_at: new Date().toISOString() },
       { onConflict: "project_id" }
     )
-    .select("settings, updated_at")
+    .select("widget_config, updated_at")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

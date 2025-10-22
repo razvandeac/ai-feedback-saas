@@ -59,7 +59,7 @@ export async function GET(
 
   const { data: cfg } = await sb
     .from("widget_config")
-    .select("settings")
+    .select("widget_config")
     .eq("project_id", proj.id)
     .maybeSingle();
 
@@ -71,7 +71,7 @@ export async function GET(
       showRating: true,
       showComment: true,
       title: "We value your feedback!",
-      ...(cfg?.settings as Record<string, unknown> || {})
+      ...(cfg?.widget_config as Record<string, unknown> || {})
     }
   };
 

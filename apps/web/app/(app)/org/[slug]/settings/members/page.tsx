@@ -124,7 +124,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
             </Link>
           </p>
         </div>
-        {(role === "owner" || role === "admin") && <InviteModal orgSlug={org.slug} />}
+        {(role === "owner" || role === "admin") && <InviteModal orgSlug={org.slug ?? ''} />}
       </div>
 
       <div className="rounded-3xl border bg-white p-4">
@@ -143,7 +143,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
         </ul>
       </div>
 
-      <InvitesTable initial={invitesWithUrl} orgSlug={org.slug} />
+      <InvitesTable initial={invitesWithUrl} orgSlug={org.slug ?? ''} />
     </div>
   );
 }
