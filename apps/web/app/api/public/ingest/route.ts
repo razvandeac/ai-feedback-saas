@@ -83,7 +83,12 @@ export async function POST(req: Request) {
     const rating = typeof ratingRaw === "number" ? Math.max(1, Math.min(5, Math.round(ratingRaw))) : null;
     const commentRaw = payloadData?.comment;
     const comment = typeof commentRaw === "string" ? String(commentRaw).slice(0, 2000) : null;
-    await sb.from("feedback").insert({ project_id: proj.id, rating, comment });
+    
+    const { error: feedbackError } = await sb.from("feedback").insert({ project_id: proj.id, rating, comment });
+    if (feedbackError) {
+      console.error("Feedback insertion error:", feedbackError);
+      return createPublicResponse({ error: `Feedback error: ${feedbackError.message}` }, 400);
+    }
   }
 
   return createPublicResponse({ ok: true });
