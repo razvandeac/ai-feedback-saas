@@ -30,9 +30,9 @@ export const NpsBlockSchema = z.object({
 })
 
 export const BlocksSchema = z.object({
-  rating: RatingBlockSchema.default({}),
-  comment: CommentBlockSchema.default({}),
-  nps: NpsBlockSchema.default({}),
+  rating: RatingBlockSchema,
+  comment: CommentBlockSchema,
+  nps: NpsBlockSchema,
 })
 
 /** NEW: order array controls which blocks render & in what order */
@@ -41,11 +41,40 @@ export const OrderSchema = z
   .default(['rating', 'comment'])
 
 export const WidgetConfigSchema = z.object({
-  theme: ThemeSchema.default({}),
-  blocks: BlocksSchema.default({}),
+  theme: ThemeSchema,
+  blocks: BlocksSchema,
   order: OrderSchema, // NEW
 })
 
 export type WidgetConfig = z.infer<typeof WidgetConfigSchema>
 
-export const DEFAULT_WIDGET_CONFIG: WidgetConfig = WidgetConfigSchema.parse({})
+export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
+  theme: {
+    color: '#111827',
+    background: '#ffffff',
+    radius: 12,
+    fontSize: 'base',
+  },
+  blocks: {
+    rating: {
+      enabled: true,
+      label: 'How would you rate your experience?',
+      max: 5,
+    },
+    comment: {
+      enabled: true,
+      label: 'Tell us more',
+      placeholder: 'Your thoughts…',
+      minLength: 0,
+    },
+    nps: {
+      enabled: false,
+      label: 'How likely are you to recommend us to a friend?',
+      min: 0,
+      max: 10,
+      leftLabel: 'Not likely',
+      rightLabel: 'Very likely',
+    },
+  },
+  order: ['rating', 'comment'],
+}
