@@ -6,12 +6,13 @@ export async function OPTIONS(
   req: Request,
   { params }: { params: Promise<{ key: string }> }
 ) {
-  // We can prefetch project allow-list for OPTIONS too
+  // For public API, allow all origins by default unless project has specific restrictions
   const { key } = await params;
   const sb = getSupabaseAdmin();
   const cleanKey = (key || "").trim();
   let extra: string[] | null = null;
   let projectOnly = false;
+  
   if (cleanKey) {
     const { data: proj } = await sb
       .from("projects")
@@ -21,6 +22,12 @@ export async function OPTIONS(
     extra = (proj?.allowed_origins as string[] | null) || null;
     projectOnly = !!(proj?.require_project_origins);
   }
+  
+  // If no project-specific restrictions, allow all origins
+  if (!projectOnly && (!extra || extra.length === 0)) {
+    extra = ["*"];
+  }
+  
   return preflight(req, ["GET", "OPTIONS"], extra, { projectOnly });
 }
 
@@ -47,12 +54,15 @@ export async function GET(
   const extra = (proj?.allowed_origins as string[] | null) || null;
   const projectOnly = !!(proj?.require_project_origins);
 
+  // For public API, if no project-specific restrictions, allow all origins
+  const finalExtra = (!projectOnly && (!extra || extra.length === 0)) ? ["*"] : extra;
+
   // CORS gate after we know per-project list
-  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["GET", "OPTIONS"], extra, { projectOnly });
+  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["GET", "OPTIONS"], finalExtra, { projectOnly });
   if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS();
 
   if (!proj) {
-    return withCORS(NextResponse.json({ error: "project not found" }, { status: 404 }), req, ["GET", "OPTIONS"], extra, { projectOnly });
+    return withCORS(NextResponse.json({ error: "project not found" }, { status: 404 }), req, ["GET", "OPTIONS"], finalExtra, { projectOnly });
   }
 
   const { data: cfg } = await sb
@@ -73,6 +83,6 @@ export async function GET(
     }
   };
 
-  return withCORS(NextResponse.json(payload), req, ["GET", "OPTIONS"], extra, { projectOnly });
+  return withCORS(NextResponse.json(payload), req, ["GET", "OPTIONS"], finalExtra, { projectOnly });
 }
 
