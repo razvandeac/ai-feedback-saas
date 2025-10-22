@@ -30,8 +30,8 @@ export async function GET(
 
   if (!membership) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  // Fetch widget config (RLS policy allows members to read)
-  const { data: config, error } = await sb
+  // Fetch widget config using admin client to bypass RLS
+  const { data: config, error } = await adminSupabase
     .from("widget_config")
     .select("settings")
     .eq("project_id", id)
@@ -77,8 +77,8 @@ export async function PUT(
     return NextResponse.json({ error: "forbidden - admin required" }, { status: 403 });
   }
 
-  // Update or insert widget config (RLS policy allows admins to update)
-  const { data, error } = await sb
+  // Update or insert widget config using admin client to bypass RLS
+  const { data, error } = await adminSupabase
     .from("widget_config")
     .upsert(
       { project_id: id, settings, updated_at: new Date().toISOString() },

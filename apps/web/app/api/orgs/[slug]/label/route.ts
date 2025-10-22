@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getRouteSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const sb = await getRouteSupabase();
+  const adminSupabase = getSupabaseAdmin();
   
-  const { data: org } = await sb
+  // Use admin client to bypass RLS issues
+  const { data: org } = await adminSupabase
     .from("organizations")
     .select("name")
     .eq("slug", slug)
