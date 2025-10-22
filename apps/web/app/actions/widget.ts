@@ -1,6 +1,5 @@
 'use server'
 
-import { z } from 'zod'
 import { getRouteSupabase } from '@/lib/supabaseServer'
 import { WidgetConfigSchema } from '@/lib/widget/schema'
 

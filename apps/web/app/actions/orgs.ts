@@ -15,7 +15,7 @@ export async function createOrg(formData: FormData) {
   if (!user) return { error: 'Not signed in' }
 
   // Reserve a unique slug in app layer (retry on collision)
-  let base = slugify(name); let slug = base; let n = 1
+  const base = slugify(name); let slug = base; let n = 1
   while (true) {
     const { data } = await supabase.from('organizations').select('id').eq('slug', slug).maybeSingle()
     if (!data) break

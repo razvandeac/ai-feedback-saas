@@ -55,7 +55,7 @@ export default function Studio({ projectId, initial }: { projectId: string; init
       startSaving(async () => {
         const res = await saveWidgetConfig(projectId, config)
         setSaveMsg('Saved at ' + new Date().toLocaleTimeString())
-        if ('error' in res) setSaveMsg('Save error: ' + (res as any).error)
+        if ('error' in res) setSaveMsg('Save error: ' + (res as { error: string }).error)
       })
     }, 800)
     return () => clearTimeout(t)
@@ -85,7 +85,7 @@ export default function Studio({ projectId, initial }: { projectId: string; init
             </Field>
             <Field label="Font size">
               <select value={config.theme.fontSize}
-                onChange={(e) => setConfig({ ...config, theme: { ...config.theme, fontSize: e.target.value as any } })}
+                onChange={(e) => setConfig({ ...config, theme: { ...config.theme, fontSize: e.target.value as 'sm' | 'base' | 'lg' } })}
                 className="w-full border rounded px-2 py-1">
                 <option value="sm">sm</option>
                 <option value="base">base</option>
