@@ -1,93 +1,51 @@
 import { z } from 'zod'
 
-// Legacy schema for backward compatibility
-const LegacyThemeSchema = z.string().default('light')
-const LegacyBlocksSchema = z.object({
-  showRating: z.boolean().default(true),
-  showComment: z.boolean().default(true),
-}).optional()
-
-// New schema
 export const ThemeSchema = z.object({
-  color: z.string().default('#111827'),   // text color
+  color: z.string().default('#111827'),
   background: z.string().default('#ffffff'),
   radius: z.number().int().min(0).max(24).default(12),
   fontSize: z.enum(['sm','base','lg']).default('base'),
 })
 
-export const BlocksSchema = z.object({
-  rating: z.object({
-    enabled: z.boolean().default(true),
-    label: z.string().default('How would you rate your experience?'),
-    max: z.number().int().min(3).max(10).default(5),
-  }),
-  comment: z.object({
-    enabled: z.boolean().default(true),
-    label: z.string().default('Tell us more'),
-    placeholder: z.string().default('Your thoughts…'),
-    minLength: z.number().int().min(0).max(500).default(0),
-  }),
+export const RatingBlockSchema = z.object({
+  enabled: z.boolean().default(true),
+  label: z.string().default('How would you rate your experience?'),
+  max: z.number().int().min(3).max(10).default(5),
 })
 
-// Flexible schema that can handle both legacy and new formats
-export const WidgetConfigSchema = z.union([
-  // New format
-  z.object({
-    theme: ThemeSchema,
-    blocks: BlocksSchema,
-  }),
-  // Legacy format - transform to new format
-  z.object({
-    theme: LegacyThemeSchema,
-    title: z.string().optional(),
-    logoUrl: z.string().optional(),
-    showRating: z.boolean().optional(),
-    showComment: z.boolean().optional(),
-    blocks: LegacyBlocksSchema,
-  }).transform((legacy) => ({
-    theme: {
-      color: '#111827',
-      background: '#ffffff',
-      radius: 12,
-      fontSize: 'base' as const,
-    },
-    blocks: {
-      rating: {
-        enabled: legacy.showRating ?? true,
-        label: 'How would you rate your experience?',
-        max: 5,
-      },
-      comment: {
-        enabled: legacy.showComment ?? true,
-        label: 'Tell us more',
-        placeholder: 'Your thoughts…',
-        minLength: 0,
-      },
-    },
-  }))
-])
+export const CommentBlockSchema = z.object({
+  enabled: z.boolean().default(true),
+  label: z.string().default('Tell us more'),
+  placeholder: z.string().default('Your thoughts…'),
+  minLength: z.number().int().min(0).max(500).default(0),
+})
+
+export const NpsBlockSchema = z.object({
+  enabled: z.boolean().default(false),
+  label: z.string().default('How likely are you to recommend us to a friend?'),
+  min: z.number().int().min(0).max(5).default(0),
+  max: z.number().int().min(5).max(10).default(10),
+  leftLabel: z.string().default('Not likely'),
+  rightLabel: z.string().default('Very likely'),
+})
+
+export const BlocksSchema = z.object({
+  rating: RatingBlockSchema.default({}),
+  comment: CommentBlockSchema.default({}),
+  nps: NpsBlockSchema.default({}),
+})
+
+/** NEW: order array controls which blocks render & in what order */
+export const OrderSchema = z
+  .array(z.enum(['rating', 'comment', 'nps']))
+  .default(['rating', 'comment'])
+
+export const WidgetConfigSchema = z.object({
+  theme: ThemeSchema.default({}),
+  blocks: BlocksSchema.default({}),
+  order: OrderSchema, // NEW
+})
 
 export type WidgetConfig = z.infer<typeof WidgetConfigSchema>
 
-// sensible default
-export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
-  theme: {
-    color: '#111827',
-    background: '#ffffff',
-    radius: 12,
-    fontSize: 'base',
-  },
-  blocks: {
-    rating: {
-      enabled: true,
-      label: 'How would you rate your experience?',
-      max: 5,
-    },
-    comment: {
-      enabled: true,
-      label: 'Tell us more',
-      placeholder: 'Your thoughts…',
-      minLength: 0,
-    },
-  },
-}
+export const DEFAULT_WIDGET_CONFIG: WidgetConfig = WidgetConfigSchema.parse({})
