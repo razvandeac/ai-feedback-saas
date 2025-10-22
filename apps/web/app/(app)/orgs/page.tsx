@@ -2,7 +2,8 @@ import { getServerSupabase } from '@/lib/supabaseServer'
 import { createOrg } from '@/app/actions/orgs'
 import Link from 'next/link'
 
-export default async function OrgsPage() {
+export default async function OrgsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams
   const supabase = await getServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return <main className="p-6">Please sign in.</main>
@@ -20,9 +21,26 @@ export default async function OrgsPage() {
     .select('id, name, slug, created_at')
     .order('created_at', { ascending: false })
 
+  const getErrorMessage = (errorCode?: string) => {
+    switch (errorCode) {
+      case 'name-required': return 'Organization name is required.'
+      case 'platform-admin-required': return 'Only platform admins can create organizations.'
+      case 'create-failed': return 'Failed to create organization. Please try again.'
+      default: return null
+    }
+  }
+
+  const errorMessage = getErrorMessage(error)
+
   return (
     <main className="p-6 max-w-3xl space-y-6">
       <h1 className="text-2xl font-semibold">Organizations</h1>
+
+      {errorMessage && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700">
+          {errorMessage}
+        </div>
+      )}
 
       {isPlatformAdmin ? (
         <form action={createOrg} className="flex gap-2">

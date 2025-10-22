@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useTransition } from 'react'
-import { z } from 'zod'
+import { useEffect, useState, useTransition } from 'react'
 import { WidgetConfigSchema, type WidgetConfig } from '@/lib/widget/schema'
 import { saveWidgetConfig } from '@/app/actions/widget'
 

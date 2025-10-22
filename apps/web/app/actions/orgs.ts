@@ -8,11 +8,16 @@ function slugify(name: string) {
 
 export async function createOrg(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim()
-  if (!name) return { error: 'Name required' }
+  if (!name) {
+    // For form actions, we can't return errors, so we'll redirect to an error page
+    redirect('/orgs?error=name-required')
+  }
 
   const supabase = await getRouteSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not signed in' }
+  if (!user) {
+    redirect('/login')
+  }
 
   // Reserve a unique slug in app layer (retry on collision)
   const base = slugify(name); let slug = base; let n = 1
@@ -30,10 +35,12 @@ export async function createOrg(formData: FormData) {
     .single()
 
   if (error || !org) {
-    const msg = /permission denied|rls|not authorized/i.test(error?.message ?? '')
-      ? 'Only platform admins can create organizations.'
-      : (error?.message ?? 'Create failed')
-    return { error: msg }
+    const isPermissionError = /permission denied|rls|not authorized/i.test(error?.message ?? '')
+    if (isPermissionError) {
+      redirect('/orgs?error=platform-admin-required')
+    } else {
+      redirect('/orgs?error=create-failed')
+    }
   }
 
   // Make creator admin of the new org

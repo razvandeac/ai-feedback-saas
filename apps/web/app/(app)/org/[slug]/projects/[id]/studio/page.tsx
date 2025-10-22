@@ -4,7 +4,7 @@ import Studio from './studio-client'
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/widget/schema'
 
 export default async function StudioPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
-  const { slug, id } = await params
+  const { id } = await params
   const supabase = await getServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
