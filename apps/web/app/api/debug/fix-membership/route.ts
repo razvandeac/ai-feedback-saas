@@ -30,7 +30,7 @@ export async function POST() {
 
     // Check if user is already a member using admin client
     const { data: existingMember } = await (adminSupabase as any).from('org_members') // eslint-disable-line @typescript-eslint/no-explicit-any
-      .select('id')
+      .select('org_id, user_id, role, created_at')
       .eq('org_id', org.id)
       .eq('user_id', user.id)
       .maybeSingle()
