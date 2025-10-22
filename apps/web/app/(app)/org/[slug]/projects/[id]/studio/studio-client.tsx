@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { WidgetConfigSchema, type WidgetConfig } from '@/lib/widget/schema'
+import { WidgetConfigSchema, type WidgetConfig, DEFAULT_WIDGET_CONFIG } from '@/lib/widget/schema'
 import { saveWidgetConfig } from '@/app/actions/widget'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -44,7 +44,16 @@ function Preview({ config }: { config: WidgetConfig }) {
 }
 
 export default function Studio({ projectId, initial }: { projectId: string; initial: unknown }) {
-  const [config, setConfig] = useState<WidgetConfig>(() => WidgetConfigSchema.parse(initial))
+  const [config, setConfig] = useState<WidgetConfig>(() => {
+    try {
+      // Try to parse the initial data, fallback to default if it fails
+      return WidgetConfigSchema.parse(initial)
+    } catch (error) {
+      console.warn('Failed to parse initial widget config:', error)
+      console.warn('Initial data:', initial)
+      return DEFAULT_WIDGET_CONFIG
+    }
+  })
   const [saving, startSaving] = useTransition()
   const [saveMsg, setSaveMsg] = useState<string>('')
 

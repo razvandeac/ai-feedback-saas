@@ -22,16 +22,25 @@ export async function saveWidgetConfig(projectId: string, draft: unknown) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not signed in' }
 
+  console.log('Saving widget config for project:', projectId)
+  console.log('Draft data:', draft)
+
   const parsed = WidgetConfigSchema.safeParse(draft)
   if (!parsed.success) {
+    console.error('Widget config validation failed:', parsed.error)
     const first = parsed.error.issues?.[0]
     return { error: `Invalid config: ${first?.path?.join('.') ?? ''} ${first?.message ?? ''}` }
   }
 
+  console.log('Parsed config:', parsed.data)
+
   const { error } = await supabase
     .from('widget_config')
     .upsert({ project_id: projectId, settings: parsed.data, updated_at: new Date().toISOString() })
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('Database error:', error)
+    return { error: error.message }
+  }
 
   return { ok: true }
 }

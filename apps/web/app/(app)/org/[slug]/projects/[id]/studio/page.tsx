@@ -16,6 +16,10 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
 
   const initial = (cfg?.settings ?? DEFAULT_WIDGET_CONFIG)
 
+  // Debug: log what we're getting from the database
+  console.log('Widget config from DB:', cfg?.settings)
+  console.log('Initial config being passed:', initial)
+
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
