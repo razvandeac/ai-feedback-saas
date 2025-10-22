@@ -15,7 +15,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Preview({ config }: { config: WidgetConfig }) {
   const fs = { sm: 'text-sm', base: 'text-base', lg: 'text-lg' }[config.theme.fontSize]
-  const rad = `rounded-[${config.theme.radius}px]`
+  
   return (
     <div className="border rounded-xl p-4" style={{ background: config.theme.background, color: config.theme.color }}>
       {config.blocks.rating.enabled && (
@@ -23,7 +23,13 @@ function Preview({ config }: { config: WidgetConfig }) {
           <div className={`mb-2 ${fs} font-medium`}>{config.blocks.rating.label}</div>
           <div className="flex gap-2">
             {Array.from({ length: config.blocks.rating.max }).map((_, i) => (
-              <button key={i} className={`border px-3 py-1 rounded ${rad}`}>{i + 1}</button>
+              <button 
+                key={i} 
+                className="border px-3 py-1" 
+                style={{ borderRadius: `${config.theme.radius}px` }}
+              >
+                {i + 1}
+              </button>
             ))}
           </div>
         </div>
@@ -33,12 +39,18 @@ function Preview({ config }: { config: WidgetConfig }) {
           <div className={`mb-2 ${fs} font-medium`}>{config.blocks.comment.label}</div>
           <textarea
             placeholder={config.blocks.comment.placeholder}
-            className={`w-full border px-3 py-2 rounded ${rad}`}
+            className="w-full border px-3 py-2"
+            style={{ borderRadius: `${config.theme.radius}px` }}
             rows={3}
           />
         </div>
       )}
-      <button className={`mt-3 border px-3 py-2 ${rad}`}>Send feedback</button>
+      <button 
+        className="mt-3 border px-3 py-2" 
+        style={{ borderRadius: `${config.theme.radius}px` }}
+      >
+        Send feedback
+      </button>
     </div>
   )
 }
