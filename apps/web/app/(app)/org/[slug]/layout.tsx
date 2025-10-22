@@ -1,13 +1,22 @@
 import Navbar from "@/components/navbar";
 import Sidebar from "@/components/sidebar";
 import { getServerSupabase } from "@/lib/supabaseServer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { redirect } from "next/navigation";
 
 export default async function OrgLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getServerSupabase();
+  const adminSupabase = getSupabaseAdmin();
   
-  // Check if user has any memberships (redirect to onboarding if not)
-  const { data: memberships } = await supabase.from("org_members").select("org_id").limit(1);
+  // Check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  
+  // Check if user has any memberships using admin client to bypass RLS
+  const { data: memberships } = await (adminSupabase as any).from("org_members") // eslint-disable-line @typescript-eslint/no-explicit-any
+    .select("org_id")
+    .eq("user_id", user.id)
+    .limit(1);
   if (!memberships || memberships.length === 0) redirect("/onboarding");
 
   return (
