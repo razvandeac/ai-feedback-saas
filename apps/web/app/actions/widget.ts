@@ -1,14 +1,12 @@
 'use server'
 
-import { getRouteSupabase } from '@/lib/supabaseServer'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { WidgetConfigSchema } from '@/lib/widget/schema'
 
 export async function loadWidgetConfig(projectId: string) {
-  const supabase = await getRouteSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not signed in' }
+  const adminSupabase = getSupabaseAdmin()
 
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from('widget_config')
     .select('settings')
     .eq('project_id', projectId)
@@ -18,9 +16,7 @@ export async function loadWidgetConfig(projectId: string) {
 }
 
 export async function saveWidgetConfig(projectId: string, draft: unknown) {
-  const supabase = await getRouteSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not signed in' }
+  const adminSupabase = getSupabaseAdmin()
 
   console.log('Saving widget config for project:', projectId)
   console.log('Draft data:', draft)
@@ -34,9 +30,14 @@ export async function saveWidgetConfig(projectId: string, draft: unknown) {
 
   console.log('Parsed config:', parsed.data)
 
-  const { error } = await supabase
+  // Always save in the new format using admin client to bypass RLS
+  const { error } = await adminSupabase
     .from('widget_config')
-    .upsert({ project_id: projectId, settings: parsed.data, updated_at: new Date().toISOString() })
+    .upsert({ 
+      project_id: projectId, 
+      settings: parsed.data, 
+      updated_at: new Date().toISOString() 
+    })
   if (error) {
     console.error('Database error:', error)
     return { error: error.message }

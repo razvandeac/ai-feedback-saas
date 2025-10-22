@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+// Legacy schema for backward compatibility
+const LegacyThemeSchema = z.string().default('light')
+const LegacyBlocksSchema = z.object({
+  showRating: z.boolean().default(true),
+  showComment: z.boolean().default(true),
+}).optional()
+
+// New schema
 export const ThemeSchema = z.object({
   color: z.string().default('#111827'),   // text color
   background: z.string().default('#ffffff'),
@@ -21,10 +29,43 @@ export const BlocksSchema = z.object({
   }),
 })
 
-export const WidgetConfigSchema = z.object({
-  theme: ThemeSchema,
-  blocks: BlocksSchema,
-})
+// Flexible schema that can handle both legacy and new formats
+export const WidgetConfigSchema = z.union([
+  // New format
+  z.object({
+    theme: ThemeSchema,
+    blocks: BlocksSchema,
+  }),
+  // Legacy format - transform to new format
+  z.object({
+    theme: LegacyThemeSchema,
+    title: z.string().optional(),
+    logoUrl: z.string().optional(),
+    showRating: z.boolean().optional(),
+    showComment: z.boolean().optional(),
+    blocks: LegacyBlocksSchema,
+  }).transform((legacy) => ({
+    theme: {
+      color: '#111827',
+      background: '#ffffff',
+      radius: 12,
+      fontSize: 'base' as const,
+    },
+    blocks: {
+      rating: {
+        enabled: legacy.showRating ?? true,
+        label: 'How would you rate your experience?',
+        max: 5,
+      },
+      comment: {
+        enabled: legacy.showComment ?? true,
+        label: 'Tell us more',
+        placeholder: 'Your thoughts…',
+        minLength: 0,
+      },
+    },
+  }))
+])
 
 export type WidgetConfig = z.infer<typeof WidgetConfigSchema>
 
