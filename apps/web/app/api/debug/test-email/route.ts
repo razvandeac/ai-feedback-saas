@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { sendInviteEmail } from '@/lib/email'
 
+export async function GET() {
+  return POST();
+}
+
 export async function POST() {
   try {
     const testEmail = {
