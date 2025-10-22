@@ -1,7 +1,7 @@
 'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { WidgetConfigSchema } from '@/lib/widget/schema'
+import { WidgetConfigSchema } from '@/src/lib/studio/WidgetConfigSchema'
 
 export async function loadWidgetConfig(projectId: string) {
   const adminSupabase = getSupabaseAdmin()
