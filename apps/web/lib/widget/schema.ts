@@ -5,6 +5,8 @@ export const ThemeSchema = z.object({
   background: z.string().default('#ffffff'),
   radius: z.number().int().min(0).max(24).default(12),
   fontSize: z.enum(['sm','base','lg']).default('base'),
+  /** NEW: name of a preset (e.g., 'slate', 'emerald', 'amber'...) */
+  preset: z.string().optional(),
 })
 
 export const RatingBlockSchema = z.object({
@@ -40,11 +42,18 @@ export const OrderSchema = z
   .array(z.enum(['rating', 'comment', 'nps']))
   .default(['rating', 'comment'])
 
+/** NEW: studio-only preview options (not used by runtime yet) */
+export const PreviewSchema = z.object({
+  darkMode: z.boolean().default(false),
+  scale: z.number().min(0.75).max(1.25).default(1),
+})
+
 // Flexible schema that handles partial data
 export const WidgetConfigSchema = z.object({
   theme: ThemeSchema,
   blocks: BlocksSchema,
   order: OrderSchema,
+  preview: PreviewSchema, // NEW
 }).partial().transform((data) => {
   // Merge with defaults to ensure all fields are present
   return {
@@ -55,6 +64,7 @@ export const WidgetConfigSchema = z.object({
       nps: { ...NpsBlockSchema.parse({}), ...data.blocks?.nps },
     },
     order: data.order || ['rating', 'comment'],
+    preview: { ...PreviewSchema.parse({}), ...data.preview },
   }
 })
 
@@ -89,4 +99,8 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
     },
   },
   order: ['rating', 'comment'],
+  preview: {
+    darkMode: false,
+    scale: 1,
+  },
 }
