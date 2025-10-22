@@ -39,7 +39,7 @@ export async function GET(
   if (error || !invite) return NextResponse.json({ error: "invite not found" }, { status: 404 });
 
   const base = getClientBaseUrl();
-  const acceptUrl = `${base}/accept-invite?token=${invite.token}`;
+  const acceptUrl = `${base.replace(/\/$/, '')}/accept-invite?token=${invite.token}`;
   return NextResponse.json({ acceptUrl });
 }
 

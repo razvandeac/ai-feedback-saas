@@ -111,7 +111,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   const invitesWithUrl = (invites ?? []).map((inv: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
     ...inv,
     inviter: userMap.get(inv.invited_by) || { id: inv.invited_by, email: null, full_name: null },
-    acceptUrl: inv.token ? `${base}/accept-invite?token=${inv.token}` : undefined
+    acceptUrl: inv.token ? `${base.replace(/\/$/, '')}/accept-invite?token=${inv.token}` : undefined
   }));
 
   return (

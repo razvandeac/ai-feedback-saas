@@ -25,8 +25,9 @@ export async function POST() {
       environment: {
         NODE_ENV: process.env.NODE_ENV,
         RESEND_API_KEY: process.env.RESEND_API_KEY ? 'SET' : 'MISSING',
-        EMAIL_FROM: process.env.EMAIL_FROM,
-        EMAIL_DEV_TO: process.env.EMAIL_DEV_TO
+        EMAIL_FROM: process.env.EMAIL_FROM || 'DEFAULT: onboarding@resend.dev',
+        EMAIL_DEV_TO: process.env.EMAIL_DEV_TO,
+        ACTUAL_FROM: process.env.EMAIL_FROM || "Vamoot <onboarding@resend.dev>"
       }
     })
   } catch (error) {
@@ -37,8 +38,9 @@ export async function POST() {
       environment: {
         NODE_ENV: process.env.NODE_ENV,
         RESEND_API_KEY: process.env.RESEND_API_KEY ? 'SET' : 'MISSING',
-        EMAIL_FROM: process.env.EMAIL_FROM,
-        EMAIL_DEV_TO: process.env.EMAIL_DEV_TO
+        EMAIL_FROM: process.env.EMAIL_FROM || 'DEFAULT: onboarding@resend.dev',
+        EMAIL_DEV_TO: process.env.EMAIL_DEV_TO,
+        ACTUAL_FROM: process.env.EMAIL_FROM || "Vamoot <onboarding@resend.dev>"
       }
     }, { status: 500 })
   }

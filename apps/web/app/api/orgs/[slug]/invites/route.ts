@@ -51,7 +51,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
 
   const base = getClientBaseUrl();
-  const acceptUrl = `${base}/accept-invite?token=${data.token}`;
+  const acceptUrl = `${base.replace(/\/$/, '')}/accept-invite?token=${data.token}`;
 
   // Fetch inviter info for email
   let inviterInfo = null;
@@ -109,7 +109,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const enriched = (invites ?? []).map(i => ({
     ...i,
     inviter: usersById.get(i.invited_by) || null,
-    acceptUrl: `${base}/accept-invite?token=${i.token}`,
+    acceptUrl: `${base.replace(/\/$/, '')}/accept-invite?token=${i.token}`,
   }));
 
   return NextResponse.json(enriched);

@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const { data: inviter } = await sa.rpc("get_users_lite", { ids: [invite.invited_by] });
 
   const base = getClientBaseUrl();
-  const acceptUrl = `${base}/accept-invite?token=${invite.token}`;
+  const acceptUrl = `${base.replace(/\/$/, '')}/accept-invite?token=${invite.token}`;
 
   await sendInviteEmail({
     to: invite.email,
