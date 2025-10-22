@@ -2,33 +2,25 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { withCORS, preflight, forbidCORS } from "@/lib/cors";
 
+// Helper function for public API responses with proper CORS headers
+function createPublicResponse(data: any, status: number = 200) {
+  const response = NextResponse.json(data, { status });
+  
+  // Add CORS headers for public API
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  response.headers.set("Vary", "Origin");
+  
+  return response;
+}
+
 export async function OPTIONS(
   req: Request,
   { params }: { params: Promise<{ key: string }> }
 ) {
-  // For public API, allow all origins by default unless project has specific restrictions
-  const { key } = await params;
-  const sb = getSupabaseAdmin();
-  const cleanKey = (key || "").trim();
-  let extra: string[] | null = null;
-  let projectOnly = false;
-  
-  if (cleanKey) {
-    const { data: proj } = await sb
-      .from("projects")
-      .select("allowed_origins, require_project_origins")
-      .eq("key", cleanKey)
-      .maybeSingle();
-    extra = (proj?.allowed_origins as string[] | null) || null;
-    projectOnly = !!(proj?.require_project_origins);
-  }
-  
-  // If no project-specific restrictions, allow all origins
-  if (!projectOnly && (!extra || extra.length === 0)) {
-    extra = ["*"];
-  }
-  
-  return preflight(req, ["GET", "OPTIONS"], extra, { projectOnly });
+  // For public API, always allow OPTIONS requests
+  return createPublicResponse(null, 204);
 }
 
 export async function GET(
@@ -41,7 +33,7 @@ export async function GET(
 
   // Validate key early
   if (!/^[a-zA-Z0-9_-]{6,64}$/.test(cleanKey)) {
-    return withCORS(NextResponse.json({ error: "invalid key" }, { status: 400 }), req, ["GET", "OPTIONS"]);
+    return createPublicResponse({ error: "invalid key" }, 400);
   }
 
   // Fetch project (and allowed origins + flag)
@@ -57,12 +49,16 @@ export async function GET(
   // For public API, if no project-specific restrictions, allow all origins
   const finalExtra = (!projectOnly && (!extra || extra.length === 0)) ? ["*"] : extra;
 
-  // CORS gate after we know per-project list
-  const gated = withCORS(new NextResponse(null, { status: 204 }), req, ["GET", "OPTIONS"], finalExtra, { projectOnly });
-  if (!gated.headers.get("Access-Control-Allow-Origin")) return forbidCORS();
+  // Simple CORS check for public API
+  const origin = req.headers.get("origin");
+  const allowRequest = !origin || finalExtra?.includes("*") || (finalExtra && finalExtra.includes(origin));
+
+  if (!allowRequest) {
+    return createPublicResponse({ error: "origin not allowed" }, 403);
+  }
 
   if (!proj) {
-    return withCORS(NextResponse.json({ error: "project not found" }, { status: 404 }), req, ["GET", "OPTIONS"], finalExtra, { projectOnly });
+    return createPublicResponse({ error: "project not found" }, 404);
   }
 
   const { data: cfg } = await sb
@@ -83,6 +79,6 @@ export async function GET(
     }
   };
 
-  return withCORS(NextResponse.json(payload), req, ["GET", "OPTIONS"], finalExtra, { projectOnly });
+  return createPublicResponse(payload);
 }
 
