@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { WidgetConfigSchema, type WidgetConfig } from '@/lib/widget/schema'
+import { WidgetConfigSchema, type WidgetConfig, DEFAULT_WIDGET_CONFIG } from '@/lib/widget/schema'
 import { saveWidgetConfig } from '@/app/actions/widget'
 import { BlockRegistry, type BlockId } from '@/lib/widget/blocks'
 import {
@@ -55,7 +55,14 @@ function Preview({ config }: { config: WidgetConfig }) {
 }
 
 export default function Studio({ projectId, initial }: { projectId: string; initial: unknown }) {
-  const [config, setConfig] = useState<WidgetConfig>(() => WidgetConfigSchema.parse(initial))
+  const [config, setConfig] = useState<WidgetConfig>(() => {
+    try {
+      return WidgetConfigSchema.parse(initial)
+    } catch (error) {
+      console.warn('Failed to parse initial widget config, using defaults:', error)
+      return DEFAULT_WIDGET_CONFIG
+    }
+  })
   const [saving, startSaving] = useTransition()
   const [saveMsg, setSaveMsg] = useState<string>('')
 

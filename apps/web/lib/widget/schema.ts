@@ -40,10 +40,22 @@ export const OrderSchema = z
   .array(z.enum(['rating', 'comment', 'nps']))
   .default(['rating', 'comment'])
 
+// Flexible schema that handles partial data
 export const WidgetConfigSchema = z.object({
   theme: ThemeSchema,
   blocks: BlocksSchema,
-  order: OrderSchema, // NEW
+  order: OrderSchema,
+}).partial().transform((data) => {
+  // Merge with defaults to ensure all fields are present
+  return {
+    theme: { ...ThemeSchema.parse({}), ...data.theme },
+    blocks: {
+      rating: { ...RatingBlockSchema.parse({}), ...data.blocks?.rating },
+      comment: { ...CommentBlockSchema.parse({}), ...data.blocks?.comment },
+      nps: { ...NpsBlockSchema.parse({}), ...data.blocks?.nps },
+    },
+    order: data.order || ['rating', 'comment'],
+  }
 })
 
 export type WidgetConfig = z.infer<typeof WidgetConfigSchema>
