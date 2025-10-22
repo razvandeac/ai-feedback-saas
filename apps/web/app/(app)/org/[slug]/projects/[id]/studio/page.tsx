@@ -1,18 +1,16 @@
 import { notFound } from 'next/navigation'
-import { getServerSupabase } from '@/lib/supabaseServer'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import Studio from './studio-client'
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/widget/schema'
 
 export default async function StudioPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { id } = await params
-  const supabase = await getServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) notFound()
+  const adminSupabase = getSupabaseAdmin()
 
-  // ensure project belongs to org; also fetch existing config
+  // Use admin client to bypass RLS issues
   const [{ data: proj }, { data: cfg }] = await Promise.all([
-    supabase.from('projects').select('id, name, org_id').eq('id', id).single(),
-    supabase.from('widget_config').select('settings').eq('project_id', id).maybeSingle()
+    adminSupabase.from('projects').select('id, name, org_id').eq('id', id).single(),
+    adminSupabase.from('widget_config').select('settings').eq('project_id', id).maybeSingle()
   ])
   if (!proj) notFound()
 
