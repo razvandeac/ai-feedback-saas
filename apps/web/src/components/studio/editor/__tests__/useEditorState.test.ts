@@ -94,7 +94,7 @@ describe('useEditorState', () => {
           id: 'invalid',
           type: 'text',
           version: 1,
-          data: { text: '', align: 'invalid' as any },
+          data: { text: '', align: 'invalid' as 'left' | 'center' | 'right' },
         },
       ],
     };

@@ -1,9 +1,8 @@
 "use client";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useState } from "react";
 import BlockRenderer from "@/src/components/studio/BlockRenderer";
 import { Block } from "@/src/lib/studio/blocks/types";
-import { moveBlock, insertBlock } from "./editor/dnd";
-import { v4 as uuid } from "uuid";
+import { moveBlock } from "./dnd";
 
 export function EditorCanvas({
   blocks,

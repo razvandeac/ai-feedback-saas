@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useRef } from 'react'
+import React, { useCallback } from 'react'
 import { type WidgetConfig } from '@/src/lib/studio/WidgetConfigSchema'
 import { type Block } from '@/src/lib/studio/blocks/types'
 import '@/src/lib/studio/blocks/registry.builtin' // Initialize built-in blocks
@@ -31,15 +31,38 @@ export default function Studio({ projectId, initialConfig }: { projectId: string
   useAutosave({ config, dirty, setDirty, setSaving, setSaveError, setLastSavedAt, save });
 
   const insertAt = useCallback((idx: number, type: string) => {
-    const newBlock: Block = { 
-      id: uuid(), 
-      type: type as any, 
-      version: 1, 
-      data: type === "text" ? { text: "New text", align: "left" } : 
-            type === "image" ? { url: "https://placehold.co/600x400", alt: "image" } : 
-            type === "container" ? { direction: "vertical", gap: 8, children: [] } : 
-            {} 
-    };
+    let newBlock: Block;
+    
+    if (type === "text") {
+      newBlock = {
+        id: uuid(),
+        type: "text",
+        version: 1,
+        data: { text: "New text", align: "left" },
+      };
+    } else if (type === "image") {
+      newBlock = {
+        id: uuid(),
+        type: "image", 
+        version: 1,
+        data: { url: "https://placehold.co/600x400", alt: "image" },
+      };
+    } else if (type === "container") {
+      newBlock = {
+        id: uuid(),
+        type: "container",
+        version: 1,
+        data: { direction: "vertical", gap: 8, children: [] },
+      };
+    } else {
+      newBlock = {
+        id: uuid(),
+        type: "legacy",
+        version: 1,
+        data: {},
+      };
+    }
+    
     setConfigWithHistory(prev => ({ 
       ...prev, 
       blocks: [...prev.blocks.slice(0, idx), newBlock, ...prev.blocks.slice(idx)] 

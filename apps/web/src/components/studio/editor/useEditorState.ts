@@ -1,7 +1,7 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { WidgetConfig } from "@/src/lib/studio/WidgetConfigSchema";
-import { Block, BlockSchema } from "@/src/lib/studio/blocks/types";
+import { BlockSchema } from "@/src/lib/studio/blocks/types";
 import { z } from "zod";
 
 type HistoryEntry = { config: WidgetConfig; ts: number };

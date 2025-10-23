@@ -27,8 +27,8 @@ export function useAutosave(opts: {
         await save(config); // optimistic: config already applied
         setDirty(false);
         setLastSavedAt(Date.now());
-      } catch (e: any) {
-        setSaveError(e?.message ?? "Save failed");
+      } catch (e: unknown) {
+        setSaveError(e instanceof Error ? e.message : "Save failed");
       } finally {
         setSaving(false);
       }

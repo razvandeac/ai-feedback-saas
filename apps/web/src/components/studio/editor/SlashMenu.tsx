@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { listBlockTypes } from "@/src/lib/studio/blocks/registry";
 
 export function SlashMenu({ onPick, anchorRef }: { onPick: (t: string) => void; anchorRef: React.RefObject<HTMLElement> }) {
