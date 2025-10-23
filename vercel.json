@@ -1,14 +1,11 @@
 {
-  "buildCommand": "pnpm install && turbo build --filter=web",
+  "buildCommand": "pnpm install --no-frozen-lockfile && turbo build --filter=web",
   "outputDirectory": "apps/web/.next",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": "nextjs",
   "functions": {
     "apps/web/app/api/**/*.ts": {
       "runtime": "nodejs20.x"
     }
-  },
-  "env": {
-    "NODE_VERSION": "20"
   }
 }
