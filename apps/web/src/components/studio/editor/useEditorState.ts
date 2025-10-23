@@ -29,7 +29,8 @@ export function useEditorState(initial: WidgetConfig) {
   // Capture structural changes (DnD, block additions/removals)
   useEffect(() => {
     snapshot(config);
-  }, [config, snapshot]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(config.blocks)]);
 
   const setConfigWithHistory = useCallback((updater: (prev: WidgetConfig) => WidgetConfig) => {
     setConfig(prev => {

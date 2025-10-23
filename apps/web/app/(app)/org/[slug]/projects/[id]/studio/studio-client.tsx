@@ -90,7 +90,6 @@ function StudioContent({ projectId, initialConfig }: { projectId: string; initia
             blocks={config.blocks as Block[]}
             onChange={(next) => setConfigWithHistory(prev => ({ ...prev, blocks: next }))}
             onInsertAt={insertAt}
-            issues={issues}
           />
         </main>
       </div>
