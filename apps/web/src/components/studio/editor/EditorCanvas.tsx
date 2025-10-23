@@ -1,7 +1,8 @@
 "use client";
 import React from "react";
-import BlockRenderer from "@/src/components/studio/BlockRenderer";
 import { Block } from "@/src/lib/studio/blocks/types";
+import BlockRenderer from "@/src/components/studio/BlockRenderer";
+import { SortableTree } from "./SortableTree";
 
 export function EditorCanvas({
   blocks,
@@ -14,13 +15,30 @@ export function EditorCanvas({
 }) {
   return (
     <div className="space-y-2">
-      <BlockRenderer blocks={blocks} onChange={onChange} />
-      
-      {/* Insert buttons at the bottom */}
-      <div className="flex gap-2 pt-4 border-t">
-        <button className="text-xs underline" onClick={() => onInsertAt(blocks.length, "text")}>+ text</button>
-        <button className="text-xs underline" onClick={() => onInsertAt(blocks.length, "image")}>+ image</button>
-        <button className="text-xs underline" onClick={() => onInsertAt(blocks.length, "container")}>+ container</button>
+      <SortableTree
+        blocks={blocks}
+        onChange={onChange}
+        renderBlock={(b) => (
+          <div className="border rounded p-2">
+            {/* Render this single block, and ensure child updates bubble up */}
+            <BlockRenderer
+              blocks={[b]}
+              onChange={(nextOne) => {
+                const copy = blocks.slice();
+                const idx = blocks.findIndex((x) => x.id === b.id);
+                if (idx >= 0) {
+                  copy[idx] = nextOne[0];
+                  onChange(copy);
+                }
+              }}
+            />
+          </div>
+        )}
+      />
+      <div className="pt-2 border-t">
+        <button className="text-sm underline mr-2" onClick={() => onInsertAt(blocks.length, "text")}>+ text</button>
+        <button className="text-sm underline mr-2" onClick={() => onInsertAt(blocks.length, "image")}>+ image</button>
+        <button className="text-sm underline" onClick={() => onInsertAt(blocks.length, "container")}>+ container</button>
       </div>
     </div>
   );

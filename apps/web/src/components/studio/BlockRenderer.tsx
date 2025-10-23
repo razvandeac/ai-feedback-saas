@@ -2,6 +2,7 @@
 import React from "react";
 import { useEditorCtx } from "@/src/components/studio/editor/EditorContext";
 import { Block } from "@/src/lib/studio/blocks/types";
+import { SortableTree } from "./editor/SortableTree";
 
 type Props = {
   blocks: Block[];
@@ -9,7 +10,7 @@ type Props = {
   onChange?: (next: Block[]) => void;
 };
 
-export default function BlockRenderer({ blocks, path = [], onChange }: Props) {
+export default function BlockRenderer({ blocks, onChange }: Props) {
   const { selectedId, setSelectedId } = useEditorCtx();
 
   function patchAt(index: number, patch: Partial<Block>) {
@@ -64,12 +65,22 @@ export default function BlockRenderer({ blocks, path = [], onChange }: Props) {
               onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
             >
               <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
-              <BlockRenderer
+              <SortableTree
                 blocks={children as Block[]}
-                path={[...path, block.id, "children"]}
                 onChange={(nextChildren) => {
                   patchAt(i, { data: { children: nextChildren } });
                 }}
+                renderBlock={(child) => (
+                  <BlockRenderer
+                    blocks={[child]}
+                    onChange={(nextOne) => {
+                      const nextKids = children.slice();
+                      const idx = children.findIndex((x) => x.id === child.id);
+                      if (idx >= 0) nextKids[idx] = nextOne[0];
+                      patchAt(i, { data: { children: nextKids } });
+                    }}
+                  />
+                )}
               />
             </div>
           );
