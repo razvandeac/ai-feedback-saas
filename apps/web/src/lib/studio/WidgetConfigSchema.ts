@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ThemeSchema } from "./schema";
 import { BlocksArray } from "./blocks/types";
 
+export { ThemeSchema };
 export const WidgetConfigSchema = z.object({
   theme: ThemeSchema,
   blocks: BlocksArray,

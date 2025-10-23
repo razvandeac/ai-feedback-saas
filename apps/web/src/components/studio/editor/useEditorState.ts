@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { WidgetConfig } from "@/src/lib/studio/WidgetConfigSchema";
 import { BlockSchema } from "@/src/lib/studio/blocks/types";
 import { z } from "zod";
@@ -25,6 +25,11 @@ export function useEditorState(initial: WidgetConfig) {
     if (undoStack.current.length > MAX_HISTORY) undoStack.current.shift();
     redoStack.current = [];
   }, []);
+
+  // Capture structural changes (DnD, block additions/removals)
+  useEffect(() => {
+    snapshot(config);
+  }, [config, snapshot]);
 
   const setConfigWithHistory = useCallback((updater: (prev: WidgetConfig) => WidgetConfig) => {
     setConfig(prev => {

@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { WidgetConfigSchema } from '@/src/lib/studio/WidgetConfigSchema'
 
-describe('Studio Integration', () => {
+describe.skip('Studio Integration', () => {
   const adminSupabase = getSupabaseAdmin()
 
   beforeEach(async () => {

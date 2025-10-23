@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest'
 import { ThemeSchema, WidgetConfigSchema } from '@/src/lib/studio/WidgetConfigSchema'
 import { BlockSchema } from '@/src/lib/studio/blocks/types'
 

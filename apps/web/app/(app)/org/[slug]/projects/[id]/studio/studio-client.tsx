@@ -11,13 +11,14 @@ import { BlockPalette } from '@/src/components/studio/editor/BlockPalette'
 import { EditorCanvas } from '@/src/components/studio/editor/EditorCanvas'
 import { useKeyboard } from '@/src/components/studio/editor/useKeyboard'
 import { ValidationBadge } from '@/src/components/studio/editor/ValidationBadge'
+import { EditorProvider } from '@/src/components/studio/editor/EditorContext'
 import { v4 as uuid } from 'uuid'
 
 export default function Studio({ projectId, initialConfig }: { projectId: string; initialConfig: WidgetConfig }) {
   const { config, setConfigWithHistory, dirty, setDirty, saving, setSaving, saveError, setSaveError, lastSavedAt, setLastSavedAt, undo, redo, canUndo, canRedo, issues } =
     useEditorState(initialConfig);
 
-  useKeyboard({ undo, redo });
+  useKeyboard({ undo, redo, blocks: config.blocks });
 
   const save = useCallback(async (cfg: WidgetConfig) => {
     const res = await fetch(`/api/projects/${projectId}/config`, {
@@ -70,30 +71,33 @@ export default function Studio({ projectId, initialConfig }: { projectId: string
   }, [setConfigWithHistory]);
 
   return (
-    <div className="p-6 space-y-4">
-      <header className="flex items-center justify-between">
-        <div className="text-lg font-semibold">Studio Editor</div>
-        <div className="flex items-center gap-2">
-          <button disabled={!canUndo} className="border rounded px-2 py-1 disabled:opacity-40" onClick={undo}>Undo</button>
-          <button disabled={!canRedo} className="border rounded px-2 py-1 disabled:opacity-40" onClick={redo}>Redo</button>
-          <ValidationBadge count={issues.length} />
+    <EditorProvider>
+      <div className="p-6 space-y-4">
+        <header className="flex items-center justify-between">
+          <div className="text-lg font-semibold">Studio Editor</div>
+          <div className="flex items-center gap-2">
+            <button disabled={!canUndo} className="border rounded px-2 py-1 disabled:opacity-40" onClick={undo}>Undo</button>
+            <button disabled={!canRedo} className="border rounded px-2 py-1 disabled:opacity-40" onClick={redo}>Redo</button>
+            <ValidationBadge issues={issues} />
+          </div>
+        </header>
+
+        <div className="grid grid-cols-12 gap-4">
+          <aside className="col-span-3">
+            <BlockPalette onInsert={(type) => insertAt(0, type)} />
+          </aside>
+          <main className="col-span-9">
+            <EditorCanvas
+              blocks={config.blocks as Block[]}
+              onChange={(next) => setConfigWithHistory(prev => ({ ...prev, blocks: next }))}
+              onInsertAt={insertAt}
+              issues={issues}
+            />
+          </main>
         </div>
-      </header>
 
-      <div className="grid grid-cols-12 gap-4">
-        <aside className="col-span-3">
-          <BlockPalette onInsert={(type) => insertAt(0, type)} />
-        </aside>
-        <main className="col-span-9">
-          <EditorCanvas
-            blocks={config.blocks as Block[]}
-            onChange={(next) => setConfigWithHistory(prev => ({ ...prev, blocks: next }))}
-            onInsertAt={insertAt}
-          />
-        </main>
+        <SaveBanner saving={saving} lastSavedAt={lastSavedAt} error={saveError} />
       </div>
-
-      <SaveBanner saving={saving} lastSavedAt={lastSavedAt} error={saveError} />
-    </div>
+    </EditorProvider>
   )
 }
