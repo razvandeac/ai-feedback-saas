@@ -1,11 +1,14 @@
 {
-  "buildCommand": "cd apps/web && pnpm install && pnpm run build",
+  "buildCommand": "pnpm install && turbo build --filter=web",
   "outputDirectory": "apps/web/.next",
-  "installCommand": "cd apps/web && pnpm install",
+  "installCommand": "pnpm install",
   "framework": "nextjs",
   "functions": {
     "apps/web/app/api/**/*.ts": {
       "runtime": "nodejs20.x"
     }
+  },
+  "env": {
+    "NODE_VERSION": "20"
   }
 }
