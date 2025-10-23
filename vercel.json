@@ -2,5 +2,10 @@
   "buildCommand": "cd apps/web && pnpm install && pnpm run build",
   "outputDirectory": "apps/web/.next",
   "installCommand": "cd apps/web && pnpm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "apps/web/app/api/**/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }
