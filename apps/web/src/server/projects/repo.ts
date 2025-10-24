@@ -24,7 +24,8 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
   // Check if project already has a widget
-  const { data: p } = await adminSupabase.from("projects").select("widget_id").eq("id", projectId).single();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: p } = await (adminSupabase as any).from("projects").select("widget_id").eq("id", projectId).single();
   if (p?.widget_id) return p.widget_id as string;
 
   const defaultConfig = {
@@ -41,7 +42,8 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
   if (werr) throw werr;
 
   // Link widget to project
-  await adminSupabase.from("projects").update({ widget_id: w.id }).eq("id", projectId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (adminSupabase as any).from("projects").update({ widget_id: w.id }).eq("id", projectId);
   
   return w.id as string;
 }
