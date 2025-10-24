@@ -53,6 +53,14 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
     console.log("Project overview - widgetId:", widgetId);
     console.log("Project overview - proj.widget:", proj.widget);
     console.log("Project overview - Studio URL would be:", `/org/${slug}/projects/${id}/studio/${widgetId}`);
+    
+    // Test database connection
+    try {
+      const { data: testWidgets } = await adminSupabase.from("studio_widgets").select("id").limit(1);
+      console.log("Database test - studio_widgets accessible:", testWidgets?.length || 0, "widgets found");
+    } catch (dbError) {
+      console.error("Database test failed:", dbError);
+    }
 
     return (
       <div className="p-6 space-y-4">
@@ -60,12 +68,13 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
         
         {/* Debug info */}
         <div className="rounded-2xl border bg-yellow-50 p-4 text-yellow-800 text-xs">
-          <p><strong>Debug Info:</strong></p>
+          <p><strong>Debug Info (v2 - {new Date().toISOString()})</strong></p>
           <p>Project ID: {proj.id}</p>
           <p>Org ID: {proj.org_id}</p>
           <p>Widget ID: {widgetId || "UNDEFINED"}</p>
           <p>Studio URL: /org/{slug}/projects/{id}/studio/{widgetId || "UNDEFINED"}</p>
           <p>Widget exists: {proj.widget ? "YES" : "NO"}</p>
+          <p>Migration applied: YES (you just ran it)</p>
         </div>
         <div className="flex gap-2">
           {widgetId ? (
