@@ -4,20 +4,45 @@ import { v4 as uuid } from "uuid";
 export async function getProjectWithWidget(projectId: string) {
   const adminSupabase = getSupabaseAdmin();
   
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (adminSupabase as any)
-    .from("projects")
-    .select(`
-      id, name, org_id, key, allowed_origins, require_project_origins, widget_id,
-      studio_widgets!projects_widget_id_fkey(id, widget_config, published_config, version, published_at)
-    `)
-    .eq("id", projectId)
-    .single();
-  if (error) throw error;
-  if (!data) throw new Error("Project not found");
-  
-  const widget = (data as { studio_widgets?: { id: string; widget_config: unknown; published_config: unknown; version: number; published_at: string } | null }).studio_widgets || null;
-  return { ...data, widget };
+  try {
+    // First get the project
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: project, error: projectError } = await (adminSupabase as any)
+      .from("projects")
+      .select("id, name, org_id, key, allowed_origins, require_project_origins, widget_id")
+      .eq("id", projectId)
+      .single();
+    
+    if (projectError) {
+      console.error("Error fetching project:", projectError);
+      throw projectError;
+    }
+    if (!project) throw new Error("Project not found");
+    
+    // If no widget_id, return project without widget
+    if (!project.widget_id) {
+      return { ...project, widget: null };
+    }
+    
+    // Get the widget separately
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: widget, error: widgetError } = await (adminSupabase as any)
+      .from("studio_widgets")
+      .select("id, widget_config, published_config, version, published_at")
+      .eq("id", project.widget_id)
+      .single();
+    
+    if (widgetError) {
+      console.error("Error fetching widget:", widgetError);
+      // If widget doesn't exist, return project without widget
+      return { ...project, widget: null };
+    }
+    
+    return { ...project, widget };
+  } catch (error) {
+    console.error("getProjectWithWidget error:", error);
+    throw error;
+  }
 }
 
 export async function ensureProjectWidget(projectId: string, orgId: string) {
