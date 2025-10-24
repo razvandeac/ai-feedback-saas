@@ -50,13 +50,20 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
       adminSupabase.from("events").select("*", { count: "exact", head: true }).eq("project_id", id),
     ]);
 
+    console.log("Project overview - widgetId:", widgetId);
+    console.log("Project overview - proj.widget:", proj.widget);
+
     return (
       <div className="p-6 space-y-4">
         <h1 className="text-lg font-semibold">{proj.name}</h1>
         <div className="flex gap-2">
-          <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">Open Studio</Button>
-          </Link>
+          {widgetId ? (
+            <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
+              <Button className="bg-blue-600 text-white hover:bg-blue-700">Open Studio</Button>
+            </Link>
+          ) : (
+            <Button disabled className="bg-gray-400 text-white">Studio Loading...</Button>
+          )}
           <Link href={`/org/${slug}/projects/${id}/widget`}>
             <Button variant="outline">Preview</Button>
           </Link>
