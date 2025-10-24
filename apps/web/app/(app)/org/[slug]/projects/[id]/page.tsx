@@ -4,23 +4,18 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import RecentEvents from "@/components/projects/recent-events";
+import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
 
-export default async function ProjectDetailPage({
-  params
-}: {
-  params: Promise<{ slug: string; id: string }>
-}) {
+export default async function ProjectOverview({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = await params;
   const adminSupabase = getSupabaseAdmin();
 
-  // Use admin client to bypass RLS issues
-  const { data: project } = await adminSupabase
-    .from("projects")
-    .select("id, name, key, created_at")
-    .eq("id", id)
-    .single();
+  // Get project with widget information
+  const proj = await getProjectWithWidget(id);
+  if (!proj) return notFound();
 
-  if (!project) return notFound();
+  // Ensure widget exists for this project
+  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
 
   // Basic counts for this project using admin client
   const [{ count: feedbackCount }, { count: eventsCount }] = await Promise.all([
@@ -29,24 +24,24 @@ export default async function ProjectDetailPage({
   ]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">{project.name}</h1>
-          <p className="text-sm text-neutral-500">Project overview</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/org/${slug}/projects/${id}/studio`}>
-            <Button variant="outline" size="sm">Studio</Button>
-          </Link>
-          <Link href={`/org/${slug}/projects/${id}/widget`}>
-            <Button variant="outline" size="sm">Widget</Button>
-          </Link>
-          <Link href={`/org/${slug}/projects/${id}/settings`}>
-            <Button variant="outline" size="sm">Settings</Button>
-          </Link>
-        </div>
+    <div className="p-6 space-y-4">
+      <h1 className="text-lg font-semibold">{proj.name}</h1>
+      <div className="flex gap-2">
+        <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
+          <Button className="bg-blue-600 text-white hover:bg-blue-700">Open Studio</Button>
+        </Link>
+        <Link href={`/org/${slug}/projects/${id}/widget`}>
+          <Button variant="outline">Preview</Button>
+        </Link>
+        <form action={`/api/studio/widgets/${widgetId}/publish`} method="post">
+          <input type="hidden" name="orgId" value={proj.org_id} />
+          <Button type="submit" variant="outline">Publish</Button>
+        </form>
       </div>
+      {/* Published status */}
+      <p className="text-xs text-neutral-500">
+        Published version: v{proj.widget?.version ?? 1} {proj.widget?.published_at ? `· ${new Date(proj.widget.published_at).toLocaleString()}` : ""}
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-3xl border bg-white p-4">
@@ -60,7 +55,7 @@ export default async function ProjectDetailPage({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <RecentEvents projectId={project.id} />
+        <RecentEvents projectId={proj.id} />
         <div className="rounded-3xl border bg-white p-4">
           <div className="text-sm font-medium mb-3">Quick actions</div>
           <div className="space-y-2">
@@ -68,13 +63,13 @@ export default async function ProjectDetailPage({
               <div className="font-medium text-sm">View all feedback</div>
               <div className="text-xs text-neutral-500">Filter feedback table by this project</div>
             </Link>
-            <Link href={`/org/${slug}/projects/${id}/studio`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
+            <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
               <div className="font-medium text-sm">Widget Studio</div>
               <div className="text-xs text-neutral-500">Design and customize your feedback widget</div>
             </Link>
-            <Link href={`/org/${slug}/projects/${id}/widget`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
-              <div className="font-medium text-sm">Embed widget</div>
-              <div className="text-xs text-neutral-500">Get code snippet and configure appearance</div>
+            <Link href={`/org/${slug}/projects/${id}/settings`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
+              <div className="font-medium text-sm">Project Settings</div>
+              <div className="text-xs text-neutral-500">Configure embed code and project settings</div>
             </Link>
           </div>
         </div>
@@ -82,4 +77,3 @@ export default async function ProjectDetailPage({
     </div>
   );
 }
-

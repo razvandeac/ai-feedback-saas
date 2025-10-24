@@ -7,7 +7,14 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Copy } from "lucide-react";
 
-type Row = { id: string; name: string; key: string; created_at: string };
+type Row = { 
+  id: string; 
+  name: string; 
+  key: string; 
+  created_at: string; 
+  widget_id?: string;
+  studio_widgets?: { id: string; version: number; published_at: string } | null;
+};
 
 export default function ProjectsTable({ 
   initial, 
@@ -101,16 +108,25 @@ export default function ProjectsTable({
               </TD>
               <TD>{format(new Date(r.created_at), "MMM d, yyyy")}</TD>
               <TD className="flex gap-2">
-                <Link href={`/org/${orgSlug}/projects/${r.id}/widget`}>
-                  <Button variant="outline" size="sm">Widget</Button>
-                </Link>
-                {canManage ? (
+                {r.widget_id ? (
+                  <>
+                    <Link href={`/org/${orgSlug}/projects/${r.id}/studio/${r.widget_id}`}>
+                      <Button variant="outline" size="sm">Open Studio</Button>
+                    </Link>
+                    <Link href={`/org/${orgSlug}/projects/${r.id}/widget`}>
+                      <Button variant="outline" size="sm">Preview</Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Link href={`/org/${orgSlug}/projects/${r.id}`}>
+                    <Button variant="outline" size="sm">Setup Widget</Button>
+                  </Link>
+                )}
+                {canManage && (
                   <>
                     <Button variant="outline" size="sm" onClick={()=>rotate(r.id)}>Rotate key</Button>
                     <Button variant="ghost" size="sm" onClick={()=>del(r.id)}>Delete</Button>
                   </>
-                ) : (
-                  <span className="text-xs text-neutral-500">No actions</span>
                 )}
               </TD>
             </TR>

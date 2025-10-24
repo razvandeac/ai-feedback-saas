@@ -6,6 +6,8 @@ import WidgetPreview from "@/components/projects/widget-preview";
 import { CodeBlock } from "@/components/ui/code";
 import CopyButton from "@/components/ui/copy-button";
 import AllowedOriginsEditor from "@/components/projects/allowed-origins-editor";
+import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
+import BlockRenderer from "@/src/components/studio/BlockRenderer";
 
 export default async function ProjectWidgetPage({
   params
@@ -15,50 +17,47 @@ export default async function ProjectWidgetPage({
   const { slug, id } = await params;
   const adminSupabase = getSupabaseAdmin();
 
-  // Use admin client to bypass RLS issues
-  const { data: project } = await adminSupabase
-    .from("projects")
-    .select("id, name, key, allowed_origins, require_project_origins")
-    .eq("id", id)
-    .single();
-  
-  if (!project) return <div className="p-6">Project not found</div>;
+  // Get project with widget information
+  const proj = await getProjectWithWidget(id);
+  if (!proj) return <div className="p-6">Project not found</div>;
+
+  // Ensure widget exists for this project
+  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
+  const cfg = proj.widget?.published_config ?? proj.widget?.widget_config;
 
   const siteBase = getClientBaseUrl();
 
   const iframeSnippet =
 `<iframe
-  src="${siteBase}/embed?key=${project.key}"
+  src="${siteBase}/embed?key=${proj.key}"
   style="width:100%;max-width:420px;height:360px;border:0;border-radius:16px;overflow:hidden"
   loading="lazy"
 ></iframe>`;
 
   const scriptSnippet =
 `<!-- Coming soon: drop-in button+modal script -->
-<script defer src="${siteBase}/widget.es.js" data-project-key="${project.key}"></script>
+<script defer src="${siteBase}/widget.es.js" data-project-key="${proj.key}"></script>
 <button data-vamoot-open>Send feedback</button>`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">Widget</h1>
-          <p className="text-sm text-neutral-500">Preview your widget and copy the embed code.</p>
+    <div className="p-6 space-y-4">
+      <header className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Preview</h1>
+        <div className="flex gap-2">
+          <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
+            <button className="text-sm text-brand hover:underline">Edit in Studio →</button>
+          </Link>
         </div>
-        <Link
-          href={`/org/${slug}/projects/${id}/settings`}
-          className="text-sm text-brand hover:underline"
-        >
-          Configure appearance →
-        </Link>
-      </div>
+      </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
           <div className="text-sm font-medium">Live preview</div>
-          <WidgetPreview projectKey={project.key} siteBase={siteBase} />
+          <div className="rounded-2xl border bg-white p-6">
+            <BlockRenderer blocks={cfg?.blocks ?? []} />
+          </div>
           <div className="rounded-2xl border p-3 bg-amber-50 text-amber-800 text-xs">
-            Rotating the project key will require updating your embed code.
+            This preview renders the <b>published</b> version. Edit in Studio and click Publish to update.
           </div>
         </div>
 
@@ -66,8 +65,8 @@ export default async function ProjectWidgetPage({
           <div>
             <div className="text-sm font-medium mb-1">Project key</div>
             <div className="rounded-2xl border bg-white p-3 text-sm flex items-center justify-between">
-              <code>{project.key}</code>
-              <CopyButton text={project.key} />
+              <code>{proj.key}</code>
+              <CopyButton text={proj.key} />
             </div>
           </div>
 
@@ -83,9 +82,9 @@ export default async function ProjectWidgetPage({
 
           <div className="rounded-3xl border bg-white p-4 space-y-3">
             <AllowedOriginsEditor 
-              projectId={project.id} 
-              initialOrigins={project.allowed_origins as string[] | null}
-              initialRequireOnly={!!(project.require_project_origins)}
+              projectId={proj.id} 
+              initialOrigins={proj.allowed_origins as string[] | null}
+              initialRequireOnly={!!(proj.require_project_origins)}
             />
             <div className="flex items-start gap-2 text-xs text-neutral-600 bg-blue-50 border border-blue-200 rounded-2xl p-3">
               <span className="font-bold text-blue-900">💡</span>
@@ -99,4 +98,3 @@ export default async function ProjectWidgetPage({
     </div>
   );
 }
-

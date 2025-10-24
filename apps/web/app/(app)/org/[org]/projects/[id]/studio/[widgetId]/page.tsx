@@ -4,8 +4,12 @@ import Studio from './studio-client'
 import { WidgetConfigSchema } from '@/src/lib/studio/WidgetConfigSchema'
 import { getProjectWithWidget, ensureProjectWidget } from '@/src/server/projects/repo'
 
-export default async function StudioPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
-  const { id } = await params
+export default async function StudioPage({ 
+  params 
+}: { 
+  params: Promise<{ org: string; id: string; widgetId: string }> 
+}) {
+  const { org, id, widgetId } = await params
   const adminSupabase = getSupabaseAdmin()
 
   // Get project with widget information
@@ -13,13 +17,13 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   if (!proj) notFound()
 
   // Ensure widget exists for this project
-  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id)
+  const finalWidgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id)
 
   // Get the widget config from the studio_widgets table
   const { data: widget } = await adminSupabase
     .from('studio_widgets')
     .select('widget_config')
-    .eq('id', widgetId)
+    .eq('id', finalWidgetId)
     .single()
 
   // Parse widget config or create default
@@ -55,7 +59,12 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
-      <Studio projectId={proj.id} widgetId={widgetId} orgId={proj.org_id} initialConfig={initialConfig} />
+      <Studio 
+        projectId={proj.id} 
+        widgetId={finalWidgetId} 
+        orgId={proj.org_id} 
+        initialConfig={initialConfig} 
+      />
     </main>
   )
 }

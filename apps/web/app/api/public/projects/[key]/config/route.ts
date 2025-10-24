@@ -32,10 +32,13 @@ export async function GET(
     return createPublicResponse({ error: "invalid key" }, 400);
   }
 
-  // Fetch project (and allowed origins + flag)
+  // Fetch project with widget (and allowed origins + flag)
   const { data: proj } = await sb
     .from("projects")
-    .select("id, name, key, allowed_origins, require_project_origins")
+    .select(`
+      id, name, key, allowed_origins, require_project_origins,
+      studio_widgets!projects_widget_id_fkey(id, published_config, widget_config, version, published_at)
+    `)
     .eq("key", cleanKey)
     .maybeSingle();
 
@@ -57,11 +60,9 @@ export async function GET(
     return createPublicResponse({ error: "project not found" }, 404);
   }
 
-  const { data: cfg } = await sb
-    .from("widget_config")
-    .select("widget_config")
-    .eq("project_id", proj.id)
-    .maybeSingle();
+  // Use published config, fallback to widget config
+  const widget = (proj as { studio_widgets?: { published_config?: unknown; widget_config?: unknown; version?: number; published_at?: string } }).studio_widgets;
+  const config = widget?.published_config ?? widget?.widget_config;
 
   const payload = {
     project: { id: proj.id, name: proj.name },
@@ -71,7 +72,7 @@ export async function GET(
       showRating: true,
       showComment: true,
       title: "We value your feedback!",
-      ...(cfg?.widget_config as Record<string, unknown> || {})
+      ...(config as Record<string, unknown> || {})
     }
   };
 

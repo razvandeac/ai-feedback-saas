@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import WidgetConfigForm from "@/components/projects/widget-config-form";
 import EmbedSnippet from "@/components/projects/embed-snippet";
+import Link from "next/link";
+import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
 
 export const revalidate = 0;
 
@@ -9,36 +10,46 @@ export default async function ProjectSettingsPage({
 }: {
   params: Promise<{ slug: string; id: string }>
 }) {
-  const { id } = await params;
+  const { slug, id } = await params;
   const adminSupabase = getSupabaseAdmin();
   
-  // Use admin client to bypass RLS issues
-  const { data: project } = await adminSupabase
-    .from("projects")
-    .select("id, name, key")
-    .eq("id", id)
-    .single();
-  
-  if (!project) return <div className="p-6">Project not found</div>;
+  // Get project with widget information
+  const proj = await getProjectWithWidget(id);
+  if (!proj) return <div className="p-6">Project not found</div>;
 
-  const { data: config } = await adminSupabase
-    .from("widget_config")
-    .select("widget_config")
-    .eq("project_id", project.id)
-    .single();
+  // Ensure widget exists for this project
+  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold">{project.name} Widget Settings</h1>
+        <h1 className="text-lg font-semibold">{proj.name} Settings</h1>
         <p className="text-sm text-neutral-500 mt-1">
-          Customize how your feedback widget looks and behaves.
+          Configure project settings and embed code. Use Studio to customize widget appearance.
         </p>
       </div>
       
-      <EmbedSnippet projectKey={project.key} />
-      <WidgetConfigForm projectId={project.id} initial={(config?.widget_config as any) ?? {}} /> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-sm font-medium mb-2">Widget Configuration</h2>
+            <div className="rounded-2xl border bg-white p-4">
+              <p className="text-sm text-neutral-600 mb-3">
+                Customize your widget's appearance and behavior in Studio.
+              </p>
+              <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                  Open Studio
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <EmbedSnippet projectKey={proj.key} />
+        </div>
+      </div>
     </div>
   );
 }
-
