@@ -33,7 +33,7 @@ export async function GET(
   }
 
   // Fetch project with widget (and allowed origins + flag)
-  const { data: proj } = await sb
+  const { data: proj } = await (sb as any)
     .from("projects")
     .select(`
       id, name, key, allowed_origins, require_project_origins,

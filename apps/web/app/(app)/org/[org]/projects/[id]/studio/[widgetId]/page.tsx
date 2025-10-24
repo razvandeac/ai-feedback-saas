@@ -20,7 +20,7 @@ export default async function StudioPage({
   const finalWidgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id)
 
   // Get the widget config from the studio_widgets table
-  const { data: widget } = await adminSupabase
+  const { data: widget } = await (adminSupabase as any)
     .from('studio_widgets')
     .select('widget_config')
     .eq('id', finalWidgetId)

@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 export async function getProjectWithWidget(projectId: string) {
   const adminSupabase = getSupabaseAdmin();
   
-  const { data, error } = await adminSupabase
+  const { data, error } = await (adminSupabase as any)
     .from("projects")
     .select(`
       id, name, org_id, widget_id,
@@ -28,7 +28,7 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
     blocks: [{ id: uuid(), type: "text", version: 1, data: { text: "Welcome! Edit this in Studio.", align: "left" } }],
   };
 
-  const { data: w, error: werr } = await adminSupabase
+  const { data: w, error: werr } = await (adminSupabase as any)
     .from("studio_widgets")
     .insert({ org_id: orgId, name: "Project Widget", widget_config: defaultConfig, published_config: defaultConfig })
     .select("id")

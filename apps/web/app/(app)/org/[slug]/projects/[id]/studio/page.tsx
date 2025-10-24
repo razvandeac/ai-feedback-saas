@@ -16,7 +16,7 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id)
 
   // Get the widget config from the studio_widgets table
-  const { data: widget } = await adminSupabase
+  const { data: widget } = await (adminSupabase as any)
     .from('studio_widgets')
     .select('widget_config')
     .eq('id', widgetId)
@@ -55,7 +55,7 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
-      <Studio projectId={proj.id} widgetId={widgetId} orgId={proj.org_id} initialConfig={initialConfig} />
+      <Studio widgetId={widgetId} orgId={proj.org_id} initialConfig={initialConfig} />
     </main>
   )
 }

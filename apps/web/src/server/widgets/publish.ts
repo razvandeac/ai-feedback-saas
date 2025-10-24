@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 export async function publishWidget(widgetId: string, orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
-  const { data: w, error: rerr } = await adminSupabase
+  const { data: w, error: rerr } = await (adminSupabase as any)
     .from("studio_widgets")
     .select("id, org_id, widget_config, version")
     .eq("id", widgetId)
@@ -11,7 +11,7 @@ export async function publishWidget(widgetId: string, orgId: string) {
   if (rerr) throw rerr;
   if (w.org_id !== orgId) throw new Error("Not allowed");
 
-  const { error: uerr } = await adminSupabase
+  const { error: uerr } = await (adminSupabase as any)
     .from("studio_widgets")
     .update({
       published_config: w.widget_config,
