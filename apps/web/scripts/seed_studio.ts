@@ -61,7 +61,8 @@ async function seedStudio() {
   }
 
   // Create studio widget
-  const { data: widget } = await adminSupabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: widget } = await (adminSupabase as any)
     .from('studio_widgets')
     .insert({
       org_id: org.id,
