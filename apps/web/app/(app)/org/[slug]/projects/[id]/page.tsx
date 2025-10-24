@@ -53,15 +53,6 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
     console.log("Project overview - widgetId:", widgetId);
     console.log("Project overview - proj.widget:", proj.widget);
     console.log("Project overview - Studio URL would be:", `/org/${slug}/projects/${id}/studio/${widgetId}`);
-    
-    // Test database connection
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: testWidgets } = await (adminSupabase as any).from("studio_widgets").select("id").limit(1);
-      console.log("Database test - studio_widgets accessible:", testWidgets?.length || 0, "widgets found");
-    } catch (dbError) {
-      console.error("Database test failed:", dbError);
-    }
 
     return (
       <div className="p-6 space-y-4">
