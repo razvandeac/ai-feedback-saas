@@ -6,7 +6,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCenter,
+  rectIntersection,
   DragOverlay,
 } from "@dnd-kit/core";
 import {
@@ -16,10 +16,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Block } from "@/src/lib/studio/blocks/types";
+import { DropZone } from "./DropZone";
 import {
   findPathById,
   insertAtPath,
   removeAtPath,
+  ROOT_ID,
 } from "./tree";
 
 function SortableRow({ block, children }: { block: Block; children: React.ReactNode }) {
@@ -36,61 +38,95 @@ function SortableRow({ block, children }: { block: Block; children: React.ReactN
   );
 }
 
-export function SortableTree({
-  blocks,
-  onChange,
-  renderBlock,
-}: {
+type Props = {
+  parentId: string;              // NEW: id of the parent container (ROOT_ID for top level)
   blocks: Block[];
+  depth?: number;
   onChange: (next: Block[]) => void;
-  renderBlock: (b: Block) => React.ReactNode; // this renders ONE block (with BlockRenderer inside)
-}) {
+  renderBlock: (b: Block) => React.ReactNode;
+};
+
+export function SortableTree({ parentId, blocks, depth = 0, onChange, renderBlock }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   function handleDragEnd(e: DragEndEvent) {
     const { active, over } = e;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
-    const fromPath = findPathById(blocks, String(active.id));
-    const toPath = findPathById(blocks, String(over.id));
-    if (!fromPath || !toPath) return;
+    const overId = String(over.id);
+    const activeId = String(active.id);
 
-    // Same parent: reorder via arrayMove
-    if (fromPath.length === toPath.length && fromPath.slice(0, -1).every((v, i) => v === toPath[i])) {
-      const parentPath = fromPath.slice(0, -1);
-      // Remove, then insert at new index within same array
+    // 1) Handle drop on a DropZone (insert into a specific parent/index)
+    if (overId.startsWith("dz:")) {
+      // dz:<parentId>:<index>
+      const [, parent, indexStr] = overId.split(":");
+      const index = parseInt(indexStr, 10);
+
+      const fromPath = findPathById(blocks, activeId);
+      if (!fromPath) return;
+
       const { next, removed } = removeAtPath(blocks, fromPath);
-      const newIndex = toPath[toPath.length - 1];
-      const next2 = insertAtPath(next, [...parentPath, newIndex], removed);
-      onChange(next2);
+
+      // parent ROOT => insert at top-level
+      if (parent === ROOT_ID) {
+        const result = insertAtPath(next, [index], removed);
+        onChange(result);
+        return;
+      }
+
+      // find parent path by id
+      const parentPath = findPathById(next, parent);
+      if (!parentPath) return;
+
+      const targetPath = [...parentPath, index];
+      const result = insertAtPath(next, targetPath, removed);
+      onChange(result);
       return;
     }
 
-    // Different parents: remove at fromPath, insert at toPath parent
-    const { next, removed } = removeAtPath(blocks, fromPath);
-    const insertIndex = toPath[toPath.length - 1];
-    const parentPath = toPath.slice(0, -1);
-    const next2 = insertAtPath(next, [...parentPath, insertIndex], removed);
-    onChange(next2);
+    // 2) Handle drop on another item (same-parent reorder)
+    if (activeId !== overId) {
+      const fromPath = findPathById(blocks, activeId);
+      const toPath = findPathById(blocks, overId);
+      if (!fromPath || !toPath) return;
+
+      // Same parent → remove then insert at new index
+      if (fromPath.length === toPath.length && fromPath.slice(0, -1).every((v, i) => v === toPath[i])) {
+        const parentPath = fromPath.slice(0, -1);
+        const { next, removed } = removeAtPath(blocks, fromPath);
+        const index = toPath[toPath.length - 1];
+        const result = insertAtPath(next, [...parentPath, index], removed);
+        onChange(result);
+      }
+    }
   }
 
+  // SortableContext items: only actual block ids at this level
+  const items = blocks.map(b => b.id);
+
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={flattenIds(blocks)} strategy={verticalListSortingStrategy}>
-        {blocks.map((b) => (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={rectIntersection}  // IMPORTANT for DropZones
+      onDragEnd={handleDragEnd}
+    >
+      {/* Leading DropZone to insert at index 0 */}
+      <DropZone id={`dz:${parentId}:0`} depth={depth} />
+
+      <SortableContext items={items} strategy={verticalListSortingStrategy}>
+        {blocks.map((b, i) => (
           <div key={b.id} className="mb-2">
             <SortableRow block={b}>
               {renderBlock(b)}
             </SortableRow>
+
+            {/* DropZone between items i and i+1 */}
+            <DropZone id={`dz:${parentId}:${i + 1}`} depth={depth} />
           </div>
         ))}
       </SortableContext>
+
       <DragOverlay />
     </DndContext>
   );
-}
-
-function flattenIds(items: Block[]): string[] {
-  // The SortableContext needs a list; we only need top-level here.
-  return items.map((b) => b.id);
 }

@@ -3,6 +3,7 @@ import React from "react";
 import { Block } from "@/src/lib/studio/blocks/types";
 import BlockRenderer from "@/src/components/studio/BlockRenderer";
 import { SortableTree } from "./SortableTree";
+import { ROOT_ID } from "./tree";
 
 export function EditorCanvas({
   blocks,
@@ -16,11 +17,11 @@ export function EditorCanvas({
   return (
     <div className="space-y-2">
       <SortableTree
+        parentId={ROOT_ID}
         blocks={blocks}
         onChange={onChange}
         renderBlock={(b) => (
           <div className="border rounded p-2">
-            {/* Render this single block, and ensure child updates bubble up */}
             <BlockRenderer
               blocks={[b]}
               onChange={(nextOne) => {

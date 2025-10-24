@@ -1,5 +1,7 @@
 import { Block } from "@/src/lib/studio/blocks/types";
 
+export const ROOT_ID = "root";
+
 export type Path = number[]; // index path into blocks tree
 
 export function getAtPath(root: Block[], path: Path): Block | null {

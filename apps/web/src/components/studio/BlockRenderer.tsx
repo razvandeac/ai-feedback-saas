@@ -65,7 +65,9 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
               onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
             >
               <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
+
               <SortableTree
+                parentId={block.id}         // <<— important
                 blocks={children as Block[]}
                 onChange={(nextChildren) => {
                   patchAt(i, { data: { children: nextChildren } });
