@@ -1,6 +1,6 @@
 import React from "react";
 import { getProjectWithWidget } from "@/src/server/projects/repo";
-import BlockRenderer from "@/components/studio/BlockRenderer";
+import BlockRenderer from "@/src/components/studio/BlockRenderer";
 import Link from "next/link";
 
 export default async function ProjectSettings({ 

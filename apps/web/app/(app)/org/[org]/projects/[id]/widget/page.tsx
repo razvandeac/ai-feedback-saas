@@ -1,5 +1,5 @@
 import React from "react";
-import BlockRenderer from "@/components/studio/BlockRenderer";
+import BlockRenderer from "@/src/components/studio/BlockRenderer";
 import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
