@@ -33,6 +33,7 @@ export async function GET(
   }
 
   // Fetch project with widget (and allowed origins + flag)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: proj } = await (sb as any)
     .from("projects")
     .select(`

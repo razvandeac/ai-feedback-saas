@@ -1,5 +1,4 @@
 export const revalidate = 0;
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 import Link from "next/link";
 import { CodeBlock } from "@/components/ui/code";
@@ -14,7 +13,6 @@ export default async function ProjectWidgetPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { slug, id } = await params;
-  const adminSupabase = getSupabaseAdmin();
 
   // Get project with widget information
   const proj = await getProjectWithWidget(id);

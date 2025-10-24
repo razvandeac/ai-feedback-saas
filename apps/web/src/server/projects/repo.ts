@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 export async function getProjectWithWidget(projectId: string) {
   const adminSupabase = getSupabaseAdmin();
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (adminSupabase as any)
     .from("projects")
     .select(`
@@ -28,6 +29,7 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
     blocks: [{ id: uuid(), type: "text", version: 1, data: { text: "Welcome! Edit this in Studio.", align: "left" } }],
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: w, error: werr } = await (adminSupabase as any)
     .from("studio_widgets")
     .insert({ org_id: orgId, name: "Project Widget", widget_config: defaultConfig, published_config: defaultConfig })

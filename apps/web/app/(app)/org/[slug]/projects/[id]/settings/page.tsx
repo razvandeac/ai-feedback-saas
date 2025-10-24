@@ -1,4 +1,3 @@
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import EmbedSnippet from "@/components/projects/embed-snippet";
 import Link from "next/link";
 import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
@@ -11,7 +10,6 @@ export default async function ProjectSettingsPage({
   params: Promise<{ slug: string; id: string }>
 }) {
   const { slug, id } = await params;
-  const adminSupabase = getSupabaseAdmin();
   
   // Get project with widget information
   const proj = await getProjectWithWidget(id);

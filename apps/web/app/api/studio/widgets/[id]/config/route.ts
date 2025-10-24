@@ -18,6 +18,7 @@ export async function PUT(
   }
 
   // Verify user is member of org that owns this widget using admin client
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: widget } = await (adminSupabase as any)
     .from("studio_widgets")
     .select("id, org_id")
@@ -36,6 +37,7 @@ export async function PUT(
   if (!membership) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   // Update widget config using admin client to bypass RLS
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (adminSupabase as any)
     .from("studio_widgets")
     .update({

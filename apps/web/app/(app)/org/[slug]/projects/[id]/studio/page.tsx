@@ -16,6 +16,7 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id)
 
   // Get the widget config from the studio_widgets table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: widget } = await (adminSupabase as any)
     .from('studio_widgets')
     .select('widget_config')
