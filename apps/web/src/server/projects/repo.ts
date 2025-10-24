@@ -4,26 +4,25 @@ import { v4 as uuid } from "uuid";
 export async function getProjectWithWidget(projectId: string) {
   const adminSupabase = getSupabaseAdmin();
   
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (adminSupabase as any)
+  const { data, error } = await adminSupabase
     .from("projects")
-    .select(`
-      id, name, org_id, widget_id,
-      studio_widgets!projects_widget_id_fkey(id, widget_config, published_config, version, published_at)
-    `)
+    .select("id, name, org_id")
     .eq("id", projectId)
     .single();
   if (error) throw error;
-  const widget = (data as { studio_widgets?: { id: string; widget_config: unknown; published_config: unknown; version: number; published_at: string } | null }).studio_widgets || null;
-  return { ...data, widget };
+  if (!data) throw new Error("Project not found");
+  
+  // For now, return project without widget info since tables don't exist yet
+  // TODO: Add studio_widgets join back after migration is applied
+  return { ...data, widget: null };
 }
 
 export async function ensureProjectWidget(projectId: string, orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
-  const { data: p } = await adminSupabase.from("projects").select("widget_id").eq("id", projectId).single();
-  if (p?.widget_id) return p.widget_id as string;
-
+  // For now, always create a new widget since widget_id column doesn't exist yet
+  // TODO: Add widget_id check back after migration is applied
+  
   const defaultConfig = {
     theme: { variant: "light", primaryColor: "#3b82f6", backgroundColor: "#ffffff", fontFamily: "Inter", borderRadius: 12 },
     blocks: [{ id: uuid(), type: "text", version: 1, data: { text: "Welcome! Edit this in Studio.", align: "left" } }],
@@ -37,6 +36,8 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
     .single();
   if (werr) throw werr;
 
-  await adminSupabase.from("projects").update({ widget_id: w.id }).eq("id", projectId);
+  // TODO: Link widget to project after migration is applied
+  // await adminSupabase.from("projects").update({ widget_id: w.id }).eq("id", projectId);
+  
   return w.id as string;
 }
