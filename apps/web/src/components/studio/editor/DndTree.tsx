@@ -47,7 +47,20 @@ function Level({
           <div key={b.id} className="mb-2">
             <Row block={b}>{renderBlock(b)}</Row>
             <DropZone id={`dz:${parentId}:${i+1}`} depth={depth} dragging={dragging} />
-            {/* children Levels are rendered by BlockRenderer via ContainerFrame; no duplication here */}
+            {/* If container, render its children recursively */}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {Array.isArray((b as any).data?.children) && (
+              <div className="ml-3 mt-2">
+                <Level
+                  parentId={b.id}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  blocks={(b as any).data.children}
+                  depth={depth + 1}
+                  dragging={dragging}
+                  renderBlock={renderBlock}
+                />
+              </div>
+            )}
           </div>
         ))}
       </SortableContext>

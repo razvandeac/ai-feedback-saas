@@ -6,11 +6,10 @@ import { ContainerFrame } from "./editor/ContainerFrame";
 
 type Props = {
   blocks: Block[];
-  path?: string[];
   onChange?: (next: Block[]) => void;
 };
 
-export default function BlockRenderer({ blocks, path, onChange }: Props) {
+export default function BlockRenderer({ blocks, onChange }: Props) {
   const { selectedId, setSelectedId } = useEditorCtx();
 
   const baseCls = "rounded p-2 mb-2 transition border border-transparent hover:border-neutral-300 focus-within:border-blue-400";
@@ -70,24 +69,10 @@ export default function BlockRenderer({ blocks, path, onChange }: Props) {
                   <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
 
                   <ContainerFrame id={block.id}>
-                    {(children ?? []).map((child, ci) => (
-                      <div key={child.id} className="mb-2">
-                        <BlockRenderer
-                          blocks={[child as Block]}
-                          path={[...(path ?? []), block.id, "children", String(ci)]}
-                          onChange={(nextOne) => {
-                            const nextKids = children.slice();
-                            nextKids[ci] = nextOne[0];
-                            patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
-                          }}
-                        />
-                      </div>
-                    ))}
+                    {children.length === 0 && (
+                      <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
+                    )}
                   </ContainerFrame>
-
-                  {children.length === 0 && (
-                    <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
-                  )}
                 </div>
               );
             }
