@@ -2,6 +2,8 @@
 import React from "react";
 import { useEditorCtx } from "@/src/components/studio/editor/EditorContext";
 import { Block } from "@/src/lib/studio/blocks/types";
+import { ContainerFrame } from "./editor/ContainerFrame";
+import { DropZone } from "./editor/DropZone";
 
 type Props = {
   blocks: Block[];
@@ -9,7 +11,7 @@ type Props = {
   onChange?: (next: Block[]) => void;
 };
 
-export default function BlockRenderer({ blocks, onChange }: Props) {
+export default function BlockRenderer({ blocks, path, onChange }: Props) {
   const { selectedId, setSelectedId } = useEditorCtx();
 
   const baseCls = "rounded p-2 mb-2 transition border border-transparent hover:border-neutral-300 focus-within:border-blue-400";
@@ -67,10 +69,27 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
                   onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
                 >
                   <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
+
+                  <ContainerFrame id={block.id}>
+                    <DropZone id={`dz:${block.id}:0`} depth={(path?.length ?? 0) + 1} size={children.length === 0 ? "lg" : "sm"} dragging={true} label="Drop inside" />
+                    {(children ?? []).map((child, ci) => (
+                      <div key={child.id} className="mb-2">
+                        <BlockRenderer
+                          blocks={[child as Block]}
+                          path={[...(path ?? []), block.id, "children", String(ci)]}
+                          onChange={(nextOne) => {
+                            const nextKids = children.slice();
+                            nextKids[ci] = nextOne[0];
+                            patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
+                          }}
+                        />
+                        <DropZone id={`dz:${block.id}:${ci+1}`} depth={(path?.length ?? 0) + 1} dragging={true} />
+                      </div>
+                    ))}
+                  </ContainerFrame>
+
                   {children.length === 0 && (
-                    <div className="text-xs italic opacity-60 py-3">
-                      Empty container. Drag a block here or press &quot;/&quot; to insert.
-                    </div>
+                    <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
                   )}
                 </div>
               );
