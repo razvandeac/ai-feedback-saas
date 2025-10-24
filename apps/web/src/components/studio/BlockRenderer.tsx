@@ -3,7 +3,6 @@ import React from "react";
 import { useEditorCtx } from "@/src/components/studio/editor/EditorContext";
 import { Block } from "@/src/lib/studio/blocks/types";
 import { ContainerFrame } from "./editor/ContainerFrame";
-import { DropZone } from "./editor/DropZone";
 
 type Props = {
   blocks: Block[];
@@ -71,7 +70,6 @@ export default function BlockRenderer({ blocks, path, onChange }: Props) {
                   <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
 
                   <ContainerFrame id={block.id}>
-                    <DropZone id={`dz:${block.id}:0`} depth={(path?.length ?? 0) + 1} size={children.length === 0 ? "lg" : "sm"} dragging={true} label="Drop inside" />
                     {(children ?? []).map((child, ci) => (
                       <div key={child.id} className="mb-2">
                         <BlockRenderer
@@ -83,7 +81,6 @@ export default function BlockRenderer({ blocks, path, onChange }: Props) {
                             patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
                           }}
                         />
-                        <DropZone id={`dz:${block.id}:${ci+1}`} depth={(path?.length ?? 0) + 1} dragging={true} />
                       </div>
                     ))}
                   </ContainerFrame>

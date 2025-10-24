@@ -6,7 +6,7 @@ import {
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Block } from "@/src/lib/studio/blocks/types";
-import { ROOT_ID, findPathById, insertAtPath, removeAtPath } from "./tree";
+import { ROOT_ID, findPathById, insertAtPath, removeAtPath, getChildrenAtPath } from "./tree";
 import { DropZone } from "./DropZone";
 import { DragHandle } from "@/src/components/common/DragHandle";
 
@@ -35,7 +35,13 @@ function Level({
 }) {
   return (
     <>
-      <DropZone id={`dz:${parentId}:0`} depth={depth} size={blocks.length === 0 ? "lg" : "sm"} dragging={dragging} label="Drop at start" />
+      <DropZone
+        id={`dz:${parentId}:0`}
+        depth={depth}
+        size={blocks.length === 0 ? "lg" : "sm"}
+        dragging={dragging}
+        label={blocks.length === 0 ? "Drop inside container" : "Drop at start"}
+      />
       <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
         {blocks.map((b, i) => (
           <div key={b.id} className="mb-2">
@@ -63,7 +69,7 @@ export function DndTree({
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    // Drop onto a zone: dz:<parentId>:<index>
+    // 1) Drop on an explicit slot
     if (overId.startsWith("dz:")) {
       const [, parentId, idxStr] = overId.split(":");
       const insertIndex = Number(idxStr);
@@ -81,7 +87,27 @@ export function DndTree({
       return;
     }
 
-    // Same-parent reorder by dropping on another item
+    // 2) NEW: Drop on container frame -> insert at end
+    if (overId.startsWith("container:")) {
+      const containerId = overId.split(":")[1];
+      const fromPath = findPathById(blocks, activeId);
+      if (!fromPath) return;
+      const { next, removed } = removeAtPath(blocks, fromPath);
+
+      if (containerId === ROOT_ID) {
+        // (not used; root handled by dz: slots)
+        onChange(insertAtPath(next, [getChildrenAtPath(next, []).length], removed));
+        return;
+      }
+      const parentPath = findPathById(next, containerId);
+      if (!parentPath) return;
+      // compute end index = current children length
+      const endIdx = getChildrenAtPath(next, parentPath).length;
+      onChange(insertAtPath(next, [...parentPath, endIdx], removed));
+      return;
+    }
+
+    // 3) Same-parent reorder by dropping on another item
     const fromPath = findPathById(blocks, activeId);
     const toPath = findPathById(blocks, overId);
     if (!fromPath || !toPath) return;
