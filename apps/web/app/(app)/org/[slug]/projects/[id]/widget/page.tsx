@@ -4,7 +4,8 @@ import Link from "next/link";
 import { CodeBlock } from "@/components/ui/code";
 import CopyButton from "@/components/ui/copy-button";
 import AllowedOriginsEditor from "@/components/projects/allowed-origins-editor";
-import { getProjectWithWidget } from "@/src/server/projects/repo";
+import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
+import BlockRenderer from "@/src/components/studio/BlockRenderer";
 
 export default async function ProjectWidgetPage({
   params
@@ -17,8 +18,9 @@ export default async function ProjectWidgetPage({
   const proj = await getProjectWithWidget(id);
   if (!proj) return <div className="p-6">Project not found</div>;
 
-  // For now, skip widget operations until migration is applied
-  // TODO: Re-enable widget operations after migration
+  // Ensure widget exists for this project
+  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
+  const cfg = proj.widget?.published_config ?? proj.widget?.widget_config;
 
   const siteBase = getClientBaseUrl();
 
@@ -39,31 +41,20 @@ export default async function ProjectWidgetPage({
       <header className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">Preview</h1>
         <div className="flex gap-2">
-          <div className="text-sm text-neutral-500">Widget Studio temporarily disabled</div>
+          <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
+            <button className="text-sm text-brand hover:underline">Edit in Studio →</button>
+          </Link>
         </div>
       </header>
 
-      {/* Widget operations disabled until migration is applied */}
-      <div className="rounded-2xl border bg-amber-50 p-4 text-amber-800">
-        <p className="text-sm">
-          <strong>Widget Preview temporarily disabled</strong> - Database migration needs to be applied first.
-        </p>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
-          <div className="text-sm font-medium">Project Information</div>
+          <div className="text-sm font-medium">Live preview</div>
           <div className="rounded-2xl border bg-white p-6">
-            <div className="space-y-2">
-              <div>
-                <span className="text-sm font-medium">Project ID:</span>
-                <span className="text-sm text-neutral-600 ml-2">{proj.id}</span>
-              </div>
-              <div>
-                <span className="text-sm font-medium">Project Key:</span>
-                <span className="text-sm text-neutral-600 ml-2">{proj.key}</span>
-              </div>
-            </div>
+            <BlockRenderer blocks={cfg?.blocks ?? []} />
+          </div>
+          <div className="rounded-2xl border p-3 bg-amber-50 text-amber-800 text-xs">
+            This preview renders the <b>published</b> version. Edit in Studio and click Publish to update.
           </div>
         </div>
 
