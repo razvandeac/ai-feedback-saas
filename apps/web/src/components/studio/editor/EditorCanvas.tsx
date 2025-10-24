@@ -2,47 +2,35 @@
 import React from "react";
 import { Block } from "@/src/lib/studio/blocks/types";
 import BlockRenderer from "@/src/components/studio/BlockRenderer";
-import { SortableTree } from "./SortableTree";
-import { ROOT_ID } from "./tree";
+import { DndTree } from "./DndTree";
+import { IconButton } from "@/src/components/common/IconButton";
 
 export function EditorCanvas({
-  blocks,
-  onChange,
-  onInsertAt,
-}: {
-  blocks: Block[];
-  onChange: (next: Block[]) => void;
-  onInsertAt: (idx: number, type: string) => void;
-}) {
+  blocks, onChange, onInsertAt,
+}: { blocks: Block[]; onChange: (next: Block[]) => void; onInsertAt: (idx: number, type: string) => void; }) {
   return (
     <div className="space-y-2">
-      <SortableTree
-        parentId={ROOT_ID}
+      <DndTree
         blocks={blocks}
         onChange={onChange}
         renderBlock={(b) => (
-          <div className="border rounded p-2 relative">
-            <button
-              className="absolute top-1 right-1 text-xs px-1 py-0.5 border rounded hover:bg-red-50"
-              onClick={() => {
-                onChange(blocks.filter(x => x.id !== b.id));
-              }}
-              aria-label="Delete block"
-              title="Delete block"
-            >
-              Delete
-            </button>
-            <BlockRenderer
-              blocks={[b]}
-              onChange={(nextOne) => {
-                const copy = blocks.slice();
-                const idx = blocks.findIndex((x) => x.id === b.id);
-                if (idx >= 0) {
-                  copy[idx] = nextOne[0];
+          <div className="relative rounded border border-neutral-200 bg-white">
+            {/* delete icon button */}
+            <div className="absolute top-1.5 right-1.5 z-10 pointer-events-auto">
+              <IconButton title="Delete block" onClick={() => onChange(blocks.filter(x => x.id !== b.id))} />
+            </div>
+            <div className="p-2">
+              <BlockRenderer
+                blocks={[b]}
+                onChange={(nextOne) => {
+                  const i = blocks.findIndex(x => x.id === b.id);
+                  if (i < 0) return;
+                  const copy = blocks.slice();
+                  copy[i] = nextOne[0];
                   onChange(copy);
-                }
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
         )}
       />

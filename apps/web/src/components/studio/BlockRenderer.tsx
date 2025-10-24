@@ -2,7 +2,6 @@
 import React from "react";
 import { useEditorCtx } from "@/src/components/studio/editor/EditorContext";
 import { Block } from "@/src/lib/studio/blocks/types";
-import { SortableTree } from "./editor/SortableTree";
 
 type Props = {
   blocks: Block[];
@@ -59,42 +58,23 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
           );
         }
 
-        if (block.type === "container") {
-          const children = block.data.children ?? [];
-          return (
-            <div
-              key={block.id}
-              className={cls}
-              onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
-            >
-              <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
-
-                  <SortableTree
-                    parentId={block.id}         // <<— important
-                    blocks={children as Block[]}
-                    onChange={(nextChildren) => {
-                      patchAt(i, { data: { children: nextChildren, direction: block.data.direction, gap: block.data.gap } });
-                    }}
-                    renderBlock={(child) => (
-                      <BlockRenderer
-                        blocks={[child]}
-                        onChange={(nextOne) => {
-                          const nextKids = children.slice();
-                          const idx = children.findIndex((x) => x.id === child.id);
-                          if (idx >= 0) nextKids[idx] = nextOne[0];
-                          patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
-                        }}
-                      />
-                    )}
-                  />
+            if (block.type === "container") {
+              const children = block.data.children ?? [];
+              return (
+                <div
+                  key={block.id}
+                  className={cls}
+                  onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
+                >
+                  <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
                   {children.length === 0 && (
                     <div className="text-xs italic opacity-60 py-3">
                       Empty container. Drag a block here or press &quot;/&quot; to insert.
                     </div>
                   )}
-            </div>
-          );
-        }
+                </div>
+              );
+            }
 
         // image blocks
         if (block.type === "image") {
