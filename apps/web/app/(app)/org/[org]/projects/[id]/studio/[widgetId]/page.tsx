@@ -9,7 +9,7 @@ export default async function StudioPage({
 }: { 
   params: Promise<{ org: string; id: string; widgetId: string }> 
 }) {
-  const { org, id, widgetId } = await params
+  const { id, widgetId } = await params
   const adminSupabase = getSupabaseAdmin()
 
   // Get project with widget information
@@ -60,7 +60,6 @@ export default async function StudioPage({
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
       <Studio 
-        projectId={proj.id} 
         widgetId={finalWidgetId} 
         orgId={proj.org_id} 
         initialConfig={initialConfig} 

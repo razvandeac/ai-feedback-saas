@@ -15,7 +15,7 @@ import { EditorProvider, useEditorCtx } from '@/src/components/studio/editor/Edi
 import { Toast } from '@/src/components/common/Toast'
 import { v4 as uuid } from 'uuid'
 
-function StudioContent({ projectId, widgetId, orgId, initialConfig }: { projectId: string; widgetId: string; orgId: string; initialConfig: WidgetConfig }) {
+function StudioContent({ widgetId, orgId, initialConfig }: { widgetId: string; orgId: string; initialConfig: WidgetConfig }) {
   const { config, setConfigWithHistory, dirty, setDirty, saving, setSaving, saveError, setSaveError, lastSavedAt, setLastSavedAt, undo, redo, canUndo, canRedo, issues } =
     useEditorState(initialConfig);
 
@@ -156,10 +156,10 @@ function StudioContent({ projectId, widgetId, orgId, initialConfig }: { projectI
   )
 }
 
-export default function Studio({ projectId, widgetId, orgId, initialConfig }: { projectId: string; widgetId: string; orgId: string; initialConfig: WidgetConfig }) {
+export default function Studio({ widgetId, orgId, initialConfig }: { widgetId: string; orgId: string; initialConfig: WidgetConfig }) {
   return (
     <EditorProvider>
-      <StudioContent projectId={projectId} widgetId={widgetId} orgId={orgId} initialConfig={initialConfig} />
+      <StudioContent widgetId={widgetId} orgId={orgId} initialConfig={initialConfig} />
     </EditorProvider>
   )
 }

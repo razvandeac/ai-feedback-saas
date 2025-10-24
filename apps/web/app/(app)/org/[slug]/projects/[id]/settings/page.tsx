@@ -35,7 +35,7 @@ export default async function ProjectSettingsPage({
             <h2 className="text-sm font-medium mb-2">Widget Configuration</h2>
             <div className="rounded-2xl border bg-white p-4">
               <p className="text-sm text-neutral-600 mb-3">
-                Customize your widget's appearance and behavior in Studio.
+                Customize your widget&apos;s appearance and behavior in Studio.
               </p>
               <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">

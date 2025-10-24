@@ -13,7 +13,7 @@ export async function getProjectWithWidget(projectId: string) {
     .eq("id", projectId)
     .single();
   if (error) throw error;
-  const widget = (data as any).studio_widgets || null;
+  const widget = (data as { studio_widgets?: { id: string; widget_config: unknown; published_config: unknown; version: number; published_at: string } | null }).studio_widgets || null;
   return { ...data, widget };
 }
 

@@ -14,11 +14,11 @@ export async function getProjectWithWidget(projectId: string) {
     
   if (error) throw error;
   
-  const widget = (data as any).widgets || null;
+  const widget = (data as { widgets?: { id: string; config: unknown; published_config: unknown; version: number; published_at: string } | null }).widgets || null;
   return { ...data, widget };
 }
 
-export async function ensureProjectWidget(projectId: string, orgId: string) {
+export async function ensureProjectWidget(projectId: string, _orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
   const { data: p } = await adminSupabase
