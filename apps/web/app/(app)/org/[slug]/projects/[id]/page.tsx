@@ -2,9 +2,8 @@ export const revalidate = 0;
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import RecentEvents from "@/components/projects/recent-events";
-import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
+import { getProjectWithWidget } from "@/src/server/projects/repo";
 
 export default async function ProjectOverview({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = await params;
@@ -14,8 +13,8 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
   const proj = await getProjectWithWidget(id);
   if (!proj) return notFound();
 
-  // Ensure widget exists for this project
-  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
+  // For now, skip widget operations until migration is applied
+  // TODO: Re-enable widget operations after migration
 
   // Basic counts for this project using admin client
   const [{ count: feedbackCount }, { count: eventsCount }] = await Promise.all([
@@ -26,22 +25,13 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-lg font-semibold">{proj.name}</h1>
-      <div className="flex gap-2">
-        <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
-          <Button className="bg-blue-600 text-white hover:bg-blue-700">Open Studio</Button>
-        </Link>
-        <Link href={`/org/${slug}/projects/${id}/widget`}>
-          <Button variant="outline">Preview</Button>
-        </Link>
-        <form action={`/api/studio/widgets/${widgetId}/publish`} method="post">
-          <input type="hidden" name="orgId" value={proj.org_id} />
-          <Button type="submit" variant="outline">Publish</Button>
-        </form>
+      
+      {/* Widget operations disabled until migration is applied */}
+      <div className="rounded-2xl border bg-amber-50 p-4 text-amber-800">
+        <p className="text-sm">
+          <strong>Widget Studio temporarily disabled</strong> - Database migration needs to be applied first.
+        </p>
       </div>
-      {/* Published status */}
-      <p className="text-xs text-neutral-500">
-        Published version: v{proj.widget?.version ?? 1} {proj.widget?.published_at ? `· ${new Date(proj.widget.published_at).toLocaleString()}` : ""}
-      </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-3xl border bg-white p-4">
@@ -62,10 +52,6 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
             <Link href={`/org/${slug}/feedback?project=${id}`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
               <div className="font-medium text-sm">View all feedback</div>
               <div className="text-xs text-neutral-500">Filter feedback table by this project</div>
-            </Link>
-            <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
-              <div className="font-medium text-sm">Widget Studio</div>
-              <div className="text-xs text-neutral-500">Design and customize your feedback widget</div>
             </Link>
             <Link href={`/org/${slug}/projects/${id}/settings`} className="block p-3 rounded-2xl border hover:bg-neutral-50 transition-colors">
               <div className="font-medium text-sm">Project Settings</div>
