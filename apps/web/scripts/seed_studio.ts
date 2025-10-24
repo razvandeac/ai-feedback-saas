@@ -79,7 +79,8 @@ async function seedStudio() {
   }
 
   // Link widget to project
-  await adminSupabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (adminSupabase as any)
     .from('projects')
     .update({ widget_id: widget.id })
     .eq('id', project.id)
