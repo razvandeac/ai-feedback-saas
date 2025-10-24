@@ -1,27 +1,39 @@
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import Studio from './studio-client'
+import Studio from '../studio-client'
 import { WidgetConfigSchema } from '@/src/lib/studio/WidgetConfigSchema'
-import { getProjectWithWidget, ensureProjectWidget } from '@/src/server/projects/repo'
+import { getProjectWithWidget } from '@/src/server/projects/repo'
 
-export default async function StudioPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
-  const { id } = await params
+export default async function StudioPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string; id: string; widgetId: string }> 
+}) {
+  const { id, widgetId } = await params
   const adminSupabase = getSupabaseAdmin()
 
   // Get project with widget information
   const proj = await getProjectWithWidget(id)
   if (!proj) notFound()
 
-  // Ensure widget exists for this project
-  const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id)
+  // Verify the widgetId matches the project's widget
+  if (proj.widget?.id && proj.widget.id !== widgetId) {
+    console.error('Widget ID mismatch:', { expected: proj.widget.id, received: widgetId })
+    notFound()
+  }
 
   // Get the widget config from the studio_widgets table
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: widget } = await (adminSupabase as any)
+  const { data: widget, error: widgetError } = await (adminSupabase as any)
     .from('studio_widgets')
     .select('widget_config')
     .eq('id', widgetId)
     .single()
+
+  if (widgetError) {
+    console.error('Error fetching widget:', widgetError)
+    notFound()
+  }
 
   // Parse widget config or create default
   let initialConfig
