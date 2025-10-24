@@ -21,13 +21,23 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
       widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
     } catch (error) {
       console.error("Error ensuring widget:", error);
-      // If widget creation fails, show error page
+      // If widget creation fails, show error page with details
       return (
         <div className="p-6 space-y-4">
           <h1 className="text-lg font-semibold">{proj.name}</h1>
           <div className="rounded-2xl border bg-red-50 p-4 text-red-800">
             <p className="text-sm">
-              <strong>Error creating widget</strong> - Please check the server logs for details.
+              <strong>Error creating widget</strong>
+            </p>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-xs">Click to see error details</summary>
+              <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
+                {error instanceof Error ? error.message : String(error)}
+              </pre>
+            </details>
+            <p className="text-xs mt-2">
+              Project ID: {proj.id}<br/>
+              Org ID: {proj.org_id}
             </p>
           </div>
         </div>
