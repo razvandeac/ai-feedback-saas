@@ -60,32 +60,34 @@ async function seedStudio() {
     ],
   }
 
-  const { data: widget } = await adminSupabase
-    .from('studio_widgets')
-    .insert({
-      org_id: org.id,
-      name: 'Studio Test Widget',
-      widget_config: widgetConfig,
-      published_config: widgetConfig,
-    })
-    .select()
-    .single()
+  // TODO: Create studio widget after migration is applied
+  // const { data: widget } = await adminSupabase
+  //   .from('studio_widgets')
+  //   .insert({
+  //     org_id: org.id,
+  //     name: 'Studio Test Widget',
+  //     widget_config: widgetConfig,
+  //     published_config: widgetConfig,
+  //   })
+  //   .select()
+  //   .single()
 
-  if (!widget) {
-    console.error('Failed to create studio widget')
-    return
-  }
+  // if (!widget) {
+  //   console.error('Failed to create studio widget')
+  //   return
+  // }
 
-  // Link the widget to the project
-  await adminSupabase
-    .from('projects')
-    .update({ widget_id: widget.id })
-    .eq('id', project.id)
+  // TODO: Link widget to project after migration is applied
+  // await adminSupabase
+  //   .from('projects')
+  //   .update({ widget_id: widget.id })
+  //   .eq('id', project.id)
 
   console.log('✅ Studio seeded successfully!')
   console.log(`Organization: ${org.name} (${org.slug})`)
   console.log(`Project: ${project.name} (${project.key})`)
   console.log(`Widget Config: ${JSON.stringify(widgetConfig, null, 2)}`)
+  console.log('⚠️  Note: Widget creation skipped until migration is applied')
 }
 
 if (require.main === module) {
