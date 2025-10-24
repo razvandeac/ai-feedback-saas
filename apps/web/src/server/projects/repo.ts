@@ -49,15 +49,32 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
   try {
+    console.log("ensureProjectWidget called with:", { projectId, orgId });
+    
     // Check if project already has a widget
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: p } = await (adminSupabase as any).from("projects").select("widget_id").eq("id", projectId).single();
-    if (p?.widget_id) return p.widget_id as string;
+    const { data: p, error: pError } = await (adminSupabase as any).from("projects").select("widget_id").eq("id", projectId).single();
+    
+    if (pError) {
+      console.error("Error checking project widget_id:", pError);
+      throw pError;
+    }
+    
+    console.log("Project widget_id check result:", p);
+    
+    if (p?.widget_id) {
+      console.log("Project already has widget:", p.widget_id);
+      return p.widget_id as string;
+    }
 
+    console.log("Creating new widget for project:", projectId);
+    
     const defaultConfig = {
       theme: { variant: "light", primaryColor: "#3b82f6", backgroundColor: "#ffffff", fontFamily: "Inter", borderRadius: 12 },
       blocks: [{ id: uuid(), type: "text", version: 1, data: { text: "Welcome! Edit this in Studio.", align: "left" } }],
     };
+
+    console.log("Widget config:", defaultConfig);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: w, error: werr } = await (adminSupabase as any)
@@ -68,8 +85,11 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
     
     if (werr) {
       console.error("Error creating widget:", werr);
+      console.error("Widget insert details:", { org_id: orgId, name: "Project Widget", widget_config: defaultConfig, published_config: defaultConfig });
       throw werr;
     }
+
+    console.log("Widget created successfully:", w);
 
     // Link widget to project
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,6 +98,8 @@ export async function ensureProjectWidget(projectId: string, orgId: string) {
       console.error("Error linking widget to project:", uerr);
       throw uerr;
     }
+
+    console.log("Widget linked to project successfully");
     
     return w.id as string;
   } catch (error) {
