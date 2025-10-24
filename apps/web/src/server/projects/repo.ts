@@ -5,6 +5,8 @@ export async function getProjectWithWidget(projectId: string) {
   const adminSupabase = getSupabaseAdmin();
   
   try {
+    console.log("getProjectWithWidget: Fetching project", projectId);
+    
     // First get the project
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: project, error: projectError } = await (adminSupabase as any)
@@ -18,6 +20,8 @@ export async function getProjectWithWidget(projectId: string) {
       throw projectError;
     }
     if (!project) throw new Error("Project not found");
+    
+    console.log("getProjectWithWidget: Project found:", project);
     
     // If no widget_id, return project without widget
     if (!project.widget_id) {

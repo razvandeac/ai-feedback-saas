@@ -52,10 +52,21 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
 
     console.log("Project overview - widgetId:", widgetId);
     console.log("Project overview - proj.widget:", proj.widget);
+    console.log("Project overview - Studio URL would be:", `/org/${slug}/projects/${id}/studio/${widgetId}`);
 
     return (
       <div className="p-6 space-y-4">
         <h1 className="text-lg font-semibold">{proj.name}</h1>
+        
+        {/* Debug info */}
+        <div className="rounded-2xl border bg-yellow-50 p-4 text-yellow-800 text-xs">
+          <p><strong>Debug Info:</strong></p>
+          <p>Project ID: {proj.id}</p>
+          <p>Org ID: {proj.org_id}</p>
+          <p>Widget ID: {widgetId || "UNDEFINED"}</p>
+          <p>Studio URL: /org/{slug}/projects/{id}/studio/{widgetId || "UNDEFINED"}</p>
+          <p>Widget exists: {proj.widget ? "YES" : "NO"}</p>
+        </div>
         <div className="flex gap-2">
           {widgetId ? (
             <Link href={`/org/${slug}/projects/${id}/studio/${widgetId}`}>
