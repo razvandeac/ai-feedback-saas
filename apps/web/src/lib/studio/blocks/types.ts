@@ -35,5 +35,18 @@ export const ContainerBlock = BaseBlock.extend({
 
 export const BlockSchema = z.union([TextBlock, ImageBlock, ContainerBlock]);
 export type Block = z.infer<typeof BlockSchema>;
-export const BlocksArray = z.array(BlockSchema);
+
+// Migration-friendly schema that accepts unknown block types
+export const BlockSchemaWithLegacy = z.union([
+  TextBlock, 
+  ImageBlock, 
+  ContainerBlock,
+  BaseBlock.extend({
+    type: z.string(),
+    data: z.any(),
+  })
+]);
+
+export const BlocksArray = z.array(BlockSchemaWithLegacy);
 export type Blocks = z.infer<typeof BlocksArray>;
+export type BlockWithLegacy = z.infer<typeof BlockSchemaWithLegacy>;

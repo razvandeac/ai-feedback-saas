@@ -1,12 +1,12 @@
 "use client";
 import { useEffect } from "react";
 import { useEditorCtx } from "./EditorContext";
-import { Block } from "@/src/lib/studio/blocks/types";
+import { BlockWithLegacy } from "@/src/lib/studio/blocks/types";
 
 export function useKeyboard(opts: {
   undo: () => void;
   redo: () => void;
-  blocks: Block[];
+  blocks: BlockWithLegacy[];
 }) {
   const { selectedId, setSelectedId } = useEditorCtx();
 
