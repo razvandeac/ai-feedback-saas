@@ -56,7 +56,8 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
     
     // Test database connection
     try {
-      const { data: testWidgets } = await adminSupabase.from("studio_widgets").select("id").limit(1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: testWidgets } = await (adminSupabase as any).from("studio_widgets").select("id").limit(1);
       console.log("Database test - studio_widgets accessible:", testWidgets?.length || 0, "widgets found");
     } catch (dbError) {
       console.error("Database test failed:", dbError);
