@@ -33,12 +33,7 @@ export const ContainerBlock = BaseBlock.extend({
   }),
 });
 
-export const LegacyBlock = BaseBlock.extend({
-  type: z.literal("legacy"),
-  data: z.record(z.string(), z.any()),
-});
-
-export const BlockSchema = z.union([TextBlock, ImageBlock, ContainerBlock, LegacyBlock]);
+export const BlockSchema = z.union([TextBlock, ImageBlock, ContainerBlock]);
 export type Block = z.infer<typeof BlockSchema>;
 export const BlocksArray = z.array(BlockSchema);
 export type Blocks = z.infer<typeof BlocksArray>;

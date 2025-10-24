@@ -56,12 +56,7 @@ function StudioContent({ projectId, initialConfig }: { projectId: string; initia
         data: { direction: "vertical", gap: 8, children: [] },
       };
     } else {
-      newBlock = {
-        id: uuid(),
-        type: "legacy",
-        version: 1,
-        data: {},
-      };
+      throw new Error(`Unknown block type: ${type}`);
     }
     
     setConfigWithHistory(prev => ({ 

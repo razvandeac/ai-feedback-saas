@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { register } from "./registry";
-import { TextBlock, ImageBlock, ContainerBlock, LegacyBlock } from "./types";
+import { TextBlock, ImageBlock, ContainerBlock } from "./types";
 
 register({
   type: "text",
@@ -27,10 +27,4 @@ register({
       })}
     </div>
   ),
-});
-
-register({
-  type: "legacy",
-  schema: LegacyBlock,
-  render: () => <div className="opacity-60 italic">Legacy content</div>,
 });

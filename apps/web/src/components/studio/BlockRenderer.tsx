@@ -44,7 +44,7 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
                 <textarea
                   autoFocus
                   value={block.data.text ?? ""}
-                  onChange={(e) => patchAt(i, { data: { text: e.target.value } })}
+                  onChange={(e) => patchAt(i, { data: { text: e.target.value, align: block.data.align } })}
                   onBlur={() => setSelectedId(null)}
                   className="w-full border-none bg-transparent outline-none resize-none"
                   placeholder="Type…"
@@ -70,7 +70,7 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
                 parentId={block.id}         // <<— important
                 blocks={children as Block[]}
                 onChange={(nextChildren) => {
-                  patchAt(i, { data: { children: nextChildren } });
+                  patchAt(i, { data: { children: nextChildren, direction: block.data.direction, gap: block.data.gap } });
                 }}
                 renderBlock={(child) => (
                   <BlockRenderer
@@ -79,7 +79,7 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
                       const nextKids = children.slice();
                       const idx = children.findIndex((x) => x.id === child.id);
                       if (idx >= 0) nextKids[idx] = nextOne[0];
-                      patchAt(i, { data: { children: nextKids } });
+                      patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
                     }}
                   />
                 )}
@@ -88,14 +88,31 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
           );
         }
 
-        // image, legacy, others
+        // image blocks
+        if (block.type === "image") {
+          return (
+            <div
+              key={block.id}
+              className={cls}
+              onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
+            >
+              <img
+                src={block.data.url}
+                alt={block.data.alt ?? ""}
+                className="max-w-full rounded"
+              />
+            </div>
+          );
+        }
+
+        // Unknown block type fallback
         return (
           <div
-            key={block.id}
+            key={(block as Block).id}
             className={cls}
-            onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
+            onClick={(e) => { e.stopPropagation(); setSelectedId((block as Block).id); }}
           >
-            <p className="text-xs opacity-60">{block.type}</p>
+            <p className="text-xs opacity-60">Unknown block type: {(block as Block).type}</p>
           </div>
         );
       })}
