@@ -32,7 +32,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
             <details className="mt-2">
               <summary className="cursor-pointer text-xs">Click to see error details</summary>
               <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
-                {error instanceof Error ? error.message : String(error)}
+                {JSON.stringify(error, null, 2)}
               </pre>
             </details>
             <p className="text-xs mt-2">
