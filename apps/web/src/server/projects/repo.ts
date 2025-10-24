@@ -6,7 +6,7 @@ export async function getProjectWithWidget(projectId: string) {
   
   const { data, error } = await adminSupabase
     .from("projects")
-    .select("id, name, org_id")
+    .select("id, name, org_id, key")
     .eq("id", projectId)
     .single();
   if (error) throw error;
