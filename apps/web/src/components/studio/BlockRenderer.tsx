@@ -13,6 +13,8 @@ type Props = {
 export default function BlockRenderer({ blocks, onChange }: Props) {
   const { selectedId, setSelectedId } = useEditorCtx();
 
+  const baseCls = "rounded p-2 mb-2 transition border border-transparent hover:border-neutral-300 focus-within:border-blue-400";
+
   function patchAt(index: number, patch: Partial<Block>) {
     if (!onChange) return;
     const next = blocks.slice();
@@ -29,8 +31,9 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
     <>
       {blocks.map((block, i) => {
         const isActive = selectedId === block.id;
-        const base = "border rounded p-2 mb-2 transition";
-        const cls = isActive ? base + " border-blue-500 bg-blue-50" : base + " border-transparent hover:border-neutral-200";
+        const cls = isActive
+          ? `${baseCls} border-blue-500 bg-blue-50`
+          : baseCls;
 
         if (block.type === "text") {
           return (
@@ -66,24 +69,29 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
             >
               <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
 
-              <SortableTree
-                parentId={block.id}         // <<— important
-                blocks={children as Block[]}
-                onChange={(nextChildren) => {
-                  patchAt(i, { data: { children: nextChildren, direction: block.data.direction, gap: block.data.gap } });
-                }}
-                renderBlock={(child) => (
-                  <BlockRenderer
-                    blocks={[child]}
-                    onChange={(nextOne) => {
-                      const nextKids = children.slice();
-                      const idx = children.findIndex((x) => x.id === child.id);
-                      if (idx >= 0) nextKids[idx] = nextOne[0];
-                      patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
+                  <SortableTree
+                    parentId={block.id}         // <<— important
+                    blocks={children as Block[]}
+                    onChange={(nextChildren) => {
+                      patchAt(i, { data: { children: nextChildren, direction: block.data.direction, gap: block.data.gap } });
                     }}
+                    renderBlock={(child) => (
+                      <BlockRenderer
+                        blocks={[child]}
+                        onChange={(nextOne) => {
+                          const nextKids = children.slice();
+                          const idx = children.findIndex((x) => x.id === child.id);
+                          if (idx >= 0) nextKids[idx] = nextOne[0];
+                          patchAt(i, { data: { children: nextKids, direction: block.data.direction, gap: block.data.gap } });
+                        }}
+                      />
+                    )}
                   />
-                )}
-              />
+                  {children.length === 0 && (
+                    <div className="text-xs italic opacity-60 py-3">
+                      Empty container. Drag a block here or press &quot;/&quot; to insert.
+                    </div>
+                  )}
             </div>
           );
         }

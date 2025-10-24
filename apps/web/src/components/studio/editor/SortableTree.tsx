@@ -104,29 +104,29 @@ export function SortableTree({ parentId, blocks, depth = 0, onChange, renderBloc
   // SortableContext items: only actual block ids at this level
   const items = blocks.map(b => b.id);
 
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={rectIntersection}  // IMPORTANT for DropZones
-      onDragEnd={handleDragEnd}
-    >
-      {/* Leading DropZone to insert at index 0 */}
-      <DropZone id={`dz:${parentId}:0`} depth={depth} />
+      return (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={rectIntersection}  // IMPORTANT for DropZones
+          onDragEnd={handleDragEnd}
+        >
+          {/* Leading DropZone to insert at index 0 */}
+          <DropZone id={`dz:${parentId}:0`} depth={depth} size={blocks.length === 0 ? "lg" : "sm"} />
 
-      <SortableContext items={items} strategy={verticalListSortingStrategy}>
-        {blocks.map((b, i) => (
-          <div key={b.id} className="mb-2">
-            <SortableRow block={b}>
-              {renderBlock(b)}
-            </SortableRow>
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {blocks.map((b, i) => (
+              <div key={b.id} className="mb-2">
+                <SortableRow block={b}>
+                  {renderBlock(b)}
+                </SortableRow>
 
-            {/* DropZone between items i and i+1 */}
-            <DropZone id={`dz:${parentId}:${i + 1}`} depth={depth} />
-          </div>
-        ))}
-      </SortableContext>
+                {/* DropZone between items i and i+1 */}
+                <DropZone id={`dz:${parentId}:${i + 1}`} depth={depth} />
+              </div>
+            ))}
+          </SortableContext>
 
-      <DragOverlay />
-    </DndContext>
-  );
+          <DragOverlay />
+        </DndContext>
+      );
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { type WidgetConfig } from '@/src/lib/studio/WidgetConfigSchema'
 import { type Block } from '@/src/lib/studio/blocks/types'
 import '@/src/lib/studio/blocks/registry.builtin' // Initialize built-in blocks
@@ -11,14 +11,36 @@ import { BlockPalette } from '@/src/components/studio/editor/BlockPalette'
 import { EditorCanvas } from '@/src/components/studio/editor/EditorCanvas'
 import { useKeyboard } from '@/src/components/studio/editor/useKeyboard'
 import { ValidationBadge } from '@/src/components/studio/editor/ValidationBadge'
-import { EditorProvider } from '@/src/components/studio/editor/EditorContext'
+import { EditorProvider, useEditorCtx } from '@/src/components/studio/editor/EditorContext'
+import { Toast } from '@/src/components/common/Toast'
 import { v4 as uuid } from 'uuid'
 
 function StudioContent({ projectId, initialConfig }: { projectId: string; initialConfig: WidgetConfig }) {
   const { config, setConfigWithHistory, dirty, setDirty, saving, setSaving, saveError, setSaveError, lastSavedAt, setLastSavedAt, undo, redo, canUndo, canRedo, issues } =
     useEditorState(initialConfig);
 
-  useKeyboard({ undo, redo, blocks: config.blocks });
+  const { selectedId, setSelectedId } = useEditorCtx();
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Config size guard
+  useEffect(() => {
+    const bytes = new Blob([JSON.stringify(config)]).size;
+    if (bytes > 500 * 1024) setToast("Warning: widget is large (>500KB). Consider simplifying.");
+    else if (toast) setToast(null);
+  }, [config, toast]);
+
+  useKeyboard({
+    getIdsInOrder: () => (config.blocks ?? []).map(b => b.id),
+    selectedId,
+    setSelectedId,
+    undo,
+    redo,
+    onDeleteSelected: () => {
+      if (!selectedId) return;
+      setConfigWithHistory(prev => ({ ...prev, blocks: (prev.blocks ?? []).filter(b => b.id !== selectedId) }));
+      setSelectedId(null);
+    },
+  });
 
   const save = useCallback(async (cfg: WidgetConfig) => {
     const res = await fetch(`/api/projects/${projectId}/config`, {
@@ -29,7 +51,17 @@ function StudioContent({ projectId, initialConfig }: { projectId: string; initia
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }, [projectId]);
 
-  useAutosave({ config, dirty, setDirty, setSaving, setSaveError, setLastSavedAt, save });
+  useAutosave({
+    config,
+    dirty,
+    setDirty,
+    setSaving,
+    setSaveError,
+    setLastSavedAt,
+    save,
+    debounceMs: 700,
+    hasErrors: issues.length > 0,
+  });
 
   const insertAt = useCallback((idx: number, type: string) => {
     let newBlock: Block;
@@ -90,6 +122,7 @@ function StudioContent({ projectId, initialConfig }: { projectId: string; initia
       </div>
 
       <SaveBanner saving={saving} lastSavedAt={lastSavedAt} error={saveError} />
+      {toast && <Toast message={toast} />}
     </div>
   )
 }

@@ -1,44 +1,39 @@
 "use client";
 import { useEffect } from "react";
-import { useEditorCtx } from "./EditorContext";
-import { BlockWithLegacy } from "@/src/lib/studio/blocks/types";
 
 export function useKeyboard(opts: {
+  getIdsInOrder: () => string[];       // returns visible top-level ids
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
   undo: () => void;
   redo: () => void;
-  blocks: BlockWithLegacy[];
+  onDeleteSelected: () => void;        // deletes currently selected block
 }) {
-  const { selectedId, setSelectedId } = useEditorCtx();
-
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const isMac = navigator.platform.toLowerCase().includes("mac");
       const mod = isMac ? e.metaKey : e.ctrlKey;
-      
-      if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) {
+
+      // Undo / Redo
+      if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); opts.undo(); return; }
+      if ((mod && e.key.toLowerCase() === "z" && e.shiftKey) || (mod && e.key.toLowerCase() === "y")) { e.preventDefault(); opts.redo(); return; }
+
+      // Navigation on top-level list
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        const ids = opts.getIdsInOrder();
+        if (ids.length === 0) return;
+        const cur = opts.selectedId ? ids.indexOf(opts.selectedId) : -1;
+        const next = e.key === "ArrowDown" ? Math.min(cur + 1, ids.length - 1) : Math.max((cur === -1 ? 0 : cur - 1), 0);
+        opts.setSelectedId(ids[next]);
+      }
+
+      // Delete selected
+      if ((e.key === "Delete" || e.key === "Backspace") && opts.selectedId) {
         e.preventDefault();
-        opts.undo();
-      } else if ((mod && e.key.toLowerCase() === "z" && e.shiftKey) || (mod && e.key.toLowerCase() === "y")) {
-        e.preventDefault();
-        opts.redo();
-      } else if (e.key === "ArrowDown" && !mod) {
-        e.preventDefault();
-        const currentIndex = opts.blocks.findIndex(b => b.id === selectedId);
-        if (currentIndex < opts.blocks.length - 1) {
-          setSelectedId(opts.blocks[currentIndex + 1].id);
-        }
-      } else if (e.key === "ArrowUp" && !mod) {
-        e.preventDefault();
-        const currentIndex = opts.blocks.findIndex(b => b.id === selectedId);
-        if (currentIndex > 0) {
-          setSelectedId(opts.blocks[currentIndex - 1].id);
-        }
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        setSelectedId(null);
+        opts.onDeleteSelected();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [opts, selectedId, setSelectedId]);
+  }, [opts]);
 }

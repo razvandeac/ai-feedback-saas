@@ -26,9 +26,14 @@ export function useEditorState(initial: WidgetConfig) {
     redoStack.current = [];
   }, []);
 
-  // Capture structural changes (DnD, block additions/removals)
+  // Coalesce rapid snapshots (typing) with a throttle
+  const throttleRef = useRef<number>(0);
   useEffect(() => {
-    snapshot(config);
+    const now = Date.now();
+    if (now - throttleRef.current > 400) { // snapshot at most every 400ms
+      snapshot(config);
+      throttleRef.current = now;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(config.blocks)]);
 

@@ -13,12 +13,19 @@ export function useAutosave(opts: {
   setLastSavedAt: (n: number) => void;
   save: SaveFn;
   debounceMs?: number;
+  hasErrors?: boolean;
 }) {
-  const { config, dirty, setDirty, setSaving, setSaveError, setLastSavedAt, save, debounceMs = 700 } = opts;
+  const { config, dirty, setDirty, setSaving, setSaveError, setLastSavedAt, save, debounceMs = 700, hasErrors = false } = opts;
   const timer = useRef<NodeJS.Timeout | null>(null);
+
+  // Cancel pending timer on unmount
+  useEffect(() => {
+    return () => { if (timer.current) clearTimeout(timer.current); };
+  }, []);
 
   useEffect(() => {
     if (!dirty) return;
+    if (hasErrors) return; // do not save invalid state
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       setSaving(true);
@@ -36,5 +43,5 @@ export function useAutosave(opts: {
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [config, dirty, debounceMs, save, setDirty, setSaving, setSaveError, setLastSavedAt]);
+  }, [config, dirty, debounceMs, save, setDirty, setSaving, setSaveError, setLastSavedAt, hasErrors]);
 }

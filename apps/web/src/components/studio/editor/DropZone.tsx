@@ -2,14 +2,13 @@
 import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 
-export function DropZone({ id, depth = 0 }: { id: string; depth?: number }) {
+export function DropZone({ id, depth = 0, size = "sm" }: { id: string; depth?: number; size?: "sm"|"lg" }) {
   const { isOver, setNodeRef } = useDroppable({ id });
+  const h = size === "lg" ? 24 : 8;
   return (
-    <div
-      ref={setNodeRef}
-      className="my-1"
+    <div ref={setNodeRef} className="my-1"
       style={{
-        height: 8,
+        height: h,
         marginLeft: depth * 12,
         borderRadius: 4,
         background: isOver ? "rgba(59,130,246,0.35)" : "transparent",

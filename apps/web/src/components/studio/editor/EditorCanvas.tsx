@@ -21,7 +21,17 @@ export function EditorCanvas({
         blocks={blocks}
         onChange={onChange}
         renderBlock={(b) => (
-          <div className="border rounded p-2">
+          <div className="border rounded p-2 relative">
+            <button
+              className="absolute top-1 right-1 text-xs px-1 py-0.5 border rounded hover:bg-red-50"
+              onClick={() => {
+                onChange(blocks.filter(x => x.id !== b.id));
+              }}
+              aria-label="Delete block"
+              title="Delete block"
+            >
+              Delete
+            </button>
             <BlockRenderer
               blocks={[b]}
               onChange={(nextOne) => {
