@@ -23,27 +23,40 @@ export async function getProjectWithWidget(projectId: string) {
 export async function ensureProjectWidget(projectId: string, orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
-  // Check if project already has a widget
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: p } = await (adminSupabase as any).from("projects").select("widget_id").eq("id", projectId).single();
-  if (p?.widget_id) return p.widget_id as string;
+  try {
+    // Check if project already has a widget
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: p } = await (adminSupabase as any).from("projects").select("widget_id").eq("id", projectId).single();
+    if (p?.widget_id) return p.widget_id as string;
 
-  const defaultConfig = {
-    theme: { variant: "light", primaryColor: "#3b82f6", backgroundColor: "#ffffff", fontFamily: "Inter", borderRadius: 12 },
-    blocks: [{ id: uuid(), type: "text", version: 1, data: { text: "Welcome! Edit this in Studio.", align: "left" } }],
-  };
+    const defaultConfig = {
+      theme: { variant: "light", primaryColor: "#3b82f6", backgroundColor: "#ffffff", fontFamily: "Inter", borderRadius: 12 },
+      blocks: [{ id: uuid(), type: "text", version: 1, data: { text: "Welcome! Edit this in Studio.", align: "left" } }],
+    };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: w, error: werr } = await (adminSupabase as any)
-    .from("studio_widgets")
-    .insert({ org_id: orgId, name: "Project Widget", widget_config: defaultConfig, published_config: defaultConfig })
-    .select("id")
-    .single();
-  if (werr) throw werr;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: w, error: werr } = await (adminSupabase as any)
+      .from("studio_widgets")
+      .insert({ org_id: orgId, name: "Project Widget", widget_config: defaultConfig, published_config: defaultConfig })
+      .select("id")
+      .single();
+    
+    if (werr) {
+      console.error("Error creating widget:", werr);
+      throw werr;
+    }
 
-  // Link widget to project
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (adminSupabase as any).from("projects").update({ widget_id: w.id }).eq("id", projectId);
-  
-  return w.id as string;
+    // Link widget to project
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: uerr } = await (adminSupabase as any).from("projects").update({ widget_id: w.id }).eq("id", projectId);
+    if (uerr) {
+      console.error("Error linking widget to project:", uerr);
+      throw uerr;
+    }
+    
+    return w.id as string;
+  } catch (error) {
+    console.error("ensureProjectWidget error:", error);
+    throw error;
+  }
 }
