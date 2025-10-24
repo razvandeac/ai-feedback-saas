@@ -2,7 +2,6 @@ export const revalidate = 0;
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getClientBaseUrl } from "@/lib/baseUrl";
 import Link from "next/link";
-import WidgetPreview from "@/components/projects/widget-preview";
 import { CodeBlock } from "@/components/ui/code";
 import CopyButton from "@/components/ui/copy-button";
 import AllowedOriginsEditor from "@/components/projects/allowed-origins-editor";

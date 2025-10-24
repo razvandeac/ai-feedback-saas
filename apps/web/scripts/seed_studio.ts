@@ -61,18 +61,26 @@ async function seedStudio() {
   }
 
   const { data: widget } = await adminSupabase
-    .from('widget_config')
+    .from('studio_widgets')
     .insert({
-      project_id: project.id,
+      org_id: org.id,
+      name: 'Studio Test Widget',
       widget_config: widgetConfig,
+      published_config: widgetConfig,
     })
     .select()
     .single()
 
   if (!widget) {
-    console.error('Failed to create widget config')
+    console.error('Failed to create studio widget')
     return
   }
+
+  // Link the widget to the project
+  await adminSupabase
+    .from('projects')
+    .update({ widget_id: widget.id })
+    .eq('id', project.id)
 
   console.log('✅ Studio seeded successfully!')
   console.log(`Organization: ${org.name} (${org.slug})`)

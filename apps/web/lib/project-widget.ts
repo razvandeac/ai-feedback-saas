@@ -7,18 +7,18 @@ export async function getProjectWithWidget(projectId: string) {
     .from("projects")
     .select(`
       id, name, key, created_at, org_id, widget_id,
-      widgets!projects_widget_id_fkey(id, config, published_config, version, published_at)
+      studio_widgets!projects_widget_id_fkey(id, widget_config, published_config, version, published_at)
     `)
     .eq("id", projectId)
     .single();
     
   if (error) throw error;
   
-  const widget = (data as { widgets?: { id: string; config: unknown; published_config: unknown; version: number; published_at: string } | null }).widgets || null;
+  const widget = (data as { studio_widgets?: { id: string; widget_config: unknown; published_config: unknown; version: number; published_at: string } | null }).studio_widgets || null;
   return { ...data, widget };
 }
 
-export async function ensureProjectWidget(projectId: string, _orgId: string) {
+export async function ensureProjectWidget(projectId: string, orgId: string) {
   const adminSupabase = getSupabaseAdmin();
   
   const { data: p } = await adminSupabase
@@ -47,12 +47,11 @@ export async function ensureProjectWidget(projectId: string, _orgId: string) {
   };
 
   const { data: w, error: werr } = await adminSupabase
-    .from("widgets")
+    .from("studio_widgets")
     .insert({ 
-      project_id: projectId, 
+      org_id: orgId,
       name: "Project Widget",
-      kind: "inline",
-      config: defaultConfig, 
+      widget_config: defaultConfig, 
       published_config: defaultConfig 
     })
     .select("id")
