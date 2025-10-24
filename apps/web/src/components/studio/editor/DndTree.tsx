@@ -9,6 +9,7 @@ import { Block } from "@/src/lib/studio/blocks/types";
 import { ROOT_ID, findPathById, insertAtPath, removeAtPath, getChildrenAtPath } from "./tree";
 import { DropZone } from "./DropZone";
 import { DragHandle } from "@/src/components/common/DragHandle";
+import { ContainerFrame } from "./ContainerFrame";
 
 function Row({ block, children }: { block: Block; children: React.ReactNode }) {
   // Use activator handle only
@@ -45,7 +46,16 @@ function Level({
       <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
         {blocks.map((b, i) => (
           <div key={b.id} className="mb-2">
-            <Row block={b}>{renderBlock(b)}</Row>
+            <Row block={b}>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {Array.isArray((b as any).data?.children) ? (
+                <ContainerFrame id={b.id}>
+                  {renderBlock(b)}
+                </ContainerFrame>
+              ) : (
+                renderBlock(b)
+              )}
+            </Row>
             <DropZone id={`dz:${parentId}:${i+1}`} depth={depth} dragging={dragging} />
             {/* If container, render its children recursively */}
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

@@ -2,7 +2,6 @@
 import React from "react";
 import { useEditorCtx } from "@/src/components/studio/editor/EditorContext";
 import { Block } from "@/src/lib/studio/blocks/types";
-import { ContainerFrame } from "./editor/ContainerFrame";
 
 type Props = {
   blocks: Block[];
@@ -67,12 +66,9 @@ export default function BlockRenderer({ blocks, onChange }: Props) {
                   onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
                 >
                   <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
-
-                  <ContainerFrame id={block.id}>
-                    {children.length === 0 && (
-                      <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
-                    )}
-                  </ContainerFrame>
+                  {children.length === 0 && (
+                    <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
+                  )}
                 </div>
               );
             }
