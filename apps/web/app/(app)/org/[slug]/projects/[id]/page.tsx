@@ -60,7 +60,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
         
         {/* Debug info */}
         <div className="rounded-2xl border bg-yellow-50 p-4 text-yellow-800 text-xs">
-          <p><strong>Debug Info (v2 - {new Date().toISOString()})</strong></p>
+          <p><strong>Debug Info (v3 - {new Date().toISOString()})</strong></p>
           <p>Project ID: {proj.id}</p>
           <p>Org ID: {proj.org_id}</p>
           <p>Widget ID: {widgetId || "UNDEFINED"}</p>
