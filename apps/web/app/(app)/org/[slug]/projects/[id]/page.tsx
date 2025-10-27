@@ -20,7 +20,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
     try {
       widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
     } catch (error) {
-      console.error("Error ensuring widget:", error);
+      // Error creating widget
       // If widget creation fails, show error page with details
       return (
         <div className="p-6 space-y-4">
@@ -110,7 +110,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
       </div>
     );
   } catch (error) {
-    console.error("Project overview error:", error);
+    // Project overview error
     return (
       <div className="p-6 space-y-4">
         <h1 className="text-lg font-semibold">Error Loading Project</h1>
