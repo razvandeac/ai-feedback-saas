@@ -74,7 +74,10 @@ export default async function ProjectOverview({ params }: { params: Promise<{ sl
               <Button className="bg-blue-600 text-white hover:bg-blue-700">Open Studio</Button>
             </Link>
           ) : (
-            <Button disabled className="bg-gray-400 text-white">Studio Loading...</Button>
+            <div>
+              <Button disabled className="bg-gray-400 text-white">Studio Loading...</Button>
+              <p className="text-xs text-red-600 mt-1">ERROR: widgetId is {typeof widgetId === 'undefined' ? 'undefined' : 'null'}!</p>
+            </div>
           )}
           <Link href={`/org/${slug}/projects/${id}/widget`}>
             <Button variant="outline">Preview</Button>
