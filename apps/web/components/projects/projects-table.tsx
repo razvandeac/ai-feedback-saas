@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Copy } from "lucide-react";
+import { hasUnpublishedChanges } from "@/src/lib/studio/diff";
 
 type Row = { 
   id: string; 
@@ -90,9 +91,14 @@ export default function ProjectsTable({
           {rows.map(r => (
             <TR key={r.id}>
               <TD className="font-medium">
-                <Link href={`/org/${orgSlug}/projects/${r.id}`} className="hover:text-brand hover:underline">
-                  {r.name}
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link href={`/org/${orgSlug}/projects/${r.id}`} className="hover:text-brand hover:underline">
+                    {r.name}
+                  </Link>
+                  {r.studio_widgets && hasUnpublishedChanges(r.studio_widgets.widget_config, r.studio_widgets.published_config) && (
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Draft</span>
+                  )}
+                </div>
               </TD>
               <TD>
                 <div className="flex items-center gap-2">
