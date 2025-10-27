@@ -75,6 +75,7 @@ export default async function StudioPage({
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
+      <div className="mb-2 text-xs text-gray-500">Studio loaded with widgetId: {widgetId}</div>
       <Studio widgetId={widgetId} orgId={proj.org_id} initialConfig={initialConfig} />
     </main>
   )
