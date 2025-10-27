@@ -52,10 +52,14 @@ export default function Breadcrumb() {
   const human = (s: string) => {
     if (s === "projects") return "Projects";
     if (s === "settings") return "Settings";
+    if (s === "studio") return "Studio";
     if (labels[s]) return labels[s];
     if (uuidV4.test(s)) return s;
     return s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   };
+  
+  // Don't make "studio" clickable since it's not a standalone page
+  const shouldSkipLink = (seg: string) => seg === "studio";
 
   if (parts.length === 0) return null;
 
@@ -64,10 +68,11 @@ export default function Breadcrumb() {
       {parts.map((p, i) => {
         const last = i === parts.length - 1;
         const label = human(p.seg);
+        const skipLink = shouldSkipLink(p.seg);
         return (
           <span key={p.href} className="truncate">
             {i > 0 && <span> / </span>}
-            {last ? (
+            {last || skipLink ? (
               <span className="text-neutral-900">{label}</span>
             ) : (
               <Link href={p.href} className="hover:underline">
