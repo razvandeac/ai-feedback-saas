@@ -11,8 +11,6 @@ export default async function StudioPage({
 }) {
   const { id, slug, widgetId } = await params
   const adminSupabase = getSupabaseAdmin()
-  
-  console.log('Studio page loaded with params:', { id, slug, widgetId })
 
   // Get project with widget information
   const proj = await getProjectWithWidget(id)
@@ -34,11 +32,8 @@ export default async function StudioPage({
 
   if (widgetError) {
     console.error('Error fetching widget:', widgetError)
-    console.error('Widget ID:', widgetId)
     notFound()
   }
-  
-  console.log('Fetched widget config:', widget)
 
   // Parse widget config or create default
   let initialConfig
@@ -75,7 +70,6 @@ export default async function StudioPage({
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
-      <div className="mb-2 text-xs text-gray-500">Studio loaded with widgetId: {widgetId}</div>
       <Studio widgetId={widgetId} orgId={proj.org_id} initialConfig={initialConfig} />
     </main>
   )
