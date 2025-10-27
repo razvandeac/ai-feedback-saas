@@ -26,20 +26,25 @@ export default async function StudioPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: widget, error: widgetError } = await (adminSupabase as any)
     .from('studio_widgets')
-    .select('widget_config')
+    .select('widget_config, published_config')
     .eq('id', widgetId)
     .single()
 
   if (widgetError) {
     console.error('Error fetching widget:', widgetError)
+    console.error('Widget ID:', widgetId)
     notFound()
   }
+  
+  console.log('Fetched widget config:', widget)
 
   // Parse widget config or create default
   let initialConfig
   try {
-    if (widget?.widget_config) {
-      initialConfig = WidgetConfigSchema.parse(widget.widget_config)
+    // Use widget_config if available, fallback to published_config, then default
+    const configData = widget?.widget_config || widget?.published_config
+    if (configData) {
+      initialConfig = WidgetConfigSchema.parse(configData)
     } else {
       // Create default config
       initialConfig = WidgetConfigSchema.parse({
