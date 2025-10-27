@@ -6,6 +6,9 @@ import CopyButton from "@/components/ui/copy-button";
 import AllowedOriginsEditor from "@/components/projects/allowed-origins-editor";
 import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
 import BlockRenderer from "@/src/components/studio/BlockRenderer";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { hasUnpublishedChanges } from "@/src/lib/studio/diff";
+import ClientPreview from "./client-preview";
 
 export default async function ProjectWidgetPage({
   params
@@ -20,7 +23,19 @@ export default async function ProjectWidgetPage({
 
   // Ensure widget exists for this project
   const widgetId = proj.widget?.id || await ensureProjectWidget(proj.id, proj.org_id);
-  const cfg = proj.widget?.published_config ?? proj.widget?.widget_config;
+  
+  // Get both draft and published configs
+  const adminSupabase = getSupabaseAdmin();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: widget } = await (adminSupabase as any)
+    .from("studio_widgets")
+    .select("widget_config, published_config")
+    .eq("id", widgetId)
+    .single();
+  
+  const published = widget?.published_config;
+  const draft = widget?.widget_config;
+  const hasDraft = hasUnpublishedChanges(draft, published);
 
   const siteBase = getClientBaseUrl();
 
@@ -50,12 +65,7 @@ export default async function ProjectWidgetPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
           <div className="text-sm font-medium">Live preview</div>
-          <div className="rounded-2xl border bg-white p-6">
-            <BlockRenderer blocks={cfg?.blocks ?? []} previewOnly={true} />
-          </div>
-          <div className="rounded-2xl border p-3 bg-amber-50 text-amber-800 text-xs">
-            This preview renders the <b>published</b> version. Edit in Studio and click Publish to update.
-          </div>
+          <ClientPreview published={published} draft={draft} hasDraft={hasDraft} />
         </div>
 
         <div className="space-y-4">
