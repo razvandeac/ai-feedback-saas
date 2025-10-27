@@ -6,10 +6,13 @@ import { Block } from "@/src/lib/studio/blocks/types";
 type Props = {
   blocks: Block[];
   onChange?: (next: Block[]) => void;
+  previewOnly?: boolean;
 };
 
-export default function BlockRenderer({ blocks, onChange }: Props) {
-  const { selectedId, setSelectedId } = useEditorCtx();
+export default function BlockRenderer({ blocks, onChange, previewOnly = false }: Props) {
+  // Only use editor context if not in preview-only mode
+  const ctx = previewOnly ? { selectedId: null, setSelectedId: () => {} } : useEditorCtx();
+  const { selectedId, setSelectedId } = ctx;
 
   const baseCls = "rounded p-2 mb-2 transition border border-transparent hover:border-neutral-300 focus-within:border-blue-400";
 

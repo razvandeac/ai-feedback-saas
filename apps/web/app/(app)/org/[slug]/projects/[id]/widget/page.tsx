@@ -51,7 +51,7 @@ export default async function ProjectWidgetPage({
         <div className="space-y-3">
           <div className="text-sm font-medium">Live preview</div>
           <div className="rounded-2xl border bg-white p-6">
-            <BlockRenderer blocks={cfg?.blocks ?? []} />
+            <BlockRenderer blocks={cfg?.blocks ?? []} previewOnly={true} />
           </div>
           <div className="rounded-2xl border p-3 bg-amber-50 text-amber-800 text-xs">
             This preview renders the <b>published</b> version. Edit in Studio and click Publish to update.
