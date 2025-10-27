@@ -11,9 +11,10 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
   if (!user) notFound()
 
   // Use admin client to bypass RLS issues
-  const { data: proj } = await adminSupabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: proj } = await (adminSupabase as any)
     .from('projects')
-    .select('id, name, key, org_id')
+    .select('id, name, key, org_id, widget_id')
     .eq('id', id)
     .single()
   if (!proj) notFound()
@@ -40,7 +41,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
       <div className="space-y-2">
         <a className="underline" href={`/org/demo/projects/${proj.id}/feedback`}>View Feedback</a>
         <br />
-        <a className="underline" href={`/org/demo/projects/${proj.id}/studio`}>Open Widget Studio</a>
+        {proj.widget_id ? (
+          <a className="underline" href={`/org/demo/projects/${proj.id}/studio/${proj.widget_id}`}>Open Widget Studio</a>
+        ) : (
+          <span className="text-gray-500">Studio not available (no widget)</span>
+        )}
       </div>
     </main>
   )
