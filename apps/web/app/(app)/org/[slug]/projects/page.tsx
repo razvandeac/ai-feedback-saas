@@ -14,6 +14,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [{ data: projects }, role] = await Promise.all([
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (adminSupabase as any)
       .from("projects")
       .select("id, name, key, created_at, widget_id, studio_widgets!projects_widget_id_fkey(id, widget_config, published_config)")
