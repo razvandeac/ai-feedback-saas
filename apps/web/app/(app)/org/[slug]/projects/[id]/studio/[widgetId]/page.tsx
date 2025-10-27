@@ -9,8 +9,10 @@ export default async function StudioPage({
 }: { 
   params: Promise<{ slug: string; id: string; widgetId: string }> 
 }) {
-  const { id, widgetId } = await params
+  const { id, slug, widgetId } = await params
   const adminSupabase = getSupabaseAdmin()
+  
+  console.log('Studio page loaded with params:', { id, slug, widgetId })
 
   // Get project with widget information
   const proj = await getProjectWithWidget(id)
