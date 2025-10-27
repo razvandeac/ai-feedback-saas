@@ -14,14 +14,26 @@ import { ValidationBadge } from '@/src/components/studio/editor/ValidationBadge'
 import { EditorProvider, useEditorCtx } from '@/src/components/studio/editor/EditorContext'
 import { Toast } from '@/src/components/common/Toast'
 import { v4 as uuid } from 'uuid'
+import { hasUnpublishedChanges } from '@/src/lib/studio/diff'
 
-function StudioContent({ widgetId, orgId, initialConfig }: { widgetId: string; orgId: string; initialConfig: WidgetConfig }) {
+function StudioContent({ widgetId, orgId, initialConfig, publishedConfig, version }: { 
+  widgetId: string
+  orgId: string
+  initialConfig: WidgetConfig
+  publishedConfig?: WidgetConfig
+  version: number
+}) {
   const { config, setConfigWithHistory, dirty, setDirty, saving, setSaving, saveError, setSaveError, lastSavedAt, setLastSavedAt, undo, redo, canUndo, canRedo, issues } =
     useEditorState(initialConfig);
 
   const { selectedId, setSelectedId } = useEditorCtx();
   const [toast, setToast] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [currentVersion, setCurrentVersion] = useState(version);
+  const [publishedConfigState, setPublishedConfigState] = useState(publishedConfig);
+
+  // Compute unpublished changes
+  const unpublished = hasUnpublishedChanges(config, publishedConfigState);
 
   const publish = useCallback(async () => {
     if (issues.length > 0) {
@@ -37,13 +49,18 @@ function StudioContent({ widgetId, orgId, initialConfig }: { widgetId: string; o
         body: JSON.stringify({ orgId }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setToast("Published successfully! Preview page now reflects the new version.");
+      const data = await res.json();
+      
+      // Update published config to match current draft
+      setPublishedConfigState(config);
+      setCurrentVersion(data.version);
+      setToast(`Published successfully! (v${data.version})`);
     } catch (error) {
       setToast(`Publish failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setPublishing(false);
     }
-  }, [widgetId, orgId, issues.length]);
+  }, [widgetId, orgId, issues.length, config]);
 
   // Config size guard
   useEffect(() => {
@@ -125,13 +142,19 @@ function StudioContent({ widgetId, orgId, initialConfig }: { widgetId: string; o
       <header className="flex items-center justify-between">
         <div className="text-lg font-semibold">Studio Editor</div>
         <div className="flex items-center gap-2">
+          {unpublished ? (
+            <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Unpublished changes</span>
+          ) : (
+            <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Published v{currentVersion}</span>
+          )}
           <button disabled={!canUndo} className="border rounded px-2 py-1 disabled:opacity-40" onClick={undo}>Undo</button>
           <button disabled={!canRedo} className="border rounded px-2 py-1 disabled:opacity-40" onClick={redo}>Redo</button>
           <ValidationBadge issues={issues} />
           <button 
-            disabled={publishing || issues.length > 0} 
+            disabled={publishing || issues.length > 0 || !unpublished} 
             className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-40 disabled:cursor-not-allowed" 
             onClick={publish}
+            title={!unpublished ? "No changes to publish" : issues.length > 0 ? "Fix validation errors before publishing" : undefined}
           >
             {publishing ? "Publishing..." : "Publish"}
           </button>
@@ -156,10 +179,22 @@ function StudioContent({ widgetId, orgId, initialConfig }: { widgetId: string; o
   )
 }
 
-export default function Studio({ widgetId, orgId, initialConfig }: { widgetId: string; orgId: string; initialConfig: WidgetConfig }) {
+export default function Studio({ widgetId, orgId, initialConfig, publishedConfig, version }: { 
+  widgetId: string
+  orgId: string
+  initialConfig: WidgetConfig
+  publishedConfig?: WidgetConfig
+  version: number
+}) {
   return (
     <EditorProvider>
-      <StudioContent widgetId={widgetId} orgId={orgId} initialConfig={initialConfig} />
+      <StudioContent 
+        widgetId={widgetId} 
+        orgId={orgId} 
+        initialConfig={initialConfig}
+        publishedConfig={publishedConfig}
+        version={version}
+      />
     </EditorProvider>
   )
 }

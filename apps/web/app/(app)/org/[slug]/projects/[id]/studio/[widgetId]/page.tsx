@@ -26,7 +26,7 @@ export default async function StudioPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: widget, error: widgetError } = await (adminSupabase as any)
     .from('studio_widgets')
-    .select('widget_config, published_config')
+    .select('widget_config, published_config, version, published_at')
     .eq('id', widgetId)
     .single()
 
@@ -36,7 +36,7 @@ export default async function StudioPage({
   }
 
   // Parse widget config or create default
-  let initialConfig
+  let initialConfig, publishedConfig
   try {
     // Use widget_config if available, fallback to published_config, then default
     const configData = widget?.widget_config || widget?.published_config
@@ -67,10 +67,25 @@ export default async function StudioPage({
     notFound()
   }
 
+  // Parse published config if it exists
+  try {
+    if (widget?.published_config) {
+      publishedConfig = WidgetConfigSchema.parse(widget.published_config)
+    }
+  } catch (error) {
+    console.error('Failed to parse published config:', error)
+  }
+
   return (
     <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Widget Studio · {proj.name}</h1>
-      <Studio widgetId={widgetId} orgId={proj.org_id} initialConfig={initialConfig} />
+      <Studio 
+        widgetId={widgetId} 
+        orgId={proj.org_id} 
+        initialConfig={initialConfig}
+        publishedConfig={publishedConfig}
+        version={widget?.version ?? 1}
+      />
     </main>
   )
 }
