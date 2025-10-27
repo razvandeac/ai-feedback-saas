@@ -9,12 +9,10 @@ type Props = {
   previewOnly?: boolean;
 };
 
-export default function BlockRenderer({ blocks, onChange, previewOnly = false }: Props) {
-  // Only use editor context if not in preview-only mode
-  const ctx = previewOnly ? { selectedId: null, setSelectedId: () => {} } : useEditorCtx();
-  const { selectedId, setSelectedId } = ctx;
+const baseCls = "rounded p-2 mb-2 transition border border-transparent hover:border-neutral-300 focus-within:border-blue-400";
 
-  const baseCls = "rounded p-2 mb-2 transition border border-transparent hover:border-neutral-300 focus-within:border-blue-400";
+function BlockRendererWithEditor({ blocks, onChange }: { blocks: Block[]; onChange?: (next: Block[]) => void }) {
+  const { selectedId, setSelectedId } = useEditorCtx();
 
   function patchAt(index: number, patch: Partial<Block>) {
     if (!onChange) return;
@@ -60,23 +58,22 @@ export default function BlockRenderer({ blocks, onChange, previewOnly = false }:
           );
         }
 
-            if (block.type === "container") {
-              const children = block.data.children ?? [];
-              return (
-                <div
-                  key={block.id}
-                  className={cls}
-                  onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
-                >
-                  <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
-                  {children.length === 0 && (
-                    <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
-                  )}
-                </div>
-              );
-            }
+        if (block.type === "container") {
+          const children = block.data.children ?? [];
+          return (
+            <div
+              key={block.id}
+              className={cls}
+              onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
+            >
+              <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
+              {children.length === 0 && (
+                <div className="text-xs italic opacity-60 py-2">Empty container. Drag here or press &quot;/&quot;.</div>
+              )}
+            </div>
+          );
+        }
 
-        // image blocks
         if (block.type === "image") {
           return (
             <div
@@ -84,6 +81,7 @@ export default function BlockRenderer({ blocks, onChange, previewOnly = false }:
               className={cls}
               onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={block.data.url}
                 alt={block.data.alt ?? ""}
@@ -93,7 +91,6 @@ export default function BlockRenderer({ blocks, onChange, previewOnly = false }:
           );
         }
 
-        // Unknown block type fallback
         return (
           <div
             key={(block as Block).id}
@@ -106,4 +103,59 @@ export default function BlockRenderer({ blocks, onChange, previewOnly = false }:
       })}
     </>
   );
+}
+
+function BlockRendererPreview({ blocks }: { blocks: Block[] }) {
+  return (
+    <>
+      {blocks.map((block) => {
+        if (block.type === "text") {
+          return (
+            <div key={block.id} className="mb-2">
+              <p>{block.data.text ?? ""}</p>
+            </div>
+          );
+        }
+
+        if (block.type === "container") {
+          const children = block.data.children ?? [];
+          return (
+            <div key={block.id} className="mb-2">
+              <p className="text-xs opacity-60 mb-1">Container ({block.data.direction})</p>
+              {children.length === 0 && (
+                <div className="text-xs italic opacity-60 py-2">Empty container</div>
+              )}
+            </div>
+          );
+        }
+
+        if (block.type === "image") {
+          return (
+            <div key={block.id} className="mb-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={block.data.url}
+                alt={block.data.alt ?? ""}
+                className="max-w-full rounded"
+              />
+            </div>
+          );
+        }
+
+        return (
+          <div key={(block as Block).id}>
+            <p className="text-xs opacity-60">Unknown block type: {(block as Block).type}</p>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+export default function BlockRenderer({ blocks, onChange, previewOnly = false }: Props) {
+  if (previewOnly) {
+    return <BlockRendererPreview blocks={blocks} />;
+  }
+  
+  return <BlockRendererWithEditor blocks={blocks} onChange={onChange} />;
 }
