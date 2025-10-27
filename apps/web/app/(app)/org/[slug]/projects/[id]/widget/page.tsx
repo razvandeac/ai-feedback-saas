@@ -5,7 +5,6 @@ import { CodeBlock } from "@/components/ui/code";
 import CopyButton from "@/components/ui/copy-button";
 import AllowedOriginsEditor from "@/components/projects/allowed-origins-editor";
 import { getProjectWithWidget, ensureProjectWidget } from "@/src/server/projects/repo";
-import BlockRenderer from "@/src/components/studio/BlockRenderer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { hasUnpublishedChanges } from "@/src/lib/studio/diff";
 import ClientPreview from "./client-preview";

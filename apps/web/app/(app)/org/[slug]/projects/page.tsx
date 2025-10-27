@@ -12,7 +12,6 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
   const { data: org } = await adminSupabase.from("organizations").select("id,slug,name").eq("slug", slug).single();
   if (!org) notFound();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [{ data: projects }, role] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (adminSupabase as any)
