@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import { register } from "./registry";
 import { TextBlock, ImageBlock, ContainerBlock } from "./types";
 
@@ -12,7 +13,7 @@ register({
 register({
   type: "image",
   schema: ImageBlock,
-  render: (b) => <img src={b.data.url} alt={b.data.alt ?? ""} width={b.data.width} height={b.data.height} />,
+  render: (b) => <Image src={b.data.url} alt={b.data.alt ?? ""} width={b.data.width ?? 100} height={b.data.height ?? 100} />,
 });
 
 register({

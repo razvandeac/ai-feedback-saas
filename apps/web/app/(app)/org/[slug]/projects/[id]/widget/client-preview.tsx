@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import BlockRenderer from '@/src/components/studio/BlockRenderer';
+import type { WidgetConfig } from '@/src/lib/studio/WidgetConfigSchema';
 
 export default function ClientPreview({ 
   published, 
   draft, 
   hasDraft 
 }: { 
-  published: any
-  draft: any
+  published: WidgetConfig | null
+  draft: WidgetConfig | null
   hasDraft: boolean 
 }) {
   const [showDraft, setShowDraft] = useState(false);
