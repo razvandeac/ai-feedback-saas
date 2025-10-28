@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import BlockRenderer from '@/src/components/studio/BlockRenderer';
 import type { WidgetConfig } from '@/src/lib/studio/WidgetConfigSchema';
+import type { Block } from '@/src/lib/studio/blocks/types';
 
 export default function ClientPreview({ 
   published, 
@@ -21,7 +22,7 @@ export default function ClientPreview({
   return (
     <>
       <div className="rounded-2xl border bg-white p-6">
-        <BlockRenderer blocks={config?.blocks ?? []} previewOnly={true} />
+        <BlockRenderer blocks={(config?.blocks ?? []) as Block[]} previewOnly={true} />
       </div>
       
       {hasDraft && (
