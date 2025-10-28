@@ -14,7 +14,13 @@ type Row = {
   key: string; 
   created_at: string; 
   widget_id?: string;
-  studio_widgets?: { id: string; version: number; published_at: string } | null;
+  studio_widgets?: { 
+    id: string; 
+    version: number; 
+    published_at: string;
+    widget_config?: unknown;
+    published_config?: unknown;
+  } | null;
 };
 
 export default function ProjectsTable({ 
