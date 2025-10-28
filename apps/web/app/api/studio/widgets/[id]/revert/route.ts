@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { version, orgId } = await req.json();
   const adminSupabase = getSupabaseAdmin();
+  const { id } = await params;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: row, error: vErr } = await (adminSupabase as any)
     .from("studio_widget_versions")
     .select("config, org_id")
-    .eq("widget_id", params.id)
+    .eq("widget_id", id)
     .eq("version", version)
     .single();
     
@@ -21,7 +22,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const { error: up } = await (adminSupabase as any)
     .from("studio_widgets")
     .update({ widget_config: row.config })
-    .eq("id", params.id);
+    .eq("id", id);
     
   if (up) return NextResponse.json({ error: up.message }, { status: 400 });
 
